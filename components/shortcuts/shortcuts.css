@@ -1,0 +1,330 @@
+/* ============================================================
+   KEYBOARD SHORTCUTS — glyphs, hint layer, help dialog
+   ============================================================ */
+
+/* ---------- KeyGlyph (key cap) ---------- */
+.kglyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-feature-settings: "ss01", "kern";
+  letter-spacing: 0;
+  line-height: 1;
+  font-weight: var(--fw-medium);
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--bg-surface) 92%, var(--khadi)),
+    color-mix(in oklab, var(--bg-sunken) 88%, var(--turmeric))
+  );
+  color: var(--fg-1);
+  border: 1px solid var(--border-2);
+  border-bottom-color: var(--border-3);
+  border-radius: 7px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 248, 230, 0.55),
+    inset 0 -1.5px 0 rgba(60, 40, 25, 0.1),
+    var(--shadow-sm);
+  user-select: none;
+  white-space: nowrap;
+  text-transform: none;
+}
+:root[data-theme="dark"] .kglyph {
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--bg-surface) 80%, var(--peat)),
+    color-mix(in oklab, var(--bg-sunken) 92%, var(--moonless))
+  );
+  color: var(--fg-1);
+  box-shadow:
+    inset 0 1px 0 rgba(244, 233, 213, 0.06),
+    inset 0 -1.5px 0 rgba(0, 0, 0, 0.5),
+    var(--shadow-sm);
+}
+
+.kglyph--sm {
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  font-size: 11.5px;
+}
+.kglyph--md {
+  min-width: 30px;
+  height: 30px;
+  padding: 0 8px;
+  font-size: 13px;
+}
+
+/* Specials get a slightly wider min-width so "Esc" / "⇧" sit balanced. */
+.kglyph--mod,
+.kglyph--glyph {
+  min-width: 28px;
+  letter-spacing: 0.01em;
+}
+.kglyph--md.kglyph--mod,
+.kglyph--md.kglyph--glyph {
+  min-width: 36px;
+}
+
+/* ---------- HintLayer (Shift-hold floating glyphs) ---------- */
+.khint-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1500;
+  contain: layout style;
+  /* Override UA popover defaults so the layer fills the viewport instead of
+     auto-margin-centring, and stays transparent. Top-layer placement (via
+     popover="manual" + showPopover) lifts hints above other popovers. */
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  overflow: visible;
+}
+.khint-layer:popover-open {
+  display: block;
+}
+
+.khint {
+  position: fixed;
+  transform: translate(-50%, -50%);
+  /* Default rest state */
+  opacity: 0;
+  scale: 0.7;
+  animation: khint-in var(--dur-base) var(--ease-spring) both;
+  animation-delay: calc(var(--i, 0) * 18ms);
+  filter: drop-shadow(0 4px 10px rgba(60, 40, 25, 0.25));
+}
+
+@keyframes khint-in {
+  0% {
+    opacity: 0;
+    scale: 0.55;
+    translate: 0 -4px;
+  }
+  60% {
+    opacity: 1;
+    scale: 1.08;
+  }
+  100% {
+    opacity: 1;
+    scale: 1;
+    translate: 0 0;
+  }
+}
+
+/* Subtle accent ring on the floating glyph so it pops against any background */
+.khint .kglyph {
+  border-color: color-mix(in oklab, var(--accent) 60%, var(--border-3));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 248, 230, 0.55),
+    inset 0 -1.5px 0 rgba(60, 40, 25, 0.1),
+    0 0 0 1px color-mix(in oklab, var(--accent) 28%, transparent),
+    0 8px 18px rgba(60, 40, 25, 0.18);
+}
+:root[data-theme="dark"] .khint .kglyph {
+  border-color: color-mix(in oklab, var(--accent) 55%, var(--border-3));
+  box-shadow:
+    inset 0 1px 0 rgba(244, 233, 213, 0.08),
+    inset 0 -1.5px 0 rgba(0, 0, 0, 0.5),
+    0 0 0 1px color-mix(in oklab, var(--accent) 35%, transparent),
+    0 10px 22px rgba(0, 0, 0, 0.55);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .khint {
+    animation: none;
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+/* ---------- ShortcutHelp (dialog) ---------- */
+.khelp-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: color-mix(in oklab, var(--moonless) 60%, transparent);
+  backdrop-filter: blur(6px) saturate(1.05);
+  -webkit-backdrop-filter: blur(6px) saturate(1.05);
+  animation: khelp-fade var(--dur-base) var(--ease-out) both;
+}
+.khelp-backdrop[data-ending-style] {
+  animation: khelp-fade-out var(--dur-fast) var(--ease-out) both;
+}
+
+@keyframes khelp-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes khelp-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.khelp-popup {
+  position: fixed;
+  z-index: 2001;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(560px, calc(100vw - 2 * var(--s-5)));
+  max-height: min(80vh, 720px);
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-surface);
+  color: var(--fg-1);
+  border: 1px solid var(--border-2);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-xl);
+  overflow: hidden;
+  animation: khelp-pop var(--dur-base) var(--ease-spring) both;
+}
+.khelp-popup[data-ending-style] {
+  animation: khelp-pop-out var(--dur-fast) var(--ease-out) both;
+}
+
+@keyframes khelp-pop {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -48%) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+@keyframes khelp-pop-out {
+  from {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.96);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .khelp-backdrop,
+  .khelp-popup {
+    animation: none;
+  }
+}
+
+.khelp-header {
+  padding: var(--s-5) var(--s-5) var(--s-3);
+  border-bottom: 1px solid var(--border-1);
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--accent-soft) 80%, transparent),
+    transparent
+  );
+}
+.khelp-title {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: var(--fw-display);
+  font-variation-settings:
+    "opsz" 144,
+    "SOFT" 100,
+    "WONK" 1;
+  font-size: var(--t-h3);
+  line-height: var(--lh-tight);
+  margin: 0;
+  color: var(--fg-1);
+}
+.khelp-sub {
+  margin: 6px 0 0;
+  font-size: var(--t-caption);
+  color: var(--fg-3);
+  font-family: var(--font-mono);
+  letter-spacing: 0.01em;
+}
+
+.khelp-body {
+  padding: var(--s-4) var(--s-5);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+.khelp-section + .khelp-section {
+  margin-top: 2px;
+}
+.khelp-section-title {
+  font-family: var(--font-mono);
+  font-size: var(--t-overline);
+  text-transform: uppercase;
+  letter-spacing: var(--track-mega);
+  color: var(--fg-3);
+  font-weight: var(--fw-semibold);
+  margin: 0 0 var(--s-2);
+}
+.khelp-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.khelp-row {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  align-items: center;
+  gap: var(--s-3);
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--border-1);
+}
+.khelp-row:last-child {
+  border-bottom: 0;
+}
+.khelp-keys {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+.khelp-label {
+  font-size: var(--t-small);
+  color: var(--fg-2);
+}
+
+.khelp-footer {
+  padding: var(--s-3) var(--s-5);
+  border-top: 1px solid var(--border-1);
+  background: var(--bg-sunken);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--t-caption);
+  color: var(--fg-3);
+}
+.khelp-footer .kglyph {
+  margin: 0 2px;
+  vertical-align: middle;
+}
+.khelp-close {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  padding: 4px;
+  border-radius: var(--r-xs);
+  cursor: pointer;
+  color: var(--fg-2);
+  transition: transform var(--dur-fast) var(--ease-spring);
+}
+.khelp-close:hover,
+.khelp-close:focus-visible {
+  transform: translateY(-1px);
+}

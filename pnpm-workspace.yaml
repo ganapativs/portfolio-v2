@@ -1,0 +1,5 @@
+allowBuilds:
+  sharp: true
+  simple-git-hooks: true
+minimumReleaseAgeExclude:
+  - "@microcharts/react@0.8.0"

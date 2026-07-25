@@ -1,0 +1,19 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "app/**/page.{ts,tsx,mdx}",
+    "app/**/layout.{ts,tsx}",
+    "app/**/route.{ts,tsx}",
+    "app/**/not-found.{ts,tsx}",
+    "app/**/error.{ts,tsx}",
+    "app/**/sitemap.{ts,tsx}",
+    "app/**/robots.{ts,tsx}",
+    "app/**/manifest.{ts,tsx}",
+    "app/**/opengraph-image.{ts,tsx}",
+    "app/**/twitter-image.{ts,tsx}",
+    "app/**/icon.{ts,tsx}",
+    "app/**/apple-icon.{ts,tsx}"
+  ],
+  "project": ["**/*.{ts,tsx,mjs,cjs,js,jsx,mdx}", "!.claude/**", "!.vscode/**"],
+  "ignoreDependencies": ["tailwindcss", "@fontsource/fraunces"]
+}

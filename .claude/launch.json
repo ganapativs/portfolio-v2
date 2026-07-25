@@ -1,0 +1,33 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "dev",
+      "runtimeExecutable": "portless",
+      "runtimeArgs": ["run", "--lan", "--app-port", "4715"],
+      "port": 4715,
+      "autoPort": false
+    },
+    {
+      "name": "dev-preview",
+      "runtimeExecutable": "portless",
+      "runtimeArgs": ["run", "--lan", "--name", "portfolio-v2-preview", "--app-port", "4716"],
+      "port": 4716,
+      "autoPort": false
+    },
+    {
+      "name": "dev-local",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["dev", "--port", "3100"],
+      "port": 3100,
+      "autoPort": false
+    },
+    {
+      "name": "attach-existing",
+      "runtimeExecutable": "sleep",
+      "runtimeArgs": ["86400"],
+      "port": 4824,
+      "autoPort": false
+    }
+  ]
+}

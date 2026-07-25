@@ -1,0 +1,11 @@
+/* PEOPLE */
+	DEVELOPER: Ganapati V S
+	Contact: vsg.inbox [at] gmail.com
+	Site: https://meetguns.com
+	From: Bengaluru, India
+
+/* SITE */
+	Language: English
+	Doctype: HTML5
+	Stack: Next.js, React, TypeScript, Tailwind CSS, MDX
+	IDE: Cursor, Claude Code
