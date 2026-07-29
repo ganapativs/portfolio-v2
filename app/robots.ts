@@ -7,9 +7,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        // /old/* is the retired design, kept browsable but never indexed —
-        // app/old/layout.tsx also sets robots noindex on every page under it.
-        disallow: ["/api/", "/old/"],
+        disallow: ["/api/"],
       },
     ],
     sitemap: `${SITE_URL}/sitemap.xml`,

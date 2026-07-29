@@ -2,8 +2,8 @@ import { ViewTransition } from "react";
 import { Dock } from "@/components/press/Dock";
 
 /**
- * The press shell. Everything the reader sees lives in here; app/old carries
- * the retired design under its own shell so the two never share a page.
+ * The press shell. Everything the reader sees lives in here. It is a route
+ * group rather than a segment so it can own the chrome without owning a URL.
  */
 export default function PressLayout({ children }: { children: React.ReactNode }) {
   return (

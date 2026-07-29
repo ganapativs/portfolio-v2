@@ -9,7 +9,16 @@ import { PressFooter } from "@/components/press/PressFooter";
 import { published } from "@/lib/posts";
 import { identity, speaking } from "@/lib/resume";
 import { JsonLd, profilePageSchema, SITE_URL } from "@/lib/jsonld";
-import { ROLES, LEDGER, SOCIAL, STRIP_BARS, SPIKE_BARS, BTTN_STARS, STACK } from "./content";
+import {
+  ROLES,
+  LEDGER,
+  SOCIAL,
+  STRIP_BARS,
+  SPIKE_BARS,
+  BTTN_STARS,
+  STACK,
+  ASSISTANT,
+} from "./content";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
@@ -102,6 +111,21 @@ export default function HomePage() {
             <h2>Things I made</h2>
             <span className="sechead-meta">55 public repos · 15 npm packages</span>
           </div>
+
+          {/* The lead runs full measure, above the two-up. It is the only block
+              on the page that argues rather than lists, so it gets the room. */}
+          <article className="made-lead">
+            <div className="made-head">
+              <a className="made-title" href={ASSISTANT.href}>
+                {ASSISTANT.name}
+              </a>
+              <span className="made-meta made-meta--live">{ASSISTANT.meta}</span>
+            </div>
+            <p className="made-body made-lead-open">{ASSISTANT.what}</p>
+            <p className="made-body">{ASSISTANT.how}</p>
+            <p className="made-body">{ASSISTANT.extension}</p>
+            <p className="made-body made-body--quiet">{ASSISTANT.caveat}</p>
+          </article>
 
           <div className="made">
             <article>

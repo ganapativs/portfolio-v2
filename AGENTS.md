@@ -16,10 +16,12 @@ Next.js **16.2** + React **19.2** + Tailwind **v4** in this repo. APIs, conventi
 - `app/**/page.tsx` route changes ⇆ this file's route map ⇆ `app/sitemap.ts` ⇆ `app/llms.txt/route.ts`
 - `next.config.ts` (headers, redirects, rewrites, experimental flags, image config) ⇆ this file
 - `lib/posts.ts` ⇆ the loader map in `app/(press)/blog/[slug]/page.tsx` (the build fails loudly if they drift)
+- `lib/resume.ts` `skills` ⇆ the `STACK` list in `app/(press)/content.ts` (throws at module load if a name is renamed)
 
-The palette used to be duplicated between `lib/accents.ts` and an inline script
-in `app/layout.tsx`. It isn't any more — see "The ink system" below — so that
-particular pair no longer needs watching.
+Two pairs that used to need watching no longer exist. The palette is not
+duplicated between TypeScript and CSS — see "The ink system". And the retired
+design is gone: as of the archive removal there is one design, one stylesheet
+entry point, and no `/old`.
 
 ---
 
@@ -50,59 +52,54 @@ app/
     layout.tsx       Skip link, registration marks, <main> + <ViewTransition name="route">, <Dock/>
     page.tsx         Home. content.ts beside it holds the copy.
     blog/, resume/   See route map.
-  old/               The retired design, archived. Own layout, own stylesheet, noindex.
-  globals.css        The RETIRED stylesheet. Imported only by app/old/layout.tsx.
-  prototype.css      Retired too — imported by globals.css, not by the live site.
 components/
-  press/             The live design: Dock, InkPopover, SiteHeader, PressFooter, Folio,
+  press/             The design: Dock, InkPopover, SiteHeader, PressFooter, Folio, Mark,
                      Masthead, PressRun, PortraitCoin, InkLibrary, EssayShell, PrintCV, useMounted
-  providers/         ThemeProvider, FXProvider, InkProvider (live) + AccentProvider (/old only)
+  providers/         ThemeProvider, FXProvider, InkProvider
   shortcuts/         ShortcutProvider, HintLayer, ShortcutHelp, KeyGlyph, useShortcut, shortcuts.css
   mdx/               CanIUse, CodeBlock, Iframe, ZoomImage (+ microcharts demos)
-  ParticlePortrait   Halftone portrait canvas. Shared: the press coin and the /old hero.
-  primitives/, sections/, Dock, SiteFooter, ShaderHero, HeroSignal, …   /old only
+  ParticlePortrait   Halftone portrait canvas behind the press coin
+  Analytics, WebVitals
 mdx-components.tsx   Required by @next/mdx — maps pre→CodeBlock, img→ZoomImage, external links
 content/blog/<slug>/ MDX posts. Body in page.mdx. Metadata is in lib/posts.ts (NOT frontmatter).
 public/posts/<slug>/ Cover + inline imagery for each post.
 lib/
   ink.ts             The ink system: ids, labels, hex mirrors, modes, storage keys
-  posts.ts           Post metadata — outside the route tree so both shells and the feeds share it
+  posts.ts           Post metadata — outside the route tree so the pages and the feeds share it
   vt.ts              withViewTransition + the iris reveal
-  fonts.ts           Press faces · fonts-old.ts  Retired faces, imported only by app/old/layout.tsx
-  accents.ts         The retired accent system. /old only. Re-exports vt.ts for back-compat.
+  fonts.ts           The press faces
+  github.ts          Live star counts for the résumé (ISR)
   jsonld.tsx (.tsx, not .ts), metadata.ts, og.tsx, resume.ts
 styles/
-  press.css          Entry point. Import order IS cascade order.
-  press/             tokens · base · chrome · home · essay · resume · motion
-  tokens.css         Retired tokens. Reached only through app/globals.css.
+  press.css          Entry point — the only global stylesheet. Import order IS cascade order.
+  press/             tokens · base · chrome · home · essay · microcharts-demos · resume · motion
 .claude/             Editor/agent config — committed. settings.json wires the PostToolUse
                      oxfmt/oxlint hook; launch.json defines dev-server entries. No secrets.
 ```
 
 ## Route map
 
-| Path                    | File                                                         | What it renders                                                                                                                     |
-| ----------------------- | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `/`                     | `app/(press)/page.tsx`                                       | Home — masthead, the press run, roles, catalogue, off-screen, writing, contact, ink library. **Absorbed the old /about and /work.** |
-| `/blog`                 | `app/(press)/blog/page.tsx`                                  | Index of `published` posts                                                                                                          |
-| `/blog/<slug>`          | `app/(press)/blog/[slug]/page.tsx`                           | `generateStaticParams` from `published`; loaders are a hardcoded slug→import map                                                    |
-| `/blog/<slug>.md`       | `app/api/blog-md/[slug]/route.ts` + a rewrite in next.config | The post as plain markdown. Static; imports and ESM exports stripped, prose left alone                                              |
-| `/resume`               | `app/(press)/resume/page.tsx`                                | CV from `lib/resume.ts`, two columns, print stylesheet                                                                              |
-| `/about`, `/work`       | `next.config.ts` redirects                                   | **308 → `/#about`, `/#work`.** Do not re-add these as pages                                                                         |
-| `/old/*`                | `app/old/{home,about,work,blog,resume}`                      | The retired design. `noindex`, robots-disallowed, linked from nowhere                                                               |
-| `/sitemap.xml`          | `app/sitemap.ts`                                             | `/`, `/resume`, `/blog` + every published post. No `/about`, `/work`, `/old`                                                        |
-| `/robots.txt`           | `app/robots.ts`                                              | Allow all except `/api/` and `/old/`; sitemap pointer                                                                               |
-| `/manifest.webmanifest` | `app/manifest.ts`                                            | PWA shell                                                                                                                           |
-| `/rss.xml`              | `app/rss.xml/route.ts`                                       | RSS 2.0 feed of `published` posts                                                                                                   |
-| `/llms.txt`             | `app/llms.txt/route.ts`                                      | Curated plain-text site map for AI systems; links each post's `.md` mirror                                                          |
-| `/api/vitals`           | `app/api/vitals/route.ts`                                    | Edge runtime — receives next/web-vitals beacons                                                                                     |
-| `/opengraph-image*`     | `app/**/opengraph-image.tsx`                                 | Per-route OG cards, all through `lib/og.tsx`                                                                                        |
-| `error`                 | `app/error.tsx`                                              | Root error boundary. Outside the press shell, so it carries its own header + footer                                                 |
-| `not-found`             | `app/not-found.tsx`, `app/(press)/blog/[slug]/not-found.tsx` | 404 (`robots: { index: false }`)                                                                                                    |
+| Path                    | File                                                         | What it renders                                                                                                                       |
+| ----------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `/`                     | `app/(press)/page.tsx`                                       | Home — masthead, press run, roles, stack, catalogue, off-screen, writing + talk, contact, ink library. **Absorbed /about and /work.** |
+| `/blog`                 | `app/(press)/blog/page.tsx`                                  | Index of `published` posts                                                                                                            |
+| `/blog/<slug>`          | `app/(press)/blog/[slug]/page.tsx`                           | `generateStaticParams` from `published`; loaders are a hardcoded slug→import map                                                      |
+| `/blog/<slug>.md`       | `app/api/blog-md/[slug]/route.ts` + a rewrite in next.config | The post as plain markdown. Static; imports and ESM exports stripped, prose left alone                                                |
+| `/resume`               | `app/(press)/resume/page.tsx`                                | CV from `lib/resume.ts`, two columns, print stylesheet                                                                                |
+| `/about`, `/work`       | `next.config.ts` redirects                                   | **308 → `/#about`, `/#work`.** Do not re-add these as pages                                                                           |
+| `/sitemap.xml`          | `app/sitemap.ts`                                             | `/`, `/resume`, `/blog` + every published post. No `/about`, `/work`                                                                  |
+| `/robots.txt`           | `app/robots.ts`                                              | Allow all except `/api/`; sitemap pointer                                                                                             |
+| `/manifest.webmanifest` | `app/manifest.ts`                                            | PWA shell                                                                                                                             |
+| `/rss.xml`              | `app/rss.xml/route.ts`                                       | RSS 2.0 feed of `published` posts                                                                                                     |
+| `/llms.txt`             | `app/llms.txt/route.ts`                                      | Curated plain-text site map for AI systems; links each post's `.md` mirror                                                            |
+| `/api/vitals`           | `app/api/vitals/route.ts`                                    | Edge runtime — receives next/web-vitals beacons                                                                                       |
+| `/opengraph-image*`     | `app/**/opengraph-image.tsx`                                 | Per-route OG cards, all through `lib/og.tsx`                                                                                          |
+| `error`                 | `app/error.tsx`                                              | Root error boundary. Outside the press shell, so it carries its own header + footer                                                   |
+| `not-found`             | `app/not-found.tsx`, `app/(press)/blog/[slug]/not-found.tsx` | 404 (`robots: { index: false }`)                                                                                                      |
 
 ## Provider stack
 
-Root (`app/layout.tsx`) owns everything both designs share:
+Root (`app/layout.tsx`) owns everything:
 
 ```
 <ThemeProvider>           // theme + toggle(origin?). mg_theme. Iris view transition.
@@ -115,11 +112,7 @@ Root (`app/layout.tsx`) owns everything both designs share:
 
 `app/(press)/layout.tsx` then adds the shell: skip link, registration marks,
 `<main><ViewTransition name="route">`, `<Dock />` (named `dock` so it doesn't
-crossfade on navigation). `app/old/layout.tsx` adds the retired one:
-`<AccentProvider>` → `<RevealController>` → old `<Dock/>` + `<SiteFooter/>`, and
-imports `app/globals.css` — which loads _after_ `styles/press.css`, so its
-`:root` block wins on those routes at equal specificity. That is the whole trick
-keeping the two designs apart.
+crossfade on navigation).
 
 Plus `<WebVitals />` outside ThemeProvider; reports CLS/FCP/LCP/TTFB/INP to `/api/vitals`.
 
@@ -128,9 +121,14 @@ Plus `<Analytics />` outside ThemeProvider; GA4 via `gtag.js`. Measurement ID `G
 ## Keyboard map
 
 Registered by the components themselves, so the Shift-hold hints float over the
-real control. `h` home · `b` writing · `r` résumé · `w` / `a` jump to work /
-off-screen (home only) · `c` open the ink panel · `t` toggle paper · `1`–`6`
-pick an ink · `0` cycle the press run · `m` mute · `?` help.
+real control. `h` home · `b` writing · `w` / `a` jump to work / off-screen (home
+only) · `c` open the ink panel · `t` toggle paper · `1`–`6` pick an ink · `0`
+cycle the press run · `m` mute · `?` help.
+
+`r` goes to the résumé too, but it has no dock item to float a hint over — the
+résumé is deliberately not a primary nav destination, so the key is registered
+by `HiddenRouteShortcut` in `components/press/Dock.tsx` and is discoverable
+through the `?` help sheet rather than through Shift-hold.
 
 ## Static files in `public/`
 
@@ -138,13 +136,12 @@ pick an ink · `0` cycle the press run · `m` mute · `?` help.
 
 ## Persistence keys (localStorage)
 
-| Key                    | Values                             | Owner                            |
-| ---------------------- | ---------------------------------- | -------------------------------- |
-| `mg_theme`             | `"light" \| "dark"`                | `ThemeProvider`, no-flash script |
-| `mg_ink`               | ink id from `lib/ink.ts`           | `InkProvider`, no-flash script   |
-| `mg_mode`              | `"colorful" \| "mono" \| "plain"`  | `InkProvider`, no-flash script   |
-| `mg_sound`             | `"0"` muted, anything else unmuted | `FXProvider`                     |
-| `mg_accent`, `mg_mono` | retired accent state               | `AccentProvider` — `/old` only   |
+| Key        | Values                             | Owner                            |
+| ---------- | ---------------------------------- | -------------------------------- |
+| `mg_theme` | `"light" \| "dark"`                | `ThemeProvider`, no-flash script |
+| `mg_ink`   | ink id from `lib/ink.ts`           | `InkProvider`, no-flash script   |
+| `mg_mode`  | `"colorful" \| "mono" \| "plain"`  | `InkProvider`, no-flash script   |
+| `mg_sound` | `"0"` muted, anything else unmuted | `FXProvider`                     |
 
 All reads/writes wrapped in `try/catch`. Storage may be unavailable.
 
@@ -234,18 +231,19 @@ Easings: `--ease-out cubic-bezier(.22,1,.36,1)`, `--ease-quart
 cubic-bezier(.25,1,.5,1)` (ink), `--ease-in-out cubic-bezier(.65,0,.35,1)`.
 
 **No entrance animation. Nothing ships at `opacity: 0`.** Motion is reserved for
-things the reader caused — a hover, a drag, an ink change, a route swap. The
-retired design's scroll-reveal is gone from the live site.
+things the reader caused — a hover, a drag, an ink change, a route swap. There is
+no scroll-reveal; don't reintroduce one.
 
 ### `<html>` data attributes
 
-| Attribute                                     | Set by                     | Triggers                   |
-| --------------------------------------------- | -------------------------- | -------------------------- |
-| `data-js="true"`                              | no-flash script            | (retired reveal CSS, /old) |
-| `data-theme="light\|dark"`                    | no-flash → `ThemeProvider` | Every dark surface         |
-| `data-ink="<id>"`                             | no-flash → `InkProvider`   | The active ink             |
-| `data-mode="colorful\|mono\|plain"`           | no-flash → `InkProvider`   | The press run              |
-| `data-mono`, `data-pure`, `data-purePolarity` | `AccentProvider`           | `/old` only                |
+| Attribute                           | Set by                     | Triggers           |
+| ----------------------------------- | -------------------------- | ------------------ |
+| `data-theme="light\|dark"`          | no-flash → `ThemeProvider` | Every dark surface |
+| `data-ink="<id>"`                   | no-flash → `InkProvider`   | The active ink     |
+| `data-mode="colorful\|mono\|plain"` | no-flash → `InkProvider`   | The press run      |
+
+Those three and nothing else. The no-flash script writes exactly them plus the
+inline paper colour, and `ParticlePortrait` observes exactly them.
 
 Classes added during a theme change: `vt-recolor`, `vt-recolor-radial`.
 
@@ -275,7 +273,8 @@ Classes added during a theme change: `vt-recolor`, `vt-recolor-radial`.
 - New entry-style files (sitemap, manifest, OG, route handlers, error/not-found) are caught by the existing `knip.json` `entry` glob.
 - Don't add new top-level dependencies casually. Check `package.json` and `knip.json` first.
 - For a new MDX post: drop `content/blog/<slug>/page.mdx`, add a row to `lib/posts.ts`, add a loader to `app/(press)/blog/[slug]/page.tsx`. `generateStaticParams` throws at build time if you forget the loader, and the `.md` mirror + RSS + sitemap + llms.txt all pick it up on their own.
-- Touching a live page? It belongs under `app/(press)/`. `app/old/` is frozen — fix it only if it is actually broken.
+- Every page belongs under `app/(press)/`. There is one design and one stylesheet entry point (`styles/press.css`).
+- The portrait coin renders a real `next/image` on the server and swaps to the canvas once it mounts. Keep it that way — a bare canvas has no `alt` and nothing for a crawler.
 
 ## What NOT to do
 
@@ -294,6 +293,8 @@ Classes added during a theme change: `vt-recolor`, `vt-recolor-radial`.
 - ❌ Use `prefers-color-scheme: dark` to gate styles. Theme is user-controlled via `data-theme="dark"`.
 - ❌ Add markdown frontmatter to MDX posts. Metadata lives in `lib/posts.ts`.
 - ❌ Re-add `/about` or `/work` as pages. The home page absorbed both and `next.config.ts` redirects them.
+- ❌ Re-add `/old`, `app/globals.css`, `lib/accents.ts` or the accent providers. The retired design was deleted, not archived — it is in git history if you need it.
+- ❌ Add `Résumé` back to the dock. It is reachable by `r`, from the footer, the sitemap and `llms.txt` — deliberately not a primary nav item.
 
 ---
 

@@ -1,5 +1,5 @@
 import { ImageResponse } from "next/og";
-import { getAccent } from "@/lib/accents";
+import { INK_HEX, SURFACE_HEX } from "@/lib/ink";
 
 export const size = { width: 180, height: 180 };
 export const contentType = "image/png";
@@ -10,8 +10,10 @@ const BAR_PATH = "M16.7,133.015h84v12h-84v-12Z";
 
 export default function AppleIcon() {
   const isProd = process.env.NODE_ENV === "production";
-  const accent = getAccent(isProd ? "terracotta" : "sage").c;
-  const bg = "#FBF6EA";
+  const accent = INK_HEX[isProd ? "terracotta" : "sage"];
+  // The home-screen tile is a printed object: ink on paper, in the paper the
+  // light theme actually uses.
+  const bg = SURFACE_HEX.light.paper;
   const glyph = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 84 131.615" fill="${accent}"><g transform="translate(-16.7 -13.39998)"><path d="${G_PATH}"/><path d="${BAR_PATH}"/></g></svg>`;
   const dataUri = `data:image/svg+xml;utf8,${encodeURIComponent(glyph)}`;
 

@@ -106,14 +106,41 @@ export const STACK: readonly string[] = [
   return name;
 });
 
+/**
+ * The one piece of work that gets argued rather than listed.
+ *
+ * Everything else on this page says what a thing *is*. This says what was hard
+ * and what I chose — which is the only thing a reader can actually judge. It
+ * leads the section because it is the most recent and the most current work,
+ * and because the stack line two sections up claims MCP, evals and an agent
+ * harness: this is the evidence for that claim.
+ *
+ * It was built at work, so the ceiling on detail is the architecture. No
+ * internal metrics, no customer names, nothing from the source — the shape of
+ * the decisions is public-safe and is the interesting part anyway.
+ */
+export const ASSISTANT = {
+  name: "The assistant",
+  href: "https://w.tracxn.com/tracxn-ai-assistant",
+  meta: "2026 · at Tracxn",
+  // The opening sentence is written from Tracxn's own published coverage
+  // (w.tracxn.com/about-us), not from memory: companies, legal entities,
+  // investors, funding rounds, acquisitions, financials, cap tables, sectors,
+  // across 50+ countries. If they restate their coverage, restate this.
+  what: "Tracxn is a private-market data platform. Companies, the legal entities behind them, investors, funding rounds, acquisitions, cap tables, founders, sectors — millions of records across fifty-odd countries, cross-referenced. The assistant answers questions over all of it, and works out which parts a question needs.",
+  how: "It lives inside the API documentation portal, which generates itself from the OpenAPI spec. A router picks the model per question. A skills layer covers what it can do. Prompts are versioned behind an eval harness. Document export runs server-side, and the logs are auditable.",
+  // Not `then` — an object with a `then` key is thenable, and would silently
+  // misbehave the first time it met an `await`.
+  extension:
+    "Then an MCP server on top. Read-only connectors behind OAuth, so coding clients reach the API without pasting a key. The team co-owns it now.",
+  // The counterpart to microcharts' "Entirely my own time." — this one was the
+  // day job, and it was built alongside the day job rather than instead of it.
+  caveat: "Shipped it, then kept hardening it while running the rest of the engineering queue.",
+} as const;
+
 export type LedgerRow = { year: string; name: string; href?: string; what: string };
 
 export const LEDGER: readonly LedgerRow[] = [
-  {
-    year: "2025",
-    name: "the assistant",
-    what: "A customer-facing AI assistant and the documentation portal it lives in. Fumadocs over an OpenAPI pipeline, an intent router that picks the model per question, a tools and skills layer, versioned prompts behind an eval harness, an MCP server for coding clients.",
-  },
   {
     year: "2025",
     name: "puppeteer-warc",
@@ -143,6 +170,14 @@ export const LEDGER: readonly LedgerRow[] = [
     name: "react-dynamic-import",
     href: "https://github.com/ganapativs/react-dynamic-import",
     what: "Loads and renders a React module on demand, component or higher-order component. 1.16 kB gzipped. The README opens by telling you to check whether React.lazy already covers your case.",
+  },
+  // Internal, so there is no link — but leaving it off the ledger entirely would
+  // hide the longest-running thing here. The Technology Lead role card says what
+  // it meant; this says what it is.
+  {
+    year: "2016",
+    name: "the component library",
+    what: "The internal React component library. First commit in November 2016, still its primary maintainer — every product surface at the company is built on it.",
   },
 ] as const;
 

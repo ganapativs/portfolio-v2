@@ -100,7 +100,7 @@ export const viewport: Viewport = {
 // first paint. The only values duplicated here are the two paper hexes, which
 // have to be inline because they paint the canvas before any stylesheet has
 // been parsed — everything else the CSS derives on its own.
-const noFlash = `(function(){try{var d=document.documentElement;d.dataset.js='true';var t=localStorage.getItem('mg_theme');if(t!=='light'&&t!=='dark'){t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}d.dataset.theme=t;d.style.colorScheme=t;d.style.backgroundColor=t==='dark'?'#1a120c':'#f5ecda';var i=localStorage.getItem('mg_ink');if(!/^(terracotta|saffron|sage|rose|plum|coffee)$/.test(i||''))i='terracotta';d.dataset.ink=i;var m=localStorage.getItem('mg_mode');if(m!=='mono'&&m!=='plain')m='colorful';d.dataset.mode=m;}catch(e){}})();`;
+const noFlash = `(function(){try{var d=document.documentElement;var t=localStorage.getItem('mg_theme');if(t!=='light'&&t!=='dark'){t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}d.dataset.theme=t;d.style.colorScheme=t;d.style.backgroundColor=t==='dark'?'#1a120c':'#f5ecda';var i=localStorage.getItem('mg_ink');if(!/^(terracotta|saffron|sage|rose|plum|coffee)$/.test(i||''))i='terracotta';d.dataset.ink=i;var m=localStorage.getItem('mg_mode');if(m!=='mono'&&m!=='plain')m='colorful';d.dataset.mode=m;}catch(e){}})();`;
 
 const consoleSig = `(function(){var a=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#ae532d';console.log('%cmeetguns press · set by hand · vsg.inbox@gmail.com','font-family:Georgia,serif;font-style:italic;font-size:18px;color:'+a+';line-height:1.6;');})();`;
 

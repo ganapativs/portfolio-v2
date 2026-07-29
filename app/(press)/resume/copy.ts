@@ -8,8 +8,8 @@
  * person. These lead with verbs, break the clauses apart, and say "wrote" and
  * "built" instead of "authored" and "delivered".
  *
- * lib/resume.ts stays the source of truth for /old. If a fact changes, change
- * it in both.
+ * lib/resume.ts stays the source of truth for the facts — dates, titles, orgs.
+ * This file only rephrases them. If a fact changes, change it there.
  */
 export const ROLE_COPY: Record<string, string[]> = {
   "Vice President — Technology": [

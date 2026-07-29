@@ -1,4 +1,4 @@
-import { getAccent } from "@/lib/accents";
+import { INK_HEX } from "@/lib/ink";
 
 export const size = { width: 32, height: 32 };
 export const contentType = "image/svg+xml";
@@ -9,7 +9,9 @@ const BAR_PATH = "M16.7,133.015h84v12h-84v-12Z";
 
 export default function Icon() {
   const isProd = process.env.NODE_ENV === "production";
-  const accent = getAccent(isProd ? "terracotta" : "sage").c;
+  // Live ink, on light paper — the tab strip is a light surface everywhere.
+  // Sage in development so a dev tab is tellable from a real one at a glance.
+  const accent = INK_HEX[isProd ? "terracotta" : "sage"];
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 84 131.615" fill="${accent}"><g transform="translate(-16.7 -13.39998)"><path d="${G_PATH}"/><path d="${BAR_PATH}"/></g></svg>`;
   return new Response(svg, {
     headers: {

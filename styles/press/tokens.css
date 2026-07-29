@@ -50,6 +50,14 @@
   inherits: true;
   initial-value: oklch(0.925 0.05 42);
 }
+/* The off-register second pass behind the display names. Typed like the rest so
+   it travels with them when the run changes — see the press-run block for why
+   it is its own token and not just `--plate`. */
+@property --misreg {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: oklch(0.55 0.13 42);
+}
 /* The ink tuned for the opposite surface. The "Say hello." slab paints --ink
    and sets its type in --paper; the on-paper ink is far too close to that
    ground to be legible on it, so inverted blocks reach for this instead. */
@@ -253,14 +261,24 @@
                       ink survives only as spots: rules, ticks, live values
    plain    (1 ink) — one ink on paper. No colour anywhere.                */
 
+/* `--misreg` is the off-register second pass behind the two display names. It
+   cannot ride on `--plate`: in mono and plain `--plate` collapses onto `--ink`,
+   which is the colour the name itself is set in, so the second pass stopped
+   reading as a misprint and became a solid duplicate of the word shifted 5px —
+   the name went unreadable in two of the three runs. Off-register printing is
+   two inks failing to line up, so the ghost has to stay a different value from
+   the text no matter which run is showing. In mono and plain it falls back to a
+   rule tone: still an offset, still legible, no colour. */
 :root,
 [data-mode="colorful"] {
   --plate: var(--accent);
   --wash: var(--accent-soft);
+  --misreg: var(--accent);
 }
 [data-mode="mono"] {
   --plate: var(--ink);
   --wash: transparent;
+  --misreg: var(--rule-2);
 }
 [data-mode="plain"] {
   --accent: var(--ink);
@@ -270,6 +288,7 @@
   --accent-flip: var(--paper);
   --plate: var(--ink);
   --wash: transparent;
+  --misreg: var(--rule-2);
 }
 
 /* The coordinated ink tween. One transition, on the tokens themselves, so
@@ -282,15 +301,21 @@
     --accent-soft var(--dur-ink) var(--ease-quart),
     --accent-flip var(--dur-ink) var(--ease-quart),
     --plate var(--dur-ink) var(--ease-quart),
+    --misreg var(--dur-ink) var(--ease-quart),
     --wash var(--dur-ink) var(--ease-quart);
 }
 
 /* ---- Shared-component bridge ---------------------------------------------
-   A handful of components are shared with the retired design — the shortcut
-   overlay, the MDX code block and zoomable images. Rather than fork them, map
-   the token names they already reference onto press values, so they inherit the
-   ink, the paper and the type without knowing this design exists.
-   The spacing steps (--s-2 … --s-5) are identical in both systems already. */
+   The shortcut overlay, the MDX code block, zoomable images and the microcharts
+   demos were written against an older set of token names. Rather than rewrite
+   four stylesheets, those names are mapped onto press values here, so those
+   components inherit the ink, the paper and the type unchanged.
+
+   These are live, not leftovers: every alias below is referenced by
+   components/shortcuts/shortcuts.css, styles/press/microcharts-demos.css or
+   styles/press/essay.css. Deleting one breaks a real rule. If you ever want the
+   bridge gone, rewrite those stylesheets to the press names first, then drop
+   this block — don't drop it and see what breaks. */
 
 :root {
   --bg-surface: var(--raise);
@@ -308,7 +333,6 @@
   --fw-semibold: 600;
   --lh-tight: 1.2;
   --r-xs: var(--r-chip);
-  --r-md: var(--r-block);
   --r-lg: var(--r-block);
   --font-sans: var(--f-sans);
   --fw-regular: 400;

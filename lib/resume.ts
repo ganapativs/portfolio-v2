@@ -1,4 +1,5 @@
-export type SocialKind = "github" | "linkedin" | "twitter" | "dribbble" | "npm" | "mail";
+// Not exported: only `Identity` below refers to it.
+type SocialKind = "github" | "linkedin" | "twitter" | "dribbble" | "npm" | "mail";
 
 export type Identity = {
   name: string;
@@ -17,14 +18,6 @@ export type Role = {
   start: string;
   end: string;
   bullets: string[];
-};
-
-// Resume-page project entries. The long-form case studies live in
-// app/work/page.tsx; this is the recruiter one-pager digest, nothing more.
-export type SelectedProject = {
-  title: string;
-  range: string;
-  digest: string;
 };
 
 export type Flagship = {
@@ -145,27 +138,6 @@ export const roles: Role[] = [
     start: "Jul 2013",
     end: "May 2014",
     bullets: ["Built the complete frontend for eezyconnect.com."],
-  },
-];
-
-export const selectedProjects: SelectedProject[] = [
-  {
-    title: "A Customer-Facing AI Assistant & API Documentation Portal",
-    range: "2025 — now",
-    digest:
-      "Self-serve API documentation portal with an embedded AI assistant over the company's private-market APIs — architected and shipped end-to-end, hardened since.",
-  },
-  {
-    title: "microcharts — Word-Sized Charts for React",
-    range: "2026 — now",
-    digest:
-      "Open-source React library of 106 word-sized chart types — small enough to sit in a sentence or a streamed AI reply. Solo: design, code, docs, release.",
-  },
-  {
-    title: "A React Component Library for a Decade",
-    range: "2016 — now",
-    digest:
-      "The internal React/TypeScript component library — first commit Nov 2016, primary maintainer for a decade, used by every product surface.",
   },
 ];
 

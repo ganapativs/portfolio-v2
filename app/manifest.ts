@@ -1,9 +1,9 @@
 import type { MetadataRoute } from "next";
-import { getAccent } from "@/lib/accents";
+import { INK_HEX, SURFACE_HEX } from "@/lib/ink";
 
 export default function manifest(): MetadataRoute.Manifest {
   const isProd = process.env.NODE_ENV === "production";
-  const accent = getAccent(isProd ? "terracotta" : "sage").c;
+  const accent = INK_HEX[isProd ? "terracotta" : "sage"];
   const suffix = isProd ? "" : " (dev)";
 
   return {
@@ -20,7 +20,7 @@ export default function manifest(): MetadataRoute.Manifest {
     lang: "en",
     dir: "ltr",
     categories: ["portfolio", "personal", "blog"],
-    background_color: "#FBF6EA",
+    background_color: SURFACE_HEX.light.paper,
     theme_color: accent,
     icons: [
       { src: "/icon", sizes: "any", type: "image/svg+xml" },

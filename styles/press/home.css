@@ -39,7 +39,7 @@
   position: absolute;
   top: 0;
   left: 0;
-  color: var(--plate);
+  color: var(--misreg);
   mix-blend-mode: var(--blend);
   pointer-events: none;
   transform: translate(var(--gx, 5px), var(--gy, 6px));
@@ -133,7 +133,7 @@
   top: 0;
   left: 0;
   transform: translate(3px, 4px);
-  color: var(--plate);
+  color: var(--misreg);
   mix-blend-mode: var(--blend);
   pointer-events: none;
 }
@@ -468,6 +468,26 @@
 }
 
 /* ---- Things I made ------------------------------------------------------- */
+
+/* The lead case study. Full measure rather than a grid cell, because it argues
+   where the two-up below only describes — putting them in one row would set them
+   as equals, which is the weighting problem this block exists to fix.
+
+   No rule of its own: `.sechead` already draws one directly above, and a second
+   one a few pixels below it read as a mistake. The separation here is space. */
+.made-lead {
+  margin-top: clamp(18px, 2.6vh, 26px);
+}
+.made-lead .made-body {
+  max-width: 68ch;
+}
+/* The problem statement is the one sentence a skimmer is guaranteed to read, so
+   it sits a step above the paragraphs under it — a small step; the section
+   heading is still the loudest thing here. */
+.made-lead-open {
+  font-size: clamp(17px, calc(16px + 0.3vw), 19px);
+  color: var(--ink);
+}
 
 .made {
   margin-top: clamp(22px, 3.4vh, 34px);

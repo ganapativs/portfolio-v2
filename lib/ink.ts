@@ -1,7 +1,6 @@
 // The press ink system.
 //
-// Six Bengaluru inks, one active at a time. Unlike the retired accent system
-// (lib/accents.ts, still serving /old), nothing here writes CSS custom
+// Six Bengaluru inks, one active at a time. Nothing here writes CSS custom
 // properties from JavaScript: the whole palette lives in styles/press.css keyed
 // on `[data-ink]` × `[data-theme]` × `[data-mode]`. JS only ever stamps three
 // data attributes on <html>.

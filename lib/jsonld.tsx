@@ -106,24 +106,6 @@ export function profilePageSchema(url: string) {
   };
 }
 
-export function workItemListSchema(items: { name: string; description: string; url?: string }[]) {
-  return {
-    "@context": "https://schema.org",
-    "@type": "ItemList",
-    itemListElement: items.map((c, i) => ({
-      "@type": "ListItem",
-      position: i + 1,
-      item: {
-        "@type": "CreativeWork",
-        name: c.name,
-        description: c.description,
-        ...(c.url ? { url: c.url } : {}),
-        creator: PERSON_REF,
-      },
-    })),
-  };
-}
-
 export function blogIndexSchema(posts: Post[]) {
   return {
     "@context": "https://schema.org",

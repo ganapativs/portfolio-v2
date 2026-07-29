@@ -1,7 +1,8 @@
 /* 11 — MICROCHARTS DEMOS ----------------------------------------------------
    The bespoke demo components in the word-sized-charts post — the catalogue
    wall, the KPI card, the ops board, the release console, the streaming and
-   a11y demos. Lifted verbatim from the retired stylesheet (app/prototype.css),
+   a11y demos. Lifted verbatim from the retired stylesheet (deleted with the old
+   design; see git history if you need the original),
    because the post's layout is part of the post: it is a piece of writing ABOUT
    a chart library, and the demos have to keep working exactly as published.
 

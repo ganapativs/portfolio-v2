@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef } from "react";
+import { INK_HEX, SURFACE_HEX } from "@/lib/ink";
 
 /**
  * The portrait photo, resampled into a breathing halftone particle field.
@@ -44,12 +45,13 @@ export function ParticlePortrait({
       const cs = getComputedStyle(canvas);
       const ink =
         cs.getPropertyValue("--pp-ink").trim() ||
-        (mode === "print" ? "#17100a" : cs.getPropertyValue("--fg-1").trim() || "#231811");
+        (mode === "print"
+          ? "#17100a"
+          : cs.getPropertyValue("--ink").trim() || SURFACE_HEX.light.ink);
       const accent =
         cs.getPropertyValue("--pp-accent").trim() ||
-        cs.getPropertyValue("--accent-live").trim() ||
         cs.getPropertyValue("--accent").trim() ||
-        "#D88762";
+        INK_HEX.terracotta;
       return {
         ink,
         accent,
@@ -99,18 +101,11 @@ export function ParticlePortrait({
     });
     themeObs.observe(document.documentElement, {
       attributes: true,
-      // data-ink / data-mode belong to the press design, the rest to /old. The
-      // canvas reads its colours from CSS custom properties, so it has to
-      // re-read them whenever either design changes what those resolve to.
-      attributeFilter: [
-        "data-theme",
-        "data-ink",
-        "data-mode",
-        "data-mono",
-        "data-pure",
-        "data-purePolarity",
-        "style",
-      ],
+      // The canvas reads its colours from CSS custom properties, so it has to
+      // re-read them whenever one of the three attributes those are keyed on
+      // changes. `style` is here because the no-flash script writes the page
+      // background inline before any of them are set.
+      attributeFilter: ["data-theme", "data-ink", "data-mode", "style"],
     });
 
     const mouse = { x: -9e3, y: -9e3 };

@@ -79,10 +79,9 @@ const nextConfig: NextConfig = {
 
     return [{ source: "/:path*", headers: securityHeaders }, ...cacheHeaders];
   },
-  // The press homepage absorbed both /about and /work, so those URLs no longer
-  // exist as pages. They are indexed and linked from outside, so they redirect
-  // permanently to the sections that replaced them rather than 404ing. The
-  // retired pages themselves stay readable at /old/about and /old/work.
+  // The homepage absorbed both /about and /work, so those URLs no longer exist
+  // as pages. They are indexed and linked from outside, so they redirect
+  // permanently to the sections that replaced them rather than 404ing.
   async redirects() {
     return [
       { source: "/about", destination: "/#about", permanent: true },

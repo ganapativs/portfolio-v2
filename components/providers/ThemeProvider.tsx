@@ -1,6 +1,6 @@
 "use client";
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { withViewTransition, type RecolorOrigin } from "@/lib/accents";
+import { withViewTransition, type RecolorOrigin } from "@/lib/vt";
 
 type Theme = "light" | "dark";
 type Ctx = { theme: Theme; toggle: (origin?: RecolorOrigin) => void };
@@ -43,12 +43,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       const root = document.documentElement;
       root.dataset.theme = theme;
       root.style.colorScheme = theme;
-      // Mirror the page bg from whichever design owns this route — `--paper` in
-      // the press system, `--bg-page` in the /old archive — so it stays in sync
-      // with the token instead of duplicating its value here.
-      const cs = getComputedStyle(root);
-      root.style.backgroundColor =
-        cs.getPropertyValue("--paper").trim() || cs.getPropertyValue("--bg-page").trim();
+      // Mirror the page background from the token rather than duplicating its
+      // value here — the canvas is painted from <html>, and the no-flash script
+      // has already written a literal there that this replaces.
+      root.style.backgroundColor = getComputedStyle(root).getPropertyValue("--paper").trim();
     }, origin);
     try {
       localStorage.setItem("mg_theme", theme);

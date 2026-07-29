@@ -3,8 +3,7 @@
 // the press design the mark is chrome — it sits in the folio bar, the masthead
 // line and the colophon, where an animation would be noise.
 //
-// Geometry is identical to components/primitives/GLogo.tsx so the two never
-// drift. It inherits currentColor, so the ink follows whatever it sits in.
+// It inherits currentColor, so the ink follows whatever it sits in.
 //
 // Size and vertical placement are CSS's job (`.mark` in styles/press/chrome.css)
 // and are expressed in em, so the mark scales with the text beside it wherever
