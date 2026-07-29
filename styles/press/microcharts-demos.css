@@ -1,0 +1,594 @@
+/* 11 — MICROCHARTS DEMOS ----------------------------------------------------
+   The bespoke demo components in the word-sized-charts post — the catalogue
+   wall, the KPI card, the ops board, the release console, the streaming and
+   a11y demos. Lifted verbatim from the retired stylesheet (app/prototype.css),
+   because the post's layout is part of the post: it is a piece of writing ABOUT
+   a chart library, and the demos have to keep working exactly as published.
+
+   Only the tokens changed hands — they resolve through the bridge block at the
+   foot of styles/press/tokens.css, so these rules pick up press paper, press
+   ink and the live accent without being rewritten.
+
+   If you restyle these, check the post at /blog/microcharts-word-sized-charts
+   end to end. Every section has a different demo.
+   ============================================================================ */
+
+/* ---------- Blog: microcharts demos (word-sized-charts post) ---------- */
+/* Shared chip button */
+.mcx-chip {
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-2);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-1);
+  border-radius: var(--r-pill);
+  padding: 4px 12px;
+  cursor: pointer;
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out);
+}
+.mcx-chip:hover {
+  color: var(--fg-1);
+  border-color: var(--accent);
+}
+.mcx-chip:active {
+  transform: scale(0.96);
+}
+.mcx-chip:focus-visible,
+.mcx-ops-svc:focus-visible,
+.codeblock-copy:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+.mcx-chip[data-active] {
+  color: var(--fg-1);
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+@media (pointer: coarse) {
+  .mcx-chip {
+    padding: 8px 16px;
+  }
+}
+
+/* Catalog wall */
+.mcx-wall {
+  margin: var(--s-6) 0;
+}
+.mcx-wall-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(164px, 1fr));
+  gap: var(--s-3);
+}
+.mcx-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-3);
+  min-height: 108px;
+  padding: var(--s-4) var(--s-3);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-1);
+  border-radius: var(--r-lg);
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
+}
+/* Entrance stagger — armed until the grid scrolls into view (data-in). */
+@media (prefers-reduced-motion: no-preference) {
+  .mcx-wall-grid:not([data-in]) .mcx-tile {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  .mcx-wall-grid[data-in] .mcx-tile {
+    animation: mcxTileIn var(--dur-base) var(--ease-out) both;
+    animation-delay: calc(var(--tile-i, 0) * 28ms);
+  }
+}
+@keyframes mcxTileIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.mcx-tile:hover {
+  border-color: color-mix(in oklab, var(--accent) 45%, var(--border-1));
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+.mcx-tile-chart {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+}
+.mcx-tile-label {
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.08em;
+  color: var(--fg-3);
+}
+.mcx-tile-hint {
+  color: var(--accent);
+}
+.mcx-tile--more {
+  text-decoration: none;
+  background: var(--accent-soft);
+  border-color: color-mix(in oklab, var(--accent) 35%, var(--border-1));
+}
+.mcx-tile-more-figure {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: var(--t-h4);
+  color: var(--fg-1);
+  font-variation-settings:
+    "opsz" 60,
+    "SOFT" 80,
+    "WONK" 1;
+  transition: font-variation-settings var(--dur-base) var(--ease-spring);
+}
+.mcx-tile--more:hover .mcx-tile-more-figure {
+  font-variation-settings:
+    "opsz" 144,
+    "SOFT" 100,
+    "WONK" 1,
+    "slnt" -4;
+}
+.mcx-wall-caption,
+.mcx-a11y-note,
+.mcx-stream-note,
+.mcx-kpi-hint {
+  font-size: var(--t-small);
+  color: var(--fg-3);
+  line-height: 1.6;
+}
+.mcx-wall-caption {
+  margin-top: var(--s-4);
+}
+
+/* KPI card demo */
+.mcx-kpi {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-6);
+  flex-wrap: wrap;
+  margin: var(--s-6) 0;
+  padding: var(--s-5) var(--s-6);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-1);
+  border-radius: var(--r-xl);
+}
+.mcx-kpi-label {
+  font-family: var(--font-mono);
+  font-size: var(--t-overline);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+.mcx-kpi-figure {
+  font-family: var(--font-sans);
+  font-size: var(--t-h2);
+  font-weight: var(--fw-medium);
+  letter-spacing: -0.03em;
+  color: var(--fg-1);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  margin: var(--s-2) 0;
+}
+.mcx-kpi-sub {
+  font-size: var(--t-small);
+  color: var(--fg-3);
+}
+.mcx-kpi-chart {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--s-3);
+}
+
+/* Accessible-sentence demo */
+.mcx-a11y {
+  margin: var(--s-6) 0;
+  padding: var(--s-6);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-1);
+  border-radius: var(--r-xl);
+}
+.mcx-a11y-stage {
+  display: flex;
+  justify-content: center;
+  padding: var(--s-4) 0;
+}
+.mcx-a11y-sentence {
+  margin: var(--s-4) 0;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: var(--t-h5);
+  line-height: 1.45;
+  color: var(--fg-1);
+  text-align: center;
+  text-wrap: balance;
+  animation: mcxSentenceIn var(--dur-base) var(--ease-out) both;
+}
+@keyframes mcxSentenceIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.mcx-a11y-quote {
+  color: var(--accent);
+}
+.mcx-a11y-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  justify-content: center;
+  margin-bottom: var(--s-4);
+}
+.mcx-a11y-note {
+  margin: 0;
+  text-align: center;
+}
+
+/* Stream demo */
+.mcx-stream {
+  margin: var(--s-6) 0;
+  border: 1px solid var(--border-1);
+  border-radius: var(--r-xl);
+  background: var(--bg-surface);
+  overflow: hidden;
+}
+.mcx-stream-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+  padding: var(--s-3) var(--s-5);
+  border-bottom: 1px solid var(--border-1);
+  background: var(--bg-sunken);
+}
+.mcx-stream-title {
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+.mcx-stream-actions {
+  display: flex;
+  gap: var(--s-2);
+}
+.mcx-stream-body {
+  padding: var(--s-5) var(--s-6);
+  font-size: var(--t-body);
+  line-height: 1.8;
+  color: var(--fg-2);
+  white-space: pre-wrap;
+  min-height: 9.5em;
+}
+/* Raw grammar mid-stream reads as plain dim mono text — exactly how an
+   unparsed reply looks — no chip, no box, no highlight. */
+.mcx-stream-raw {
+  font-family: var(--font-mono);
+  font-size: 0.82em;
+  color: var(--fg-3);
+}
+.mcx-stream-raw--fence {
+  display: block;
+  margin: var(--s-2) 0;
+  white-space: pre-wrap;
+}
+.mcx-stream-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s-2);
+  margin: var(--s-4) 0;
+  width: fit-content;
+}
+.mcx-stream-chartcap {
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+.mcx-caret {
+  display: inline-block;
+  width: 0.55em;
+  height: 1.05em;
+  vertical-align: text-bottom;
+  background: var(--accent);
+  border-radius: 1px;
+  margin-left: 2px;
+  animation: mcx-caret-blink 0.9s steps(2, start) infinite;
+}
+@keyframes mcx-caret-blink {
+  to {
+    visibility: hidden;
+  }
+}
+.mcx-stream-note {
+  margin: 0;
+  padding: var(--s-4) var(--s-6);
+  border-top: 1px dashed var(--border-1);
+}
+/* Release console — the dense "ten charts, one story" demo */
+.mcx-console {
+  margin: var(--s-6) 0;
+  border: 1px solid var(--border-1);
+  border-radius: var(--r-xl);
+  background: var(--bg-surface);
+  overflow: hidden;
+}
+.mcx-console-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+  padding: var(--s-4) var(--s-5);
+  border-bottom: 1px solid var(--border-1);
+  background: var(--bg-sunken);
+}
+.mcx-console-title {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg-2);
+}
+.mcx-console-range {
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.06em;
+  color: var(--fg-3);
+}
+/* 1px-gap grid over a hairline background = crisp shared rules, no doubled
+   borders — the cells read as one instrument panel. */
+.mcx-console-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(232px, 1fr));
+  gap: 1px;
+  background: var(--border-1);
+}
+.mcx-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  padding: var(--s-4) var(--s-5);
+  background: var(--bg-surface);
+  min-width: 0;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+.mcx-panel:hover {
+  background: color-mix(in oklab, var(--accent) 3%, var(--bg-surface));
+}
+.mcx-panel-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+.mcx-panel-label {
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+}
+.mcx-panel-mode {
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.06em;
+  color: color-mix(in oklab, var(--accent) 70%, var(--fg-3));
+  white-space: nowrap;
+}
+.mcx-panel-read {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-size: var(--t-small);
+  color: var(--fg-2);
+  font-variant-numeric: tabular-nums;
+  margin-top: auto;
+}
+.mcx-console-note {
+  margin: 0;
+  padding: var(--s-4) var(--s-5);
+  border-top: 1px dashed var(--border-1);
+  font-size: var(--t-small);
+  color: var(--fg-3);
+  line-height: 1.6;
+}
+
+/* Ops board — the composed "real interface" demo */
+.mcx-ops {
+  margin: var(--s-6) 0;
+  border: 1px solid var(--border-1);
+  border-radius: var(--r-xl);
+  background: var(--bg-surface);
+  overflow: hidden;
+}
+.mcx-ops-head,
+.mcx-ops-detail-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-4);
+  padding: var(--s-4) var(--s-5);
+}
+.mcx-ops-head {
+  border-bottom: 1px solid var(--border-1);
+  background: var(--bg-sunken);
+}
+.mcx-ops-title {
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg-2);
+}
+.mcx-ops-range {
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.06em;
+  color: var(--fg-3);
+}
+.mcx-ops-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--t-small);
+}
+.mcx-ops-table th {
+  font-family: var(--font-mono);
+  font-size: var(--t-micro);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: var(--fw-regular);
+  color: var(--fg-3);
+  text-align: left;
+  padding: var(--s-3) var(--s-4);
+  border-bottom: 1px solid var(--border-1);
+}
+.mcx-ops-table td {
+  padding: var(--s-3) var(--s-4);
+  border-bottom: 1px solid var(--border-1);
+  vertical-align: middle;
+}
+.mcx-ops-table tr[data-active] td {
+  background: var(--accent-soft);
+}
+.mcx-ops-table th:first-child,
+.mcx-ops-table td:first-child {
+  padding-left: var(--s-5);
+}
+.mcx-ops-table th:last-child,
+.mcx-ops-table td:last-child {
+  padding-right: var(--s-5);
+}
+.mcx-ops-svc {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-family: var(--font-mono);
+  font-size: var(--t-small);
+  color: var(--fg-1);
+  background: none;
+  border: none;
+  padding: 2px 0;
+  cursor: pointer;
+  border-radius: var(--r-xs);
+}
+.mcx-ops-svc:hover span {
+  color: var(--accent);
+}
+.mcx-ops-now {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--fg-1);
+  min-width: 5.5em;
+}
+.mcx-ops-detail {
+  padding: 0 var(--s-5) var(--s-5);
+}
+.mcx-ops-detail-head {
+  padding: var(--s-4) 0 var(--s-3);
+}
+.mcx-ops-note {
+  margin: 0;
+  padding: var(--s-4) var(--s-5);
+  border-top: 1px dashed var(--border-1);
+  font-size: var(--t-small);
+  color: var(--fg-3);
+  line-height: 1.6;
+}
+@media (max-width: 720px) {
+  .mcx-ops-table th:nth-child(4),
+  .mcx-ops-table td:nth-child(4),
+  .mcx-ops-table th:nth-child(5),
+  .mcx-ops-table td:nth-child(5) {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mcx-caret {
+    animation: none;
+  }
+  .mcx-tile:hover {
+    transform: none;
+  }
+  .mcx-a11y-sentence {
+    animation: none;
+  }
+  .mcx-tile-more-figure {
+    transition: none;
+  }
+}
+@media (max-width: 720px) {
+  .mcx-kpi {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .mcx-kpi-chart {
+    align-items: flex-start;
+  }
+  .mcx-stream-body {
+    padding: var(--s-4);
+  }
+}
+
+/* ---- Press-native ---------------------------------------------------------
+   The demos inherit the press design rather than the radii they shipped with:
+   flat panels on a 6px block radius, 2px chips, press type steps. Only the
+   layout is preserved from the original — the grid, the tile sizes, the ops
+   board and console structure — because that layout is part of the writing.
+
+   Everything else resolves through the bridge at the foot of
+   styles/press/tokens.css, so there are no colours or sizes hard-coded here.
+
+   They still break out past the 68ch prose measure: the catalogue wall was laid
+   out for a wider column and drops from five tiles across to four inside the
+   text block. */
+.mcx-wall,
+.mcx-kpi,
+.mcx-ops,
+.mcx-console,
+.mcx-stream,
+.mcx-a11y,
+.mcx-chip {
+  /* Square the corners off. The press radius set is 0 / 2 / 6 / 50%, and a
+     28px pill in the middle of an essay reads as a different website. */
+  --r-lg: var(--r-block);
+  --r-xl: var(--r-block);
+  --r-pill: var(--r-chip);
+}
+.prose > :is(.mcx-wall, .mcx-kpi, .mcx-ops, .mcx-console, .mcx-stream, .mcx-a11y) {
+  max-width: none;
+}
+@media (min-width: 1000px) {
+  .prose > :is(.mcx-wall, .mcx-kpi, .mcx-ops, .mcx-console, .mcx-stream, .mcx-a11y) {
+    width: min(880px, calc(100vw - 2 * var(--gutter)));
+    margin-left: 50%;
+    transform: translateX(-50%);
+  }
+}

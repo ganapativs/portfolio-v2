@@ -8,15 +8,17 @@ import { Icon } from "@/components/primitives/Icon";
 import { useShortcut } from "@/components/shortcuts/useShortcut";
 import { AccentPopover } from "@/components/accent/AccentPopover";
 
+// This dock belongs to the retired design and is mounted only by
+// app/old/layout.tsx, so every destination is inside the archive. The live
+// site's dock is components/press/Dock.tsx.
 const items = [
-  { k: "home", l: "home", i: "home", href: "/", key: "h" },
-  { k: "about", l: "about", i: "user", href: "/about", key: "a" },
-  { k: "work", l: "work", i: "folder", href: "/work", key: "w" },
-  { k: "writing", l: "writing", i: "pen", href: "/blog", key: "b" },
+  { k: "home", l: "home", i: "home", href: "/old/home", key: "h" },
+  { k: "about", l: "about", i: "user", href: "/old/about", key: "a" },
+  { k: "work", l: "work", i: "folder", href: "/old/work", key: "w" },
+  { k: "writing", l: "writing", i: "pen", href: "/old/blog", key: "b" },
 ] as const;
 
 function isActive(pathname: string, href: string) {
-  if (href === "/") return pathname === "/";
   return pathname === href || pathname.startsWith(href + "/");
 }
 

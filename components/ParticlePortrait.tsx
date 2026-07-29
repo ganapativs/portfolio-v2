@@ -87,13 +87,30 @@ export function ParticlePortrait({
       }
     };
 
+    // An ink change is a 340ms interpolation of the CSS colour tokens, but a
+    // MutationObserver only fires once, at the start. Re-reading for the length
+    // of the tween lets the dots travel with the rest of the page instead of
+    // snapping to the new ink while everything else is still moving.
+    let recolorUntil = 0;
     const themeObs = new MutationObserver(() => {
       colors = readColors();
+      recolorUntil = performance.now() + 420;
       if (reduce) drawStatic();
     });
     themeObs.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ["data-theme", "data-mono", "data-pure", "data-purePolarity", "style"],
+      // data-ink / data-mode belong to the press design, the rest to /old. The
+      // canvas reads its colours from CSS custom properties, so it has to
+      // re-read them whenever either design changes what those resolve to.
+      attributeFilter: [
+        "data-theme",
+        "data-ink",
+        "data-mode",
+        "data-mono",
+        "data-pure",
+        "data-purePolarity",
+        "style",
+      ],
     });
 
     const mouse = { x: -9e3, y: -9e3 };
@@ -149,6 +166,10 @@ export function ParticlePortrait({
       raf = requestAnimationFrame(loop);
       const t = (now - t0) / 1000;
       lastT = t; // resume point for the visibility pause
+      // getComputedStyle is far too costly to run every frame, but every other
+      // frame for the duration of an ink tween is imperceptible and keeps the
+      // dots in step with it.
+      if (now < recolorUntil && Math.round(t * 120) % 2 === 0) colors = readColors();
       ctx.clearRect(0, 0, W, H);
       for (const p of parts) {
         let base = radiusOf(p);
@@ -182,8 +203,7 @@ export function ParticlePortrait({
     };
 
     const img = new window.Image();
-    img.src = "/portrait/ganapativs.webp";
-    img.onload = () => {
+    const sample = () => {
       if (!alive) return;
       const COLS = 52;
       const ROWS = Math.round(COLS * (H / W));
@@ -250,9 +270,21 @@ export function ParticlePortrait({
       parts = next;
       t0 = performance.now(); // ripple clock starts when the dots exist
       lastT = 0;
-      if (reduce) drawStatic();
-      else startLoop();
+      // Paint the finished print first, unconditionally, then let the loop add
+      // the breathing on top. Without this the canvas stays blank whenever the
+      // rAF loop can't start — an off-screen or occluded page, a background
+      // tab, a throttled frame budget — and the portrait is just missing.
+      drawStatic();
+      if (!reduce) startLoop();
     };
+
+    // Attach the handler *before* setting src, and handle the already-complete
+    // case: on a warm cache the load event fires synchronously during the src
+    // assignment, so a handler attached afterwards never runs and the field
+    // stays blank on every visit after the first.
+    img.addEventListener("load", sample, { once: true });
+    img.src = "/portrait/ganapativs.webp";
+    if (img.complete && img.naturalWidth > 0) sample();
 
     return () => {
       alive = false;

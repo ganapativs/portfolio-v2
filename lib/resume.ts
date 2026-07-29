@@ -340,4 +340,26 @@ export const skills: SkillGroup[] = [
   },
 ];
 
+export type Talk = {
+  event: string;
+  place: string;
+  year: string;
+  /** One line. What the talk was actually about. */
+  detail: string;
+};
+
+/**
+ * Talks. Lives here rather than in either page because both the home page and
+ * the résumé print it, and it was previously typed out by hand in the résumé —
+ * one more pair that could drift.
+ */
+export const speaking: Talk[] = [
+  {
+    event: "TinyConf 2",
+    place: "Bangalore",
+    year: "2019",
+    detail: "Virtualised infinite scroll, drawing on react-delightful-scroller.",
+  },
+];
+
 export const lastUpdatedISO = new Date().toISOString().slice(0, 10);

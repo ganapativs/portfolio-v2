@@ -1,0 +1,686 @@
+/* 6 — CHROME ---------------------------------------------------------------
+   Folio bar, sticky site header, the dock and its ink popover, the footer.
+   Everything that persists across routes lives here. */
+
+/* Registration crosshairs, the way a printer marks a sheet. Decorative only,
+   and out of the way of the dock. */
+.reg-mark {
+  position: fixed;
+  bottom: 9px;
+  width: 13px;
+  height: 13px;
+  z-index: 5;
+  pointer-events: none;
+  opacity: 0.55;
+  color: var(--ink-3);
+}
+.reg-mark[data-side="left"] {
+  left: 9px;
+}
+.reg-mark[data-side="right"] {
+  right: 9px;
+}
+.reg-mark::before,
+.reg-mark::after {
+  content: "";
+  position: absolute;
+  background: currentColor;
+}
+.reg-mark::before {
+  left: 6px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+}
+.reg-mark::after {
+  top: 6px;
+  left: 0;
+  right: 0;
+  height: 1px;
+}
+@media (max-width: 700px) {
+  .reg-mark {
+    display: none;
+  }
+}
+
+/* ---- Folio bar (home) ---------------------------------------------------- */
+
+.folio {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: color-mix(in oklab, var(--paper) 88%, transparent);
+  backdrop-filter: saturate(1.4) blur(10px);
+  border-bottom: 1px solid var(--rule);
+}
+.folio-in {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 20px;
+  justify-content: space-between;
+  align-items: center;
+  padding-block: 9px;
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  white-space: nowrap;
+  color: var(--ink-3);
+}
+.folio-lead {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+}
+.folio-right {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.folio-dot {
+  width: 8px;
+  height: 8px;
+  border: 1.5px solid var(--accent);
+  border-radius: var(--r-point);
+  flex: none;
+}
+/* The folio number is the page's live state. Each new section slides its label
+   up into place — 12px of travel, no fade to nothing, so it reads as a counter
+   ticking over rather than a crossfade. */
+.folio-no {
+  display: inline-block;
+  animation: folio-tick 260ms var(--ease-out) both;
+}
+@keyframes folio-tick {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+/* Reading progress, drawn as the rule under the bar rather than a new object. */
+.folio-rail {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--accent);
+  transform: scaleX(var(--p, 0));
+  transform-origin: 0 50%;
+  will-change: transform;
+}
+
+@media (max-width: 560px) {
+  .folio-lead {
+    display: none;
+  }
+  .folio-in {
+    justify-content: flex-end;
+  }
+}
+
+/* ---- Sticky site header (writing, essay, resume) -------------------------- */
+
+.site-head {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: color-mix(in oklab, var(--raise) 90%, transparent);
+  backdrop-filter: saturate(1.4) blur(10px);
+  border-bottom: 1px solid var(--rule);
+  transition: border-color var(--dur-base) var(--ease-out);
+}
+.site-head[data-scrolled="true"] {
+  border-bottom-color: var(--rule-2);
+}
+.site-head-in {
+  display: flex;
+  align-items: center;
+  gap: clamp(10px, 2vw, 22px);
+  padding-block: 9px;
+}
+.brand {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+}
+/* ---- The mark ------------------------------------------------------------
+   The G rides in the folio bar, the masthead line and the colophon.
+
+   It is set like a letter, not placed like an icon. Centring its box never
+   looks centred: the ink fills the viewBox, but all the mass is the G, with a
+   thin detached rule at the foot — so the eye reads the G as the mark and sees
+   it floating. Seating the G on the text's own baseline, at roughly cap height,
+   is what makes it look right, and it puts the underscore exactly where an
+   underline goes.
+
+   Everything is in em, so one rule holds in the 11px folio bar, the 15px
+   masthead and the 11px colophon, at any zoom, on any device.
+
+   Geometry (viewBox 84 × 131.615): the G spans y 0 → 105.2, i.e. its foot is at
+   79.93% of the height; the underscore spans 118.2 → 130.2. */
+.mark {
+  flex: none;
+  /* G ≈ 1.15 × cap height → total height = that ÷ 0.7993.
+
+     Measured in `cap`, not `em`. The old 1.04em baked in a cap height of about
+     0.72em, which no face here actually has — Anek Latin's cap is 0.639em, so
+     the G came out 1.30 × the wordmark's caps instead of 1.15 and read as
+     oversized next to it. `1cap` is the cap height of whatever face the mark
+     has landed in, so the ratio now holds per face instead of per guess. */
+  height: calc(1.15cap / 0.7993);
+  width: auto;
+  /* A replaced element's baseline is its bottom edge, which starts the whole
+     box on the text baseline. The G's foot sits 20.07% above that edge, so the
+     box drops by exactly that much to land the G on the baseline — leaving the
+     underscore below it, where an underline goes. */
+  align-self: baseline;
+  transform: translateY(20.07%);
+  color: var(--ink);
+}
+.mark-bar {
+  color: var(--accent);
+}
+.folio-lead .mark,
+.press-foot-mark .mark {
+  color: var(--ink-3);
+  margin-right: 2px;
+}
+.brand-mark {
+  color: var(--ink);
+}
+.brand:hover {
+  text-decoration: none;
+}
+/* The wordmark's rule is drawn, not a text-decoration: an underline is placed
+   from the font's own metrics, which puts it at a different height from the
+   nav's bars on the right. Drawing it means every rule in the header — the
+   mark's underscore, this, and the nav links — sits on one line. */
+.brand {
+  position: relative;
+}
+/* The mark's underscore has to travel with the rule, or the lockup carries two
+   rules 3px apart. The bar is a separate path, so it can be moved on its own:
+   26.34 user units down puts it on the header's rule line. User units, not px,
+   so it stays put when the mark is resized. This is the only place the mark is
+   set this way — the folio bar and the colophon keep the drawn geometry. */
+.brand .mark {
+  overflow: visible;
+}
+.brand .mark-bar {
+  transform: translateY(26.34px);
+}
+/* One line for the whole header. `bottom` could never deliver that: it measures
+   from each element's own line box, and those differ — the brand sets 15/22.5,
+   the nav 13/19.5 plus 2px padding — so the three rules landed on three lines
+   (27.5, 32.5, 33.0). What they do share is a centre: `.site-head-in` centres
+   the row, so every box is centred on 20.75. Measuring down from that centre is
+   what puts them on one line, and keeps them there when a font size changes.
+
+   The offset clears the descenders. "meetguns" and "Writing" both drop a g, to
+   28.85 at 15px; the rule sits at 30.0, so it passes under the tails instead of
+   through them. */
+.site-head-in {
+  --rule-line: calc(50% + 9.25px);
+}
+.brand::after,
+.site-nav a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: var(--rule-line);
+  bottom: auto;
+  height: 1.5px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform var(--dur-base) var(--ease-out);
+}
+/* The rule spans the whole lockup, mark included, so on hover it reads as the
+   underscore growing out from under the G rather than a second, shorter rule
+   appearing beside it at a different height. */
+.brand:hover::after {
+  transform: scaleX(1);
+}
+.site-nav {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: clamp(12px, 1.8vw, 20px);
+  font-size: 13px;
+  font-weight: 500;
+}
+.site-nav a {
+  position: relative;
+  padding-block: 2px;
+}
+.site-nav a:hover {
+  text-decoration: none;
+}
+.site-nav a:hover::after {
+  transform: scaleX(1);
+}
+.site-nav a[aria-current="page"] {
+  color: var(--accent-ink);
+}
+.site-nav a[aria-current="page"]::after {
+  transform: scaleX(1);
+}
+
+/* ---- Dock ---------------------------------------------------------------- */
+
+.dock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(clamp(12px, 2.4vh, 22px) + env(safe-area-inset-bottom));
+  z-index: 50;
+  display: flex;
+  justify-content: center;
+  padding: 0 12px;
+  pointer-events: none;
+}
+.dock-in {
+  pointer-events: auto;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Wraps rather than overflows on very narrow phones. The sliding indicator
+     measures the active item's real box, so it follows onto the second row. */
+  flex-wrap: wrap;
+  gap: 3px;
+  padding: 5px;
+  border: 2px solid var(--ink);
+  background: var(--paper);
+  max-width: 100%;
+}
+/* The ink block that slides between nav items. Measured in JS (components/
+   press/Dock.tsx) so it can travel to any item's exact box; it is the only
+   thing that moves, which keeps the type perfectly still underneath. */
+.dock-ind {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: var(--h, 0px);
+  background: var(--ink);
+  /* Both axes, because the bar wraps to a second row on narrow phones and the
+     indicator has to follow the active item down. */
+  transform: translate(var(--x, 0), var(--y, 0)) scaleX(var(--sx, 0));
+  transform-origin: 0 50%;
+  pointer-events: none;
+  transition:
+    transform var(--dur-base) var(--ease-out),
+    height var(--dur-base) var(--ease-out),
+    opacity var(--dur-fast) linear;
+}
+/* Before the first measurement the block is both invisible and untransitioned,
+   so it takes its opening position in one step rather than animating into it. */
+.dock-in[data-ready="false"] .dock-ind {
+  opacity: 0;
+  transition: none;
+}
+.dock-link {
+  position: relative;
+  padding: 10px clamp(9px, 2.3vw, 13px);
+  font-family: var(--f-mono);
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+.dock-link:hover {
+  text-decoration: none;
+  color: var(--ink);
+}
+.dock-link[aria-current="page"],
+.dock-link[data-active="true"] {
+  color: var(--paper);
+}
+.dock-sep {
+  width: 2px;
+  height: 20px;
+  background: var(--ink);
+  margin: 0 3px;
+  flex: none;
+}
+.dock-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--ink);
+  background: transparent;
+  color: var(--chip-off-fg);
+  font-family: var(--f-mono);
+  font-size: 13px;
+  cursor: pointer;
+  flex: none;
+}
+/* Sound "on" is the resting state, so it reads as a lit control rather than a
+   filled slab — a second black block beside the ink dot made the dock's right
+   end far heavier than its left. */
+.dock-btn[aria-pressed="true"] {
+  color: var(--accent-ink);
+  border-color: var(--accent);
+}
+.dock-btn:hover {
+  color: var(--ink);
+  border-color: var(--ink);
+}
+.dock-pal {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  padding: 0;
+  background: var(--plate);
+  cursor: pointer;
+  flex: none;
+}
+.dock-pal-eye {
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--paper);
+  border-radius: var(--r-point);
+  transition: transform var(--dur-base) var(--ease-out);
+}
+.dock-pal[aria-expanded="true"] .dock-pal-eye {
+  transform: scale(1.35);
+}
+
+/* Anchors visible only on the home route, where they scroll rather than route. */
+@media (max-width: 620px) {
+  .dock-link[data-anchor="true"] {
+    display: none;
+  }
+}
+
+/* ---- Ink popover --------------------------------------------------------- */
+
+/* Native popover: ESC dismissal, light-dismiss and top-layer stacking come
+   free, and the panel can never be clipped by the dock's own box. The UA
+   stylesheet centres [popover] with `inset: 0; margin: auto`, so both are
+   reset before positioning against the trigger. */
+.pal[popover] {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  left: var(--pal-left, 12px);
+  bottom: var(--pal-bottom, 84px);
+  width: min(84vw, 320px);
+  padding: 16px;
+  border: 2px solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+  overflow: visible;
+  opacity: 0;
+  transform: translateY(6px) scale(0.96);
+  transform-origin: var(--pal-arrow-x, 50%) 100%;
+  transition:
+    opacity 130ms var(--ease-in-out),
+    transform 130ms var(--ease-in-out),
+    overlay 130ms allow-discrete,
+    display 130ms allow-discrete;
+}
+.pal:popover-open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transition-duration: 200ms;
+  transition-timing-function: var(--ease-out);
+}
+@starting-style {
+  .pal:popover-open {
+    opacity: 0;
+    transform: translateY(6px) scale(0.96);
+  }
+}
+/* Tail — two stacked triangles so the 2px border reads through the notch. */
+.pal::before,
+.pal::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  width: 0;
+  height: 0;
+  border-inline: 8px solid transparent;
+}
+.pal::before {
+  left: calc(var(--pal-arrow-x, 50%) - 8px);
+  border-top: 9px solid var(--ink);
+}
+.pal::after {
+  left: calc(var(--pal-arrow-x, 50%) - 6px);
+  border-inline-width: 6px;
+  border-top: 7px solid var(--paper);
+}
+/* Each control group is a real fieldset — the label is its legend, so the
+   grouping is in the markup rather than bolted on with aria-labelledby. The
+   fieldset itself is only a wrapper; the visible box is the .seg inside it. */
+.pal-field {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-inline-size: 0;
+}
+.pal-field + .pal-field {
+  margin-top: 16px;
+}
+.pal-label {
+  display: block;
+  padding: 0;
+  margin-bottom: 8px;
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.seg {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  border: 1px solid var(--rule-2);
+}
+.seg-btn {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  color: var(--chip-off-fg);
+  font-family: var(--f-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
+  padding: 9px 4px;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+.seg-btn[aria-pressed="true"] {
+  background: var(--chip-on-bg);
+  color: var(--chip-on-fg);
+}
+.seg-btn:hover:not([aria-pressed="true"]) {
+  color: var(--ink);
+  background: var(--wash);
+}
+.ink-row {
+  display: flex;
+  gap: 9px;
+  flex-wrap: wrap;
+}
+.ink-btn {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out);
+}
+.ink-btn:hover {
+  transform: translateY(-2px);
+}
+.ink-btn:active {
+  transform: translateY(0) scale(0.94);
+}
+.ink-btn[aria-pressed="true"] {
+  box-shadow:
+    0 0 0 2px var(--paper),
+    0 0 0 4px currentColor;
+}
+.pal-note {
+  margin: 14px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+  font-family: var(--f-serif);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-3);
+}
+
+/* ---- Footer -------------------------------------------------------------- */
+
+.press-foot {
+  margin-top: clamp(24px, 4vh, 36px);
+  padding-top: 14px;
+  padding-bottom: var(--dock-safe);
+  border-top: 1px solid var(--rule);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 24px;
+  /* Centre, not baseline: the first item is an inline-flex box led by an SVG,
+     which has no baseline of its own and would drag the whole row down. */
+  align-items: center;
+  font-family: var(--f-mono);
+  font-size: 11px;
+  line-height: 1.7;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.press-foot-mark {
+  display: inline-flex;
+  /* The colophon is the one place the mark is not seated on a baseline: there
+     is no rule under it here, so the underscore has nothing to line up with.
+     Centring the glyph against the Kannada beside it reads better. */
+  align-items: center;
+  gap: 7px;
+}
+.press-foot-mark .mark {
+  /* 1.5 × the chrome size (1.04em → 1.56em), and centred on its own ink rather
+     than dropped onto the baseline — so `.mark`'s baseline offset is undone.
+
+     Optically, not geometrically: box-centring leaves the mark low, because its
+     ink centroid sits at 52.6% of the viewBox (the underscore pulls it down)
+     while the Kannada's sits above its own line box. Measured, the gap is 17.8%
+     of the mark's height — a share, so it holds at any size. */
+  height: 1.56em;
+  align-self: center;
+  transform: translateY(-17.8%);
+}
+.press-foot .kn {
+  font-family: var(--f-kannada);
+  font-weight: 500;
+  font-size: 14px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.press-foot-links {
+  display: flex;
+  gap: 16px;
+  margin-left: auto;
+}
+@media (max-width: 620px) {
+  .press-foot-links {
+    margin-left: 0;
+  }
+}
+
+/* ---- Swatch inks --------------------------------------------------------
+   Painted from CSS rather than from a style prop, for two reasons: the server
+   has no idea which theme the reader is on, so a JS-chosen hex hydrates into a
+   mismatch; and driving it from here means the swatches cross-fade along with
+   the theme instead of snapping. `color` feeds the selected ring through
+   currentColor. */
+
+.ink-btn[data-ink-id="terracotta"],
+.swatch[data-ink-id="terracotta"] {
+  background: oklch(0.55 0.13 42);
+  color: oklch(0.55 0.13 42);
+}
+.ink-btn[data-ink-id="saffron"],
+.swatch[data-ink-id="saffron"] {
+  background: oklch(0.6 0.115 80);
+  color: oklch(0.6 0.115 80);
+}
+.ink-btn[data-ink-id="sage"],
+.swatch[data-ink-id="sage"] {
+  background: oklch(0.52 0.11 148);
+  color: oklch(0.52 0.11 148);
+}
+.ink-btn[data-ink-id="rose"],
+.swatch[data-ink-id="rose"] {
+  background: oklch(0.57 0.14 8);
+  color: oklch(0.57 0.14 8);
+}
+.ink-btn[data-ink-id="plum"],
+.swatch[data-ink-id="plum"] {
+  background: oklch(0.5 0.15 313);
+  color: oklch(0.5 0.15 313);
+}
+.ink-btn[data-ink-id="coffee"],
+.swatch[data-ink-id="coffee"] {
+  background: oklch(0.47 0.075 52);
+  color: oklch(0.47 0.075 52);
+}
+
+[data-theme="dark"] .ink-btn[data-ink-id="terracotta"],
+[data-theme="dark"] .swatch[data-ink-id="terracotta"] {
+  background: oklch(0.74 0.13 44);
+  color: oklch(0.74 0.13 44);
+}
+[data-theme="dark"] .ink-btn[data-ink-id="saffron"],
+[data-theme="dark"] .swatch[data-ink-id="saffron"] {
+  background: oklch(0.83 0.12 84);
+  color: oklch(0.83 0.12 84);
+}
+[data-theme="dark"] .ink-btn[data-ink-id="sage"],
+[data-theme="dark"] .swatch[data-ink-id="sage"] {
+  background: oklch(0.76 0.12 150);
+  color: oklch(0.76 0.12 150);
+}
+[data-theme="dark"] .ink-btn[data-ink-id="rose"],
+[data-theme="dark"] .swatch[data-ink-id="rose"] {
+  background: oklch(0.76 0.13 10);
+  color: oklch(0.76 0.13 10);
+}
+[data-theme="dark"] .ink-btn[data-ink-id="plum"],
+[data-theme="dark"] .swatch[data-ink-id="plum"] {
+  background: oklch(0.72 0.14 310);
+  color: oklch(0.72 0.14 310);
+}
+[data-theme="dark"] .ink-btn[data-ink-id="coffee"],
+[data-theme="dark"] .swatch[data-ink-id="coffee"] {
+  background: oklch(0.72 0.075 55);
+  color: oklch(0.72 0.075 55);
+}
+
+.ink-btn,
+.swatch {
+  transition:
+    background-color var(--dur-ink) var(--ease-quart),
+    transform var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out);
+}

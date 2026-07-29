@@ -1,0 +1,424 @@
+/* 9 — RESUME ---------------------------------------------------------------
+   A document, not a page: two columns, tight leading, and a print pass that
+   lands it on one or two sheets with 16mm margins. */
+
+.cv {
+  margin-top: clamp(20px, 3vh, 30px);
+}
+.cv-topline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 20px;
+  margin-bottom: clamp(20px, 3vh, 28px);
+}
+.cv-stamp {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.cv-print {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+}
+.cv-print:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.cv-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px 24px;
+}
+.cv-name {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 12px;
+  font-weight: 700;
+  font-size: clamp(27px, calc(24px + 0.6vw), 34px);
+  line-height: 1.1;
+  letter-spacing: -0.022em;
+}
+.cv-role {
+  margin-top: 7px;
+  font-size: 16px;
+  line-height: 1.4;
+  color: var(--ink-2);
+}
+.cv-contact {
+  text-align: right;
+  font-family: var(--f-mono);
+  font-size: 12.5px;
+  line-height: 1.75;
+  color: var(--ink-2);
+}
+.cv-contact a:hover {
+  color: var(--accent-ink);
+}
+.cv-summary {
+  margin: 13px 0 0;
+  padding-top: 13px;
+  border-top: 1px solid var(--rule);
+  font-family: var(--f-serif);
+  font-size: 16.5px;
+  line-height: 1.58;
+  color: var(--ink-2);
+  max-width: 86ch;
+  text-wrap: pretty;
+}
+
+.cv-cols {
+  margin-top: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px clamp(24px, 3vw, 40px);
+  align-items: flex-start;
+}
+.cv-main {
+  flex: 1 1 58%;
+  min-width: min(100%, 320px);
+}
+.cv-side {
+  flex: 1 1 30%;
+  min-width: min(100%, 240px);
+}
+.cv-h2 {
+  margin: 0 0 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--rule);
+  font-family: var(--f-mono);
+  font-weight: 400;
+  font-size: 12px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.cv-h2 + .cv-h2,
+.cv-block + .cv-h2 {
+  margin-top: 18px;
+}
+.cv-org {
+  font-size: 16px;
+  line-height: 1.35;
+  font-weight: 600;
+}
+.cv-orgmeta {
+  margin-top: 3px;
+  font-family: var(--f-mono);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: var(--ink-3);
+}
+.cv-job {
+  margin-top: 11px;
+  break-inside: avoid;
+}
+.cv-job h3 {
+  margin: 0;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.3;
+}
+.cv-job--now h3 {
+  color: var(--accent-ink);
+}
+.cv-range {
+  margin-top: 2px;
+  font-family: var(--f-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.02em;
+  color: var(--ink-3);
+}
+.cv-job ul {
+  margin: 5px 0 0;
+  padding-left: 1.05em;
+  list-style-type: disc;
+}
+.cv-job li {
+  font-size: 15.5px;
+  line-height: 1.55;
+  color: var(--ink-2);
+  margin-top: 5px;
+  max-width: 70ch;
+  text-wrap: pretty;
+}
+.cv-job li::marker {
+  color: var(--rule-2);
+}
+.cv-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.cv-item-name {
+  font-family: var(--f-mono);
+  font-size: 14px;
+  color: var(--ink);
+}
+.cv-item-name a:hover {
+  color: var(--accent-ink);
+}
+.cv-item-note {
+  margin-top: 2px;
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+.cv-item h3 {
+  margin: 0;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.35;
+}
+.cv-skills {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.cv-skill-label {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.cv-skill-items {
+  margin-top: 2px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.cv-skill-items b {
+  font-weight: 600;
+  color: var(--ink);
+}
+.cv-updated {
+  margin-top: 24px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* 10 — PRINT ---------------------------------------------------------------- */
+
+@page {
+  margin: 16mm;
+}
+
+@media print {
+  /* Force the light run on paper regardless of what the screen was showing —
+     a dark theme prints as a solid black rectangle. */
+  :root,
+  [data-theme="dark"] {
+    --paper: #fff;
+    --raise: #fff;
+    --sunk: #f4f0e8;
+    --ink: #16110d;
+    --ink-2: #3c342e;
+    --ink-3: #5d544c;
+    --rule: #cfc7bb;
+    --rule-2: #b3a99c;
+    --accent: #7c4e32;
+    --accent-ink: #6a4028;
+    --wash: transparent;
+    --plate: #7c4e32;
+  }
+  /* `!important` is load-bearing. The no-flash script in app/layout.tsx sets
+     `style.backgroundColor` on <html> inline (#f5ecda light, #1a120c dark) so
+     the first paint isn't a white flash. An inline declaration outranks a normal
+     rule from a stylesheet, so a plain `background: #fff` here lost — and the
+     canvas, which is painted from <html>, kept the paper colour. Body's white
+     covers only body's own box, so the leftover showed up as a coloured band
+     below the end of the content on the last sheet. An important declaration is
+     the one thing that outranks a normal inline style.
+
+     `color-scheme` needs the same treatment: printing from the dark theme
+     otherwise leaves the UA compositing the sheet as a dark surface. */
+  html {
+    background: #fff !important;
+    color-scheme: light !important;
+  }
+  body {
+    background: #fff !important;
+  }
+  .dock,
+  .reg-mark,
+  .site-head,
+  .cv-topline,
+  .doc > footer,
+  .press-foot,
+  .skip-link,
+  .read-line {
+    display: none !important;
+  }
+  /* `.doc` is a full-height flex column on screen so the footer sits at the
+     bottom of short pages. In print that guarantees at least one page of height
+     and stretches `.doc-main`, which is what was emitting a trailing blank
+     sheet. Print wants ordinary block flow. */
+  .doc {
+    min-height: 0;
+    display: block;
+  }
+  .doc-main {
+    flex: none;
+    padding-top: 0;
+  }
+  .wrap {
+    max-width: none;
+    padding-inline: 0;
+  }
+  .cv {
+    margin-top: 0;
+  }
+  /* Two columns are a screen idea. In print a flex line cannot split across
+     sheets — Chrome moves the whole row to the next page and leaves a blank —
+     so the résumé falls back to a single column that flows naturally. */
+  .cv-cols {
+    display: block;
+  }
+  .cv-main,
+  .cv-side {
+    width: auto;
+    min-width: 0;
+  }
+  .cv-side {
+    margin-top: 16px;
+  }
+  /* Only the small units avoid breaking. The Experience block is taller than a
+     sheet, so telling it to stay whole would push the entire thing to page two
+     and leave page one empty. */
+  .cv-job,
+  .cv-item {
+    break-inside: avoid;
+  }
+  .cv-h2 {
+    break-after: avoid;
+  }
+  a {
+    text-decoration: none;
+  }
+
+  /* Print type scale. The screen sizes are set for reading at arm's length on a
+     backlit display; on paper they run to three sheets. These are the same
+     hierarchy a step down, in points, which is what lands the whole CV on two.
+     Adjust these — not the screen sizes — if the length ever drifts. */
+  .cv-name {
+    font-size: 20pt;
+  }
+  .cv-role {
+    margin-top: 4px;
+    font-size: 10.5pt;
+  }
+  .cv-contact {
+    font-size: 9pt;
+    line-height: 1.6;
+  }
+  .cv-summary {
+    margin-top: 8px;
+    padding-top: 8px;
+    font-size: 10pt;
+    line-height: 1.45;
+  }
+  .cv-cols {
+    margin-top: 12px;
+  }
+  .cv-h2 {
+    margin-bottom: 7px;
+    padding-bottom: 4px;
+    font-size: 8.5pt;
+  }
+  .cv-h2 + .cv-h2,
+  .cv-block + .cv-h2 {
+    margin-top: 7px;
+  }
+  .cv-org {
+    font-size: 10.5pt;
+  }
+  .cv-orgmeta {
+    font-size: 8.5pt;
+  }
+  .cv-job {
+    margin-top: 4px;
+  }
+  /* Role and dates share a line on paper. They are two block elements on
+     screen, where the column is narrow and the stack reads better; in print the
+     measure is the full sheet and the second line was costing seven rows across
+     the CV for no information. Inline, not flex — there is no wrapper element
+     around the pair, and inlining needs no change to the markup. */
+  .cv-job h3 {
+    display: inline;
+    font-size: 10.5pt;
+  }
+  /* On screen the current role is set in the ink, which is how you find it at a
+     glance. On paper that reading is gone — one brown heading among black ones
+     just looks like an inconsistency, and it is the first thing a greyscale
+     printer flattens anyway. */
+  .cv-job--now h3 {
+    color: var(--ink);
+  }
+  .cv-range {
+    display: inline;
+    margin-top: 0;
+    font-size: 8.5pt;
+  }
+  .cv-range::before {
+    content: " · ";
+    color: var(--rule-2);
+  }
+  .cv-job li {
+    margin-top: 1px;
+    font-size: 9.5pt;
+    line-height: 1.36;
+    max-width: none;
+  }
+  .cv-list {
+    gap: 4px;
+  }
+  .cv-item-name {
+    font-size: 9.5pt;
+  }
+  .cv-item-note,
+  .cv-skill-items {
+    font-size: 9.5pt;
+    line-height: 1.38;
+  }
+  .cv-skills {
+    gap: 4px;
+  }
+  .cv-skill-label {
+    font-size: 8.5pt;
+  }
+  .cv-side {
+    margin-top: 10px;
+  }
+  .cv-updated {
+    margin-top: 10px;
+    padding-top: 6px;
+    font-size: 8.5pt;
+  }
+}

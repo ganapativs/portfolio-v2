@@ -1,15 +1,15 @@
 import type { MetadataRoute } from "next";
-import { published } from "@/app/blog/posts";
+import { published } from "@/lib/posts";
 import { SITE_URL } from "@/lib/jsonld";
 
 // Hand-maintained content dates — bump a surface's entry when its copy
 // meaningfully changes. Deliberately NOT the build date: a lastmod that
 // moves on every deploy teaches crawlers to ignore it.
+// /about and /work are gone — the press homepage absorbed both, and
+// next.config.ts redirects them. They must not reappear here.
 const SURFACE_UPDATED: Record<string, string> = {
-  "": "2026-07-25",
-  "/about": "2026-07-25",
-  "/work": "2026-07-25",
-  "/resume": "2026-07-25",
+  "": "2026-07-29",
+  "/resume": "2026-07-29",
 };
 
 export default function sitemap(): MetadataRoute.Sitemap {

@@ -79,6 +79,22 @@ const nextConfig: NextConfig = {
 
     return [{ source: "/:path*", headers: securityHeaders }, ...cacheHeaders];
   },
+  // The press homepage absorbed both /about and /work, so those URLs no longer
+  // exist as pages. They are indexed and linked from outside, so they redirect
+  // permanently to the sections that replaced them rather than 404ing. The
+  // retired pages themselves stay readable at /old/about and /old/work.
+  async redirects() {
+    return [
+      { source: "/about", destination: "/#about", permanent: true },
+      { source: "/work", destination: "/#work", permanent: true },
+    ];
+  },
+  // Every post is also served as plain markdown at /blog/<slug>.md. App Router
+  // segments can't carry a file extension and a catch-all would collide with
+  // the post page, so the public URL is rewritten onto a route handler.
+  async rewrites() {
+    return [{ source: "/blog/:slug.md", destination: "/api/blog-md/:slug" }];
+  },
 };
 
 export default withMDX(nextConfig);

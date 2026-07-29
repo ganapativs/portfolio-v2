@@ -15,5 +15,5 @@
     "app/**/apple-icon.{ts,tsx}"
   ],
   "project": ["**/*.{ts,tsx,mjs,cjs,js,jsx,mdx}", "!.claude/**", "!.vscode/**"],
-  "ignoreDependencies": ["tailwindcss", "@fontsource/fraunces"]
+  "ignoreDependencies": ["tailwindcss", "@fontsource/anek-latin", "@fontsource/fragment-mono"]
 }

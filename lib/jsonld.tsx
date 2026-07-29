@@ -1,4 +1,4 @@
-import type { Post } from "@/app/blog/posts";
+import type { Post } from "@/lib/posts";
 import { identity } from "@/lib/resume";
 
 export const SITE_URL = "https://meetguns.com";

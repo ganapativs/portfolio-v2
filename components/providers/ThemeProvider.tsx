@@ -43,9 +43,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       const root = document.documentElement;
       root.dataset.theme = theme;
       root.style.colorScheme = theme;
-      // Mirror the page bg from the token (resolves to the just-set theme) so
-      // this stays in sync with --bg-page instead of duplicating its hex.
-      root.style.backgroundColor = getComputedStyle(root).getPropertyValue("--bg-page").trim();
+      // Mirror the page bg from whichever design owns this route — `--paper` in
+      // the press system, `--bg-page` in the /old archive — so it stays in sync
+      // with the token instead of duplicating its value here.
+      const cs = getComputedStyle(root);
+      root.style.backgroundColor =
+        cs.getPropertyValue("--paper").trim() || cs.getPropertyValue("--bg-page").trim();
     }, origin);
     try {
       localStorage.setItem("mg_theme", theme);

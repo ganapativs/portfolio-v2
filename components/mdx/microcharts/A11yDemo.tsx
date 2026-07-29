@@ -56,9 +56,8 @@ export function A11yDemo() {
         ))}
       </div>
       <p className="mcx-a11y-note">
-        That sentence is read from the rendered DOM — the literal <code>aria-label</code> the
-        library just wrote for this data. Not hand-written, not copied from docs. Swap the data and
-        it rewrites itself.
+        That sentence is read from the rendered DOM: the literal <code>aria-label</code> the library
+        just wrote for this data. Swap the data and it rewrites itself.
       </p>
     </section>
   );
