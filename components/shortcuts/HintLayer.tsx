@@ -14,7 +14,8 @@ const HOLD_DELAY_MS = 120;
 type Pos = { id: string; hint: string; top: number; left: number; index: number };
 
 function isElementVisuallyVisible(el: HTMLElement) {
-  // Cheap visibility gate that respects RevealController's .in-view fade.
+  // Cheap visibility gate — a hint must never float over something the reader
+  // cannot see.
   const cs = getComputedStyle(el);
   if (cs.visibility === "hidden" || cs.display === "none") return false;
   if (parseFloat(cs.opacity || "1") < 0.1) return false;

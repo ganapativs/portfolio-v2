@@ -1,0 +1,696 @@
+/* 8 — WRITING INDEX + ESSAY ------------------------------------------------- */
+
+.doc {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+}
+.doc-main {
+  flex: 1 1 auto;
+  width: 100%;
+  padding-top: clamp(44px, 7vh, 84px);
+}
+.doc-foot {
+  width: 100%;
+}
+
+.page-h1 {
+  margin: 0;
+  font-weight: 700;
+  font-size: clamp(30px, calc(24px + 1.6vw), 46px);
+  line-height: 1.1;
+  letter-spacing: -0.022em;
+}
+.page-lede {
+  margin: 16px 0 0;
+  max-width: 56ch;
+  font-family: var(--f-serif);
+  font-size: clamp(17px, calc(15px + 0.4vw), 20px);
+  line-height: 1.6;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+
+/* ---- Index --------------------------------------------------------------- */
+
+.entries {
+  margin-top: clamp(40px, 6vh, 64px);
+  max-width: 70ch;
+}
+.entry {
+  display: block;
+  position: relative;
+  border-top: 1px solid var(--rule);
+  padding: clamp(20px, 3vh, 28px) 10px clamp(28px, 4.5vh, 44px);
+  margin-inline: -10px;
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+.entry::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: -1px;
+  right: 0;
+  height: 1px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform var(--dur-base) var(--ease-out);
+}
+.entry:hover {
+  text-decoration: none;
+  background: var(--wash);
+}
+.entry:hover::before {
+  transform: scaleX(1);
+}
+.entry-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 20px;
+}
+.entry-title {
+  margin: 0;
+  flex: 1 1 22ch;
+  font-weight: 700;
+  font-size: clamp(21px, calc(19px + 0.5vw), 26px);
+  line-height: 1.26;
+  letter-spacing: -0.018em;
+  text-wrap: balance;
+}
+.entry:hover .entry-title {
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 5px;
+  text-decoration-color: var(--accent);
+}
+.entry-meta {
+  font-family: var(--f-mono);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: var(--ink-3);
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  white-space: nowrap;
+}
+.entry-sub {
+  margin: 12px 0 0;
+  font-family: var(--f-serif);
+  font-size: clamp(17px, calc(15px + 0.32vw), 19px);
+  line-height: 1.62;
+  color: var(--ink-2);
+  max-width: 66ch;
+  text-wrap: pretty;
+}
+.entries-foot {
+  border-top: 1px solid var(--rule);
+  padding-top: 18px;
+  font-family: var(--f-mono);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: var(--ink-3);
+  display: flex;
+  gap: 18px;
+}
+.entries-foot a {
+  text-decoration: underline;
+  text-decoration-color: var(--rule-2);
+  text-underline-offset: 4px;
+}
+
+/* ---- Essay --------------------------------------------------------------- */
+
+/* Reading progress as a hairline across the top of the sticky header — the
+   header already draws a rule there, so this colours it in rather than adding
+   another object to the page. */
+.read-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--accent);
+  transform: scaleX(var(--p, 0));
+  transform-origin: 0 50%;
+  will-change: transform;
+}
+
+.essay-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--f-mono);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: var(--ink-3);
+}
+.essay-back:hover {
+  color: var(--ink);
+  text-decoration: none;
+}
+.essay-back span[aria-hidden] {
+  display: inline-block;
+  transition: transform var(--dur-base) var(--ease-out);
+}
+.essay-back:hover span[aria-hidden] {
+  transform: translateX(-4px);
+}
+
+.essay {
+  margin-top: clamp(28px, 4vh, 40px);
+}
+.essay-title {
+  margin: 0;
+  font-weight: 700;
+  font-size: clamp(30px, calc(24px + 1.7vw), 46px);
+  line-height: 1.12;
+  letter-spacing: -0.022em;
+  text-wrap: balance;
+  max-width: 26ch;
+}
+.essay-meta {
+  margin-top: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  font-family: var(--f-mono);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: var(--ink-3);
+}
+.essay-meta time {
+  font-variant-numeric: tabular-nums;
+}
+.essay-meta a:hover {
+  color: var(--accent-ink);
+}
+.essay-cover {
+  position: relative;
+  margin: clamp(28px, 4vh, 40px) 0 0;
+  /* Per-post, from Post.coverAspect. The default suits a photograph; artwork
+     that is already a share card is usually wider. */
+  aspect-ratio: var(--cover-ar, 16 / 9);
+  overflow: hidden;
+  border-radius: var(--r-block);
+  background: var(--sunk);
+}
+.essay-cover img {
+  display: block;
+  object-fit: cover;
+}
+/* Breakout past the measure on roomy screens — the cover is the one element
+   allowed to be wider than the text column. */
+@media (min-width: 1000px) {
+  .essay-cover {
+    width: min(960px, calc(100vw - 2 * var(--gutter)));
+    margin-left: 50%;
+    transform: translateX(-50%);
+  }
+}
+.essay-spoiler {
+  margin: clamp(28px, 4vh, 40px) 0 0;
+  font-family: var(--f-serif);
+  font-style: italic;
+  font-size: clamp(18px, calc(16px + 0.4vw), 21px);
+  line-height: 1.55;
+  color: var(--ink-2);
+  max-width: 56ch;
+  text-wrap: pretty;
+}
+
+/* ---- Prose ---------------------------------------------------------------
+   Piazzolla 19/1.62 at a 68ch measure, per DESIGN.md. Headings step back to
+   Anek so the axis tells you what class a thing is before you read it. */
+
+.prose {
+  margin-top: clamp(32px, 5vh, 48px);
+  font-family: var(--f-serif);
+  font-size: clamp(18px, calc(16px + 0.34vw), 20px);
+  line-height: 1.68;
+  color: var(--ink-2);
+}
+.prose > * {
+  max-width: 68ch;
+}
+.prose p {
+  margin: 0 0 1.35em;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+.prose :is(h2, h3, h4) {
+  font-family: var(--f-sans);
+  color: var(--ink);
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+  scroll-margin-top: 88px;
+}
+.prose h2 {
+  margin: clamp(40px, 6vh, 60px) 0 0.55em;
+  font-weight: 700;
+  font-size: clamp(21px, calc(19px + 0.5vw), 26px);
+  line-height: 1.26;
+}
+.prose h3 {
+  margin: clamp(32px, 4.5vh, 44px) 0 0.5em;
+  font-weight: 600;
+  font-size: clamp(19px, calc(17px + 0.4vw), 22px);
+  line-height: 1.3;
+}
+.prose h4 {
+  margin: clamp(26px, 3.5vh, 34px) 0 0.5em;
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 1.35;
+}
+/* rehype-autolink-headings wraps the heading text in an anchor. Keep it
+   invisible until hovered, then hang a ¶ in the margin. */
+.prose :is(h2, h3, h4) a {
+  color: inherit;
+  text-decoration: none;
+  position: relative;
+}
+.prose :is(h2, h3, h4) a:hover {
+  text-decoration: none;
+}
+.prose :is(h2, h3, h4) a::before {
+  content: "#";
+  position: absolute;
+  right: calc(100% + 0.35em);
+  color: var(--accent);
+  opacity: 0;
+  font-family: var(--f-mono);
+  font-size: 0.75em;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+.prose :is(h2, h3, h4) a:hover::before,
+.prose :is(h2, h3, h4) a:focus-visible::before {
+  opacity: 1;
+}
+.prose :is(ul, ol) {
+  margin: 0 0 1.35em;
+  padding-left: 1.2em;
+}
+.prose ul {
+  list-style-type: disc;
+}
+.prose ol {
+  list-style-type: decimal;
+}
+.prose ul ul {
+  list-style-type: circle;
+}
+.prose ol ol {
+  list-style-type: lower-alpha;
+}
+.prose :is(ul, ol) :is(ul, ol) {
+  margin: 0.5em 0 0;
+}
+.prose li {
+  margin: 0.5em 0 0;
+}
+.prose li:first-child {
+  margin-top: 0;
+}
+.prose li::marker {
+  color: var(--ink-3);
+}
+.prose strong {
+  font-weight: 600;
+  color: var(--ink);
+}
+.prose a:not(:is(h2, h3, h4) a) {
+  color: var(--accent-ink);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  text-decoration-color: color-mix(in oklab, var(--accent) 50%, transparent);
+  overflow-wrap: anywhere;
+  transition: text-decoration-color var(--dur-fast) var(--ease-out);
+}
+.prose a:not(:is(h2, h3, h4) a):hover {
+  text-decoration-color: var(--accent);
+}
+.prose hr {
+  margin: clamp(40px, 6vh, 60px) 0;
+  border: 0;
+  border-top: 1px solid var(--rule);
+}
+.prose :is(img, video, iframe) {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--r-block);
+}
+[data-theme="dark"] .prose img {
+  box-shadow: 0 0 0 1px var(--rule);
+}
+.prose figure {
+  margin: clamp(28px, 4vh, 36px) 0;
+}
+.prose figcaption {
+  margin-top: 8px;
+  font-family: var(--f-mono);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: var(--ink-3);
+}
+
+/* Pull quote — the brief sets it as large indented prose, not a bordered card. */
+.prose blockquote {
+  margin: clamp(36px, 5vh, 52px) 0;
+  padding-left: clamp(14px, 2vw, 24px);
+  border-left: 2px solid var(--accent);
+  font-size: clamp(21px, calc(18px + 0.6vw), 26px);
+  line-height: 1.44;
+  color: var(--ink);
+  text-wrap: pretty;
+}
+.prose blockquote > :last-child {
+  margin-bottom: 0;
+}
+
+/* Inline code — a quietly marked word, not a button. */
+.prose :not(pre) > code {
+  font-family: var(--f-mono);
+  font-size: 0.84em;
+  color: var(--accent-ink);
+  background: var(--accent-soft);
+  padding: 0.1em 0.3em;
+  margin-inline: 0.06em;
+  border-radius: var(--r-chip);
+  word-break: break-word;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+[data-mode="plain"] .prose :not(pre) > code,
+[data-mode="mono"] .prose :not(pre) > code {
+  background: var(--sunk);
+  color: var(--ink);
+}
+
+/* Tables — GFM. Rules, never zebra fills. */
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: clamp(28px, 4vh, 36px) 0;
+  font-family: var(--f-sans);
+  font-size: 16px;
+}
+.prose thead th {
+  text-align: left;
+  font-family: var(--f-mono);
+  font-weight: 400;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  border-bottom: 1px solid var(--ink);
+  padding: 8px 12px 8px 0;
+}
+.prose tbody td {
+  border-bottom: 1px solid var(--rule);
+  padding: 11px 12px 11px 0;
+  vertical-align: top;
+  line-height: 1.5;
+}
+.prose tbody tr:hover {
+  background: var(--wash);
+}
+/* Wide tables scroll inside their own box; the page never scrolls sideways. */
+.prose .table-scroll {
+  overflow-x: auto;
+  max-width: 68ch;
+}
+
+/* ---- Code panel ---------------------------------------------------------- */
+
+.prose .codeblock {
+  position: relative;
+  margin: clamp(28px, 4vh, 36px) 0;
+  background: var(--sunk);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-block);
+  overflow: hidden;
+  max-width: 68ch;
+}
+.prose .codeblock-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  background: color-mix(in oklab, var(--ink) 5%, transparent);
+  border-bottom: 1px solid var(--rule);
+  padding: 9px 20px;
+}
+.prose .codeblock-title::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: var(--r-point);
+  background: var(--accent);
+  flex: none;
+}
+.prose .codeblock pre {
+  margin: 0;
+  padding: 18px 20px;
+  background: transparent;
+  border: 0;
+  overflow-x: auto;
+  font-family: var(--f-mono);
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--ink);
+  tab-size: 2;
+  scrollbar-width: thin;
+  scrollbar-color: var(--rule-2) transparent;
+}
+.prose .codeblock pre code {
+  font-family: var(--f-mono);
+  font-variant-ligatures: none;
+}
+.prose .codeblock pre::-webkit-scrollbar {
+  height: 8px;
+}
+.prose .codeblock pre::-webkit-scrollbar-thumb {
+  background: var(--rule-2);
+  border-radius: 999px;
+}
+.prose .codeblock-copy {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: var(--paper);
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r-chip);
+  padding: 5px 11px;
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  line-height: 1;
+  color: var(--ink-3);
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+.prose .codeblock:has(.codeblock-title) .codeblock-copy {
+  top: 7px;
+}
+.prose .codeblock:hover .codeblock-copy,
+.prose .codeblock:focus-within .codeblock-copy {
+  opacity: 1;
+}
+@media (hover: none) {
+  .prose .codeblock-copy {
+    opacity: 1;
+  }
+}
+.prose .codeblock-copy:hover {
+  color: var(--ink);
+  border-color: var(--ink-3);
+}
+.prose .codeblock-copy:active {
+  transform: scale(0.94);
+}
+.prose .codeblock-copy[data-status="copied"] {
+  color: var(--accent-ink);
+  border-color: var(--accent);
+  opacity: 1;
+}
+
+/* highlight.js — two token sets, because the panel follows the page rather
+   than staying dark in both themes. Every hue is pinned to a lightness that
+   clears 4.5:1 on its own ground. */
+.prose .hljs {
+  color: var(--ink);
+  background: transparent;
+}
+.prose .hljs-keyword,
+.prose .hljs-selector-tag,
+.prose .hljs-literal,
+.prose .hljs-section,
+.prose .hljs-link {
+  color: oklch(0.4 0.14 32);
+}
+.prose .hljs-string,
+.prose .hljs-attr,
+.prose .hljs-symbol {
+  color: oklch(0.4 0.1 148);
+}
+.prose .hljs-number,
+.prose .hljs-built_in,
+.prose .hljs-name {
+  color: oklch(0.4 0.11 300);
+}
+.prose .hljs-comment,
+.prose .hljs-quote,
+.prose .hljs-meta {
+  color: oklch(0.48 0.02 58);
+  font-style: italic;
+}
+.prose .hljs-title,
+.prose .hljs-class .hljs-title,
+.prose .hljs-type,
+.prose .hljs-doctag {
+  color: oklch(0.4 0.12 352);
+}
+.prose .hljs-variable,
+.prose .hljs-template-variable,
+.prose .hljs-tag {
+  color: oklch(0.42 0.09 70);
+}
+
+[data-theme="dark"] .prose .hljs-keyword,
+[data-theme="dark"] .prose .hljs-selector-tag,
+[data-theme="dark"] .prose .hljs-literal,
+[data-theme="dark"] .prose .hljs-section,
+[data-theme="dark"] .prose .hljs-link {
+  color: oklch(0.79 0.12 40);
+}
+[data-theme="dark"] .prose .hljs-string,
+[data-theme="dark"] .prose .hljs-attr,
+[data-theme="dark"] .prose .hljs-symbol {
+  color: oklch(0.82 0.11 148);
+}
+[data-theme="dark"] .prose .hljs-number,
+[data-theme="dark"] .prose .hljs-built_in,
+[data-theme="dark"] .prose .hljs-name {
+  color: oklch(0.8 0.11 300);
+}
+[data-theme="dark"] .prose .hljs-comment,
+[data-theme="dark"] .prose .hljs-quote,
+[data-theme="dark"] .prose .hljs-meta {
+  color: oklch(0.66 0.02 62);
+  font-style: italic;
+}
+[data-theme="dark"] .prose .hljs-title,
+[data-theme="dark"] .prose .hljs-class .hljs-title,
+[data-theme="dark"] .prose .hljs-type,
+[data-theme="dark"] .prose .hljs-doctag {
+  color: oklch(0.82 0.11 355);
+}
+[data-theme="dark"] .prose .hljs-variable,
+[data-theme="dark"] .prose .hljs-template-variable,
+[data-theme="dark"] .prose .hljs-tag {
+  color: oklch(0.84 0.09 78);
+}
+/* One ink means one ink, including in the code panel. */
+[data-mode="plain"]
+  .prose
+  :is(
+    .hljs-keyword,
+    .hljs-selector-tag,
+    .hljs-literal,
+    .hljs-section,
+    .hljs-link,
+    .hljs-string,
+    .hljs-attr,
+    .hljs-symbol,
+    .hljs-number,
+    .hljs-built_in,
+    .hljs-name,
+    .hljs-title,
+    .hljs-type,
+    .hljs-doctag,
+    .hljs-variable,
+    .hljs-template-variable,
+    .hljs-tag
+  ) {
+  color: var(--ink);
+}
+[data-mode="plain"] .prose :is(.hljs-comment, .hljs-quote, .hljs-meta) {
+  color: var(--ink-3);
+}
+
+/* ---- @microcharts/react --------------------------------------------------
+   The library ships tokens in `@layer microcharts.tokens` behind `:where()` and
+   tunes dark mode with `prefers-color-scheme`. This site's theme is user-
+   controlled via `data-theme`, so the OS query would desync charts from the
+   page. Re-assert both palettes here (unlayered beats layered) and bind ink,
+   surface and accent to the press tokens. Valence and categorical hues keep the
+   library's CVD-safe values on purpose — green-means-up is not a brand surface. */
+.prose {
+  --mc-stroke: var(--ink-2);
+  --mc-neutral: var(--ink-3);
+  --mc-accent: var(--accent);
+  --mc-band: color-mix(in oklab, var(--ink-2) 8%, transparent);
+  --mc-surface: var(--raise);
+  --mc-surface-ink: var(--ink);
+  --mc-surface-edge: var(--rule);
+  --mc-font: var(--f-sans);
+  --mc-font-numeric: var(--f-mono);
+  /* Valence renders as *text* (the delta numerals), so it has to clear 4.5:1 —
+     not against the paper, but against the darkest surface it can land on,
+     which is a chart row highlighted with --accent-soft. Gulkand rose is the
+     deepest of the six light washes, so these two are tuned to it and pass
+     everywhere else by margin. The categorical hues below stay exactly as the
+     library ships them: they are marks, not text, and 3:1 is their bar. */
+  --mc-positive: #0d7158;
+  --mc-negative: #a94328;
+  --mc-moon: #8a6417;
+  --mc-cat-1: #8a6417;
+  --mc-cat-2: #2f6b96;
+  --mc-cat-3: #1f6b4c;
+  --mc-cat-4: #285788;
+  --mc-cat-5: #a3402a;
+  --mc-cat-6: #83446b;
+}
+[data-theme="dark"] .prose {
+  /* Same rule on dark paper, tuned to turmeric milk — the lightest of the six
+     dark washes, and so the one that squeezes light text hardest. */
+  --mc-positive: #4cb392;
+  --mc-negative: #e38b6e;
+  --mc-moon: #e0be6f;
+  --mc-cat-1: #e2b45c;
+  --mc-cat-2: #6fb0e0;
+  --mc-cat-3: #4fb08d;
+  --mc-cat-4: #6e9bd1;
+  --mc-cat-5: #e07e5e;
+  --mc-cat-6: #c486b0;
+}
+/* Charts sit mid-sentence: keep them from being the thing that reflows a line. */
+.prose p :is(.mc-spark-interactive, .mc-inline) {
+  vertical-align: baseline;
+}
+
+/* ---- Read next ----------------------------------------------------------- */
+
+.readnext {
+  margin-top: clamp(56px, 9vh, 96px);
+}
+.readnext-h {
+  margin: 0 0 clamp(18px, 2.6vh, 26px);
+  padding-bottom: 12px;
+  border-bottom: 3px solid var(--ink);
+  font-weight: 700;
+  font-size: clamp(22px, calc(19px + 0.8vw), 30px);
+  letter-spacing: -0.022em;
+}

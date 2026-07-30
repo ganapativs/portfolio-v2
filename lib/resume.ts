@@ -1,4 +1,5 @@
-export type SocialKind = "github" | "linkedin" | "twitter" | "dribbble" | "npm" | "mail";
+// Not exported: only `Identity` below refers to it.
+type SocialKind = "github" | "linkedin" | "twitter" | "dribbble" | "npm" | "mail";
 
 export type Identity = {
   name: string;
@@ -17,14 +18,6 @@ export type Role = {
   start: string;
   end: string;
   bullets: string[];
-};
-
-// Resume-page project entries. The long-form case studies live in
-// app/work/page.tsx; this is the recruiter one-pager digest, nothing more.
-export type SelectedProject = {
-  title: string;
-  range: string;
-  digest: string;
 };
 
 export type Flagship = {
@@ -103,6 +96,7 @@ export const roles: Role[] = [
     bullets: [
       "Multi-team architect translating product strategy into engineering work, owning the review queue and the escalation path across engineering.",
       "Sustained the React Native mobile app across a major framework upgrade and Apple App Site Association integration without a dedicated mobile team.",
+      "Built and still operate sgb.vercel.app outside the day job — a Sovereign Gold Bond tracker for India's secondary market. A Puppeteer scraper on a scheduled AWS Lambda writes a single JSON file to S3; a Next.js front end derives fair value, effective interest rate and effective cash-flow rate per series. Live since 2021, iterated on for four years.",
     ],
   },
   {
@@ -145,27 +139,6 @@ export const roles: Role[] = [
     start: "Jul 2013",
     end: "May 2014",
     bullets: ["Built the complete frontend for eezyconnect.com."],
-  },
-];
-
-export const selectedProjects: SelectedProject[] = [
-  {
-    title: "A Customer-Facing AI Assistant & API Documentation Portal",
-    range: "2025 — now",
-    digest:
-      "Self-serve API documentation portal with an embedded AI assistant over the company's private-market APIs — architected and shipped end-to-end, hardened since.",
-  },
-  {
-    title: "microcharts — Word-Sized Charts for React",
-    range: "2026 — now",
-    digest:
-      "Open-source React library of 106 word-sized chart types — small enough to sit in a sentence or a streamed AI reply. Solo: design, code, docs, release.",
-  },
-  {
-    title: "A React Component Library for a Decade",
-    range: "2016 — now",
-    digest:
-      "The internal React/TypeScript component library — first commit Nov 2016, primary maintainer for a decade, used by every product surface.",
   },
 ];
 
@@ -337,6 +310,28 @@ export const skills: SkillGroup[] = [
   {
     label: "Performance",
     items: ["virtualised rendering", "Brotli", "DPR-aware images", "react-scan", "FPS profiling"],
+  },
+];
+
+export type Talk = {
+  event: string;
+  place: string;
+  year: string;
+  /** One line. What the talk was actually about. */
+  detail: string;
+};
+
+/**
+ * Talks. Lives here rather than in either page because both the home page and
+ * the résumé print it, and it was previously typed out by hand in the résumé —
+ * one more pair that could drift.
+ */
+export const speaking: Talk[] = [
+  {
+    event: "TinyConf 2",
+    place: "Bangalore",
+    year: "2019",
+    detail: "Virtualised infinite scroll, drawing on react-delightful-scroller.",
   },
 ];
 

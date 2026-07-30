@@ -1,0 +1,368 @@
+/* =============================================================================
+   meetguns press — the design system.
+
+   One calibrated warm-paper surface, six Bengaluru inks, three press runs.
+   Nothing here is applied from JavaScript: the whole palette is keyed on
+   `[data-theme]` × `[data-ink]` × `[data-mode]` stamped on <html>, so the
+   no-flash script is three attribute writes and there is no palette duplicated
+   between CSS and TS.
+
+   Structure
+     1  registered properties        6  chrome (folio, dock, footers, header)
+     2  tokens + surfaces            7  home
+     3  ink matrix                   8  writing index + essay
+     4  press runs (modes)           9  resume
+     5  reset + base                10  print + reduced motion
+   ============================================================================ */
+
+/* 1 — REGISTERED PROPERTIES --------------------------------------------------
+   Typing the ink tokens as <color> is what makes an ink change a real 340ms
+   oklch interpolation instead of a hard swap. Unregistered custom properties
+   are token streams and cannot be transitioned. */
+
+@property --accent {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: oklch(0.55 0.13 42);
+}
+@property --accent-ink {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: oklch(0.43 0.13 42);
+}
+@property --accent-lit {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: oklch(0.83 0.1105 42);
+}
+@property --accent-soft {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: oklch(0.925 0.05 42);
+}
+@property --plate {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: oklch(0.55 0.13 42);
+}
+@property --wash {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: oklch(0.925 0.05 42);
+}
+/* The off-register second pass behind the display names. Typed like the rest so
+   it travels with them when the run changes — see the press-run block for why
+   it is its own token and not just `--plate`. */
+@property --misreg {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: oklch(0.55 0.13 42);
+}
+/* The ink tuned for the opposite surface. The "Say hello." slab paints --ink
+   and sets its type in --paper; the on-paper ink is far too close to that
+   ground to be legible on it, so inverted blocks reach for this instead. */
+@property --accent-flip {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: oklch(0.74 0.13 44);
+}
+/* Iris radius for the theme reveal — see lib/vt.ts for why this is a typed
+   length rather than an interpolated clip-path. */
+@property --vt-r-now {
+  syntax: "<length>";
+  initial-value: 0px;
+  inherits: true;
+}
+
+/* 2 — TOKENS + SURFACES ----------------------------------------------------- */
+
+:root {
+  /* Faces. next/font supplies the variables; the fallback stacks are already
+     metric-matched by `adjustFontFallback`. */
+  --f-sans: var(--font-anek), "Helvetica Neue", Helvetica, Arial, sans-serif;
+  /* Kannada first, deliberately. Putting Anek Latin ahead of it saves the
+     40 kB latin subset this face would otherwise be asked for just to set the
+     spaces in the name — but it also hands those spaces a different word-space
+     advance, and the name comes out measurably wider. The two faces are the
+     same design, not the same metrics. Correct setting wins. */
+  --f-kannada: var(--font-anek-kannada), var(--font-anek), sans-serif;
+  --f-serif: var(--font-piazzolla), Georgia, "Times New Roman", serif;
+  --f-mono: var(--font-fragment), ui-monospace, Menlo, monospace;
+
+  /* Type scale, ratio 1.25 — 12 · 15 · 19 · 24 · 30 · 37 · 46 · 58 · 73 */
+  --t-1: 12px;
+  --t-2: 15px;
+  --t-3: 19px;
+  --t-4: 24px;
+  --t-5: 30px;
+  --t-6: 37px;
+  --t-7: 46px;
+  --t-8: 58px;
+  --t-9: 73px;
+
+  /* Spacing — 4 · 8 · 12 · 16 · 24 · 32 · 48 · 64 · 96 · 144 */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+  --s-8: 64px;
+  --s-9: 96px;
+  --s-10: 144px;
+
+  /* Radius — four values, each with a job. */
+  --r-rule: 0;
+  --r-chip: 2px;
+  --r-block: 6px;
+  --r-point: 50%;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 140ms;
+  --dur-base: 260ms;
+  --dur-ink: 340ms;
+  --dur-slow: 520ms;
+
+  /* Measures */
+  --w-page: 1240px;
+  --w-doc: 1020px;
+  --w-essay: 840px;
+  --gutter: clamp(16px, 4vw, 54px);
+  --dock-safe: calc(104px + env(safe-area-inset-bottom));
+
+  /* Surfaces — light is the default run. */
+  --paper: oklch(0.945 0.026 84);
+  --raise: oklch(0.985 0.014 86);
+  --sunk: oklch(0.9 0.032 80);
+  --ink: oklch(0.21 0.022 52);
+  --ink-2: oklch(0.4 0.022 52);
+  --ink-3: oklch(0.5 0.02 55);
+  --rule: oklch(0.86 0.022 72);
+  --rule-2: oklch(0.78 0.022 66);
+  --chip-on-bg: oklch(0.21 0.022 52);
+  --chip-on-fg: oklch(0.945 0.026 84);
+  --chip-off-fg: oklch(0.5 0.02 55);
+  /* Overprint blend. Multiply on light paper, screen on dark — a real second
+     ink pass behaves the same way. */
+  --blend: multiply;
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --paper: oklch(0.19 0.018 56);
+  --raise: oklch(0.24 0.02 56);
+  --sunk: oklch(0.15 0.014 54);
+  --ink: oklch(0.94 0.016 82);
+  --ink-2: oklch(0.78 0.018 76);
+  --ink-3: oklch(0.66 0.018 70);
+  --rule: oklch(0.32 0.02 58);
+  --rule-2: oklch(0.4 0.022 58);
+  --chip-on-bg: oklch(0.94 0.016 82);
+  --chip-on-fg: oklch(0.19 0.018 56);
+  --chip-off-fg: oklch(0.68 0.018 70);
+  --blend: screen;
+  color-scheme: dark;
+}
+
+/* 3 — INK MATRIX ------------------------------------------------------------
+   --accent      the ink itself: rails, plates, fills, rules that carry meaning
+   --accent-ink  text that is a live value or an action; never headings or chrome
+   --accent-lit  the ink lifted for large text on ink-coloured ground
+   --accent-soft the wash: hover rows, ::selection, quiet fills            */
+
+[data-ink="terracotta"] {
+  --accent: oklch(0.55 0.13 42);
+  --accent-ink: oklch(0.43 0.13 42);
+  --accent-lit: oklch(0.83 0.1105 42);
+  --accent-soft: oklch(0.925 0.05 42);
+  --accent-flip: oklch(0.74 0.13 44);
+}
+[data-ink="saffron"] {
+  --accent: oklch(0.6 0.115 80);
+  --accent-ink: oklch(0.48 0.115 80);
+  --accent-lit: oklch(0.86 0.0978 80);
+  --accent-soft: oklch(0.925 0.046 80);
+  --accent-flip: oklch(0.83 0.12 84);
+}
+[data-ink="sage"] {
+  --accent: oklch(0.52 0.11 148);
+  --accent-ink: oklch(0.4 0.11 148);
+  --accent-lit: oklch(0.8 0.0935 148);
+  --accent-soft: oklch(0.925 0.044 148);
+  --accent-flip: oklch(0.76 0.12 150);
+}
+[data-ink="rose"] {
+  --accent: oklch(0.57 0.14 8);
+  --accent-ink: oklch(0.45 0.14 8);
+  --accent-lit: oklch(0.85 0.119 8);
+  --accent-soft: oklch(0.925 0.05 8);
+  --accent-flip: oklch(0.76 0.13 10);
+}
+[data-ink="plum"] {
+  --accent: oklch(0.5 0.15 313);
+  --accent-ink: oklch(0.38 0.15 313);
+  --accent-lit: oklch(0.78 0.1275 313);
+  --accent-soft: oklch(0.925 0.05 313);
+  --accent-flip: oklch(0.72 0.14 310);
+}
+[data-ink="coffee"] {
+  --accent: oklch(0.47 0.075 52);
+  --accent-ink: oklch(0.35 0.075 52);
+  --accent-lit: oklch(0.75 0.0638 52);
+  --accent-soft: oklch(0.925 0.03 52);
+  --accent-flip: oklch(0.72 0.075 55);
+}
+
+[data-theme="dark"][data-ink="terracotta"] {
+  --accent: oklch(0.74 0.13 44);
+  --accent-ink: oklch(0.74 0.13 44);
+  --accent-lit: oklch(0.74 0.13 44);
+  --accent-soft: oklch(0.311 0.0494 44);
+  --accent-flip: oklch(0.55 0.13 42);
+}
+[data-theme="dark"][data-ink="saffron"] {
+  --accent: oklch(0.83 0.12 84);
+  --accent-ink: oklch(0.83 0.12 84);
+  --accent-lit: oklch(0.83 0.12 84);
+  --accent-soft: oklch(0.34 0.0456 84);
+  --accent-flip: oklch(0.6 0.115 80);
+}
+[data-theme="dark"][data-ink="sage"] {
+  --accent: oklch(0.76 0.12 150);
+  --accent-ink: oklch(0.76 0.12 150);
+  --accent-lit: oklch(0.76 0.12 150);
+  --accent-soft: oklch(0.319 0.0456 150);
+  --accent-flip: oklch(0.52 0.11 148);
+}
+[data-theme="dark"][data-ink="rose"] {
+  --accent: oklch(0.76 0.13 10);
+  --accent-ink: oklch(0.76 0.13 10);
+  --accent-lit: oklch(0.76 0.13 10);
+  --accent-soft: oklch(0.319 0.0494 10);
+  --accent-flip: oklch(0.57 0.14 8);
+}
+[data-theme="dark"][data-ink="plum"] {
+  --accent: oklch(0.72 0.14 310);
+  --accent-ink: oklch(0.72 0.14 310);
+  --accent-lit: oklch(0.72 0.14 310);
+  --accent-soft: oklch(0.302 0.05 310);
+  --accent-flip: oklch(0.5 0.15 313);
+}
+[data-theme="dark"][data-ink="coffee"] {
+  --accent: oklch(0.72 0.075 55);
+  --accent-ink: oklch(0.72 0.075 55);
+  --accent-lit: oklch(0.72 0.075 55);
+  --accent-soft: oklch(0.302 0.0285 55);
+  --accent-flip: oklch(0.47 0.075 52);
+}
+
+/* 4 — PRESS RUNS ------------------------------------------------------------
+   colorful (2 ink) — ink and its wash, the full run
+   mono     (spot)  — washes off; large fills drop to the text colour, so the
+                      ink survives only as spots: rules, ticks, live values
+   plain    (1 ink) — one ink on paper. No colour anywhere.                */
+
+/* `--misreg` is the off-register second pass behind the two display names. It
+   cannot ride on `--plate`: in mono and plain `--plate` collapses onto `--ink`,
+   which is the colour the name itself is set in, so the second pass stopped
+   reading as a misprint and became a solid duplicate of the word shifted 5px —
+   the name went unreadable in two of the three runs. Off-register printing is
+   two inks failing to line up, so the ghost has to stay a different value from
+   the text no matter which run is showing. In mono and plain it falls back to a
+   rule tone: still an offset, still legible, no colour. */
+:root,
+[data-mode="colorful"] {
+  --plate: var(--accent);
+  --wash: var(--accent-soft);
+  --misreg: var(--accent);
+}
+[data-mode="mono"] {
+  --plate: var(--ink);
+  --wash: transparent;
+  --misreg: var(--rule-2);
+}
+[data-mode="plain"] {
+  --accent: var(--ink);
+  --accent-ink: var(--ink);
+  --accent-lit: var(--ink);
+  --accent-soft: var(--sunk);
+  --accent-flip: var(--paper);
+  --plate: var(--ink);
+  --wash: transparent;
+  --misreg: var(--rule-2);
+}
+
+/* The coordinated ink tween. One transition, on the tokens themselves, so
+   every consumer moves together — DESIGN.md calls for 340ms ease-out-quart. */
+:root {
+  transition:
+    --accent var(--dur-ink) var(--ease-quart),
+    --accent-ink var(--dur-ink) var(--ease-quart),
+    --accent-lit var(--dur-ink) var(--ease-quart),
+    --accent-soft var(--dur-ink) var(--ease-quart),
+    --accent-flip var(--dur-ink) var(--ease-quart),
+    --plate var(--dur-ink) var(--ease-quart),
+    --misreg var(--dur-ink) var(--ease-quart),
+    --wash var(--dur-ink) var(--ease-quart);
+}
+
+/* ---- Shared-component bridge ---------------------------------------------
+   The shortcut overlay, the MDX code block, zoomable images and the microcharts
+   demos were written against an older set of token names. Rather than rewrite
+   four stylesheets, those names are mapped onto press values here, so those
+   components inherit the ink, the paper and the type unchanged.
+
+   These are live, not leftovers: every alias below is referenced by
+   components/shortcuts/shortcuts.css, styles/press/microcharts-demos.css or
+   styles/press/essay.css. Deleting one breaks a real rule. If you ever want the
+   bridge gone, rewrite those stylesheets to the press names first, then drop
+   this block — don't drop it and see what breaks. */
+
+:root {
+  --bg-surface: var(--raise);
+  --bg-sunken: var(--sunk);
+  --border-1: var(--rule);
+  --border-2: var(--rule-2);
+  --border-3: var(--ink-3);
+  --fg-1: var(--ink);
+  --fg-2: var(--ink-2);
+  --fg-3: var(--ink-3);
+  --font-display: var(--f-sans);
+  --font-mono: var(--f-mono);
+  --fw-display: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --lh-tight: 1.2;
+  --r-xs: var(--r-chip);
+  --r-lg: var(--r-block);
+  --font-sans: var(--f-sans);
+  --fw-regular: 400;
+  --r-pill: 999px;
+  --r-xl: var(--r-block);
+  --ring: 0 0 0 3px color-mix(in oklab, var(--accent) 35%, transparent);
+  --t-micro: 10.5px;
+  --t-overline: 10.5px;
+  --t-caption: 12px;
+  --t-small: 15px;
+  --t-body: 16.5px;
+  --t-h5: 19px;
+  --t-h4: 24px;
+  --t-h3: 30px;
+  --t-h2: 37px;
+  --track-mega: 0.14em;
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --shadow-sm: 0 1px 2px oklch(0.21 0.022 52 / 0.08);
+  --shadow-xl: 0 24px 60px oklch(0.21 0.022 52 / 0.22);
+  --khadi: oklch(0.985 0.014 86);
+  --turmeric: oklch(0.9 0.032 80);
+  --peat: oklch(0.3 0.03 50);
+  --moonless: oklch(0.15 0.014 54);
+}
+[data-theme="dark"] {
+  --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.4);
+  --shadow-xl: 0 24px 60px oklch(0 0 0 / 0.55);
+}

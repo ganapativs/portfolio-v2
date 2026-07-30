@@ -173,8 +173,8 @@ export function OpsBoard() {
       <p className="mcx-ops-note">
         Five chart types, one table. The row sparklines pipe their readout into the "now" column via
         <code> readout=&#123;false&#125; + onActive</code>; click a service name for its annotated
-        detail — a <code>Threshold</code> and a <code>Marker</code> passed as children, in data
-        space. Every piece is a separate ~2–7 kB import; there is no "dashboard framework" here.
+        detail: a <code>Threshold</code> and a <code>Marker</code> passed as children, in data
+        space. Every piece is a separate ~2–7 kB import, sitting in a table the app already owned.
       </p>
     </section>
   );

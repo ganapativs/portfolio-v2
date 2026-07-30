@@ -1,6 +1,6 @@
 import { statSync } from "node:fs";
 import { join } from "node:path";
-import { published } from "@/app/blog/posts";
+import { published } from "@/lib/posts";
 import { identity } from "@/lib/resume";
 import { SITE_URL } from "@/lib/jsonld";
 

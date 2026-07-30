@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef } from "react";
 import type { Zoom } from "medium-zoom";
+import { track } from "@/lib/analytics";
 
 export function ZoomImage({
   src,
@@ -30,6 +31,9 @@ export function ZoomImage({
         background: "color-mix(in oklab, var(--moonless) 85%, transparent)",
         margin: 24,
       });
+      // `open` fires on the zoom itself, so a keyboard-triggered zoom counts
+      // the same as a click — which the delegated click capture would miss.
+      zoom.on("open", () => track({ name: "zoom_image", src }));
     };
 
     if ("IntersectionObserver" in window) {
@@ -55,7 +59,7 @@ export function ZoomImage({
       cancelled = true;
       zoom?.detach();
     };
-  }, []);
+  }, [src]);
   return (
     // medium-zoom needs a raw <img> element to attach to.
     // eslint-disable-next-line @next/next/no-img-element

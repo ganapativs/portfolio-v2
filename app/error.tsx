@@ -1,7 +1,8 @@
 "use client";
 import Link from "next/link";
 import { useEffect } from "react";
-import { Pill } from "@/components/primitives/Pill";
+import { SiteHeader } from "@/components/press/SiteHeader";
+import { PressFooter } from "@/components/press/PressFooter";
 
 export default function Error({
   error,
@@ -15,44 +16,28 @@ export default function Error({
   }, [error]);
 
   return (
-    <div className="surface">
-      <div className="container-narrow">
-        <div className="surface-pill">
-          <Pill>error</Pill>
-        </div>
-        <h1 className="surface-h1 tall">
-          Something{" "}
-          <span className="flourish" style={{ fontSize: "0.95em" }}>
-            broke.
-          </span>
+    <div className="doc">
+      <SiteHeader />
+      <main className="wrap wrap-doc doc-main">
+        <div className="cv-stamp">Press jam</div>
+        <h1 className="page-h1" style={{ marginTop: "12px" }}>
+          Something broke.
         </h1>
-        <div className="surface-body">
-          <p className="first">
-            Not your fault — a piece of this site tripped on its own shoelaces.
-          </p>
-          {error?.digest ? (
-            <p
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: "var(--t-caption)",
-                color: "var(--fg-3)",
-              }}
-            >
-              digest: {error.digest}
-            </p>
-          ) : null}
-        </div>
-        <div
-          style={{ marginTop: "var(--s-6)", display: "flex", gap: "var(--s-3)", flexWrap: "wrap" }}
-        >
-          <button type="button" className="btn primary" onClick={() => unstable_retry()}>
+        <p className="page-lede">
+          Not your fault — a piece of this site tripped on its own shoelaces.
+        </p>
+        {error?.digest ? <p className="cv-stamp">digest: {error.digest}</p> : null}
+        <div className="cv-topline" style={{ marginTop: "clamp(28px, 4vh, 40px)" }}>
+          <button type="button" className="cv-print" onClick={() => unstable_retry()}>
             Try again
           </button>
-          <Link href="/" className="btn ghost">
-            Or head home
-          </Link>
         </div>
-      </div>
+        <div className="entries-foot">
+          <Link href="/">Home</Link>
+          <Link href="/blog">Writing</Link>
+        </div>
+      </main>
+      <PressFooter width="wrap-doc" />
     </div>
   );
 }

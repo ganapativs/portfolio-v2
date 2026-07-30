@@ -242,9 +242,7 @@ export function StreamDemo() {
         {!done && <span className="mcx-caret" aria-hidden="true" />}
       </div>
       <p className="mcx-stream-note">
-        Watch the grammar mid-stream: it reads as plain code until the closing backtick — then it
-        becomes the chart. Invalid or half-finished grammar stays honest text. Never a broken chart,
-        never invented data.
+        Hit slow motion to watch the parser work a character at a time.
       </p>
     </div>
   );
