@@ -1,6 +1,6 @@
 // The press ink system.
 //
-// Six Bengaluru inks, one active at a time. Nothing here writes CSS custom
+// Six press inks, one active at a time. Nothing here writes CSS custom
 // properties from JavaScript: the whole palette lives in styles/press.css keyed
 // on `[data-ink]` × `[data-theme]` × `[data-mode]`. JS only ever stamps three
 // data attributes on <html>.
@@ -12,17 +12,17 @@
 //      change is a real 340ms oklch interpolation rather than a hard swap.
 
 export const INKS = [
-  { id: "terracotta", label: "monsoon clay", hex: "#ae532d", darkHex: "#ee8e64", freq: 659.25 },
-  { id: "saffron", label: "turmeric milk", hex: "#a4771c", darkHex: "#ecc166", freq: 783.99 },
-  { id: "sage", label: "neem leaf", hex: "#357a43", darkHex: "#76c788", freq: 880.0 },
-  { id: "rose", label: "gulkand rose", hex: "#b94e67", darkHex: "#f78c9e", freq: 987.77 },
-  { id: "plum", label: "jamun", hex: "#80449f", darkHex: "#bf8ae6", freq: 587.33 },
-  { id: "coffee", label: "filter coffee", hex: "#7c4e32", darkHex: "#ca9877", freq: 523.25 },
+  { id: "bottle", label: "bottle green", hex: "#1b6c46", darkHex: "#7dbf92", freq: 659.25 },
+  { id: "brass", label: "brass", hex: "#a48030", darkHex: "#e2c276", freq: 783.99 },
+  { id: "oxblood", label: "oxblood", hex: "#97403e", darkHex: "#e78c7f", freq: 880.0 },
+  { id: "dustblue", label: "dust blue", hex: "#36698c", darkHex: "#84b2d9", freq: 987.77 },
+  { id: "aubergine", label: "aubergine", hex: "#6b3c7e", darkHex: "#c08acc", freq: 587.33 },
+  { id: "umber", label: "burnt umber", hex: "#72523d", darkHex: "#c19f88", freq: 523.25 },
 ] as const;
 
 export type InkId = (typeof INKS)[number]["id"];
 
-export const DEFAULT_INK: InkId = "terracotta";
+export const DEFAULT_INK: InkId = "bottle";
 
 // Press run. The dock labels these 2 INK / SPOT / 1 INK:
 //   colorful — ink plus its wash, the full two-colour run
@@ -55,24 +55,24 @@ export const INK_HEX = Object.fromEntries(INKS.map((i) => [i.id, i.hex])) as Rec
 // consumers, same reason. Keep both sides in step.
 export const SURFACE_HEX = {
   light: {
-    paper: "#f5ecda",
-    raise: "#fefaf0",
-    sunk: "#e9dcc7",
-    ink: "#21150f",
-    ink2: "#52453d",
-    ink3: "#6d6059",
-    rule: "#dacfc2",
-    rule2: "#c1b5a9",
+    paper: "#e7eee4",
+    raise: "#f9fcf6",
+    sunk: "#d3e0d2",
+    ink: "#001a0d",
+    ink2: "#344d3f",
+    ink3: "#566a5e",
+    rule: "#c2d2c4",
+    rule2: "#a2b5a7",
   },
   dark: {
-    paper: "#1a120c",
-    raise: "#271d16",
-    sunk: "#100a06",
-    ink: "#f1eadf",
-    ink2: "#beb6ab",
-    ink3: "#9a9187",
-    rule: "#3b3029",
-    rule2: "#51453c",
+    paper: "#03180c",
+    raise: "#142519",
+    sunk: "#000a04",
+    ink: "#efeee7",
+    ink2: "#bebfb5",
+    ink3: "#91978a",
+    rule: "#2c3a2c",
+    rule2: "#465143",
   },
 } as const;
 

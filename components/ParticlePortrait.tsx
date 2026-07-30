@@ -51,7 +51,7 @@ export function ParticlePortrait({
       const accent =
         cs.getPropertyValue("--pp-accent").trim() ||
         cs.getPropertyValue("--accent").trim() ||
-        INK_HEX.terracotta;
+        INK_HEX.bottle;
       return {
         ink,
         accent,

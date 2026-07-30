@@ -1,7 +1,7 @@
 /* =============================================================================
    meetguns press — the design system.
 
-   One calibrated warm-paper surface, six Bengaluru inks, three press runs.
+   One calibrated oyster surface, six press inks, three press runs.
    Nothing here is applied from JavaScript: the whole palette is keyed on
    `[data-theme]` × `[data-ink]` × `[data-mode]` stamped on <html>, so the
    no-flash script is three attribute writes and there is no palette duplicated
@@ -23,32 +23,27 @@
 @property --accent {
   syntax: "<color>";
   inherits: true;
-  initial-value: oklch(0.55 0.13 42);
+  initial-value: oklch(0.472 0.098 158);
 }
 @property --accent-ink {
   syntax: "<color>";
   inherits: true;
-  initial-value: oklch(0.43 0.13 42);
-}
-@property --accent-lit {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: oklch(0.83 0.1105 42);
+  initial-value: oklch(0.36 0.077 166);
 }
 @property --accent-soft {
   syntax: "<color>";
   inherits: true;
-  initial-value: oklch(0.925 0.05 42);
+  initial-value: oklch(0.926 0.029 136);
 }
 @property --plate {
   syntax: "<color>";
   inherits: true;
-  initial-value: oklch(0.55 0.13 42);
+  initial-value: oklch(0.472 0.098 158);
 }
 @property --wash {
   syntax: "<color>";
   inherits: true;
-  initial-value: oklch(0.925 0.05 42);
+  initial-value: oklch(0.926 0.029 136);
 }
 /* The off-register second pass behind the display names. Typed like the rest so
    it travels with them when the run changes — see the press-run block for why
@@ -56,7 +51,7 @@
 @property --misreg {
   syntax: "<color>";
   inherits: true;
-  initial-value: oklch(0.55 0.13 42);
+  initial-value: oklch(0.472 0.098 158);
 }
 /* The ink tuned for the opposite surface. The "Say hello." slab paints --ink
    and sets its type in --paper; the on-paper ink is far too close to that
@@ -64,7 +59,7 @@
 @property --accent-flip {
   syntax: "<color>";
   inherits: true;
-  initial-value: oklch(0.74 0.13 44);
+  initial-value: oklch(0.758 0.092 150);
 }
 /* Iris radius for the theme reveal — see lib/vt.ts for why this is a typed
    length rather than an interpolated clip-path. */
@@ -134,36 +129,60 @@
   --gutter: clamp(16px, 4vw, 54px);
   --dock-safe: calc(104px + env(safe-area-inset-bottom));
 
-  /* Surfaces — light is the default run. */
-  --paper: oklch(0.945 0.026 84);
-  --raise: oklch(0.985 0.014 86);
-  --sunk: oklch(0.9 0.032 80);
-  --ink: oklch(0.21 0.022 52);
-  --ink-2: oklch(0.4 0.022 52);
-  --ink-3: oklch(0.5 0.02 55);
-  --rule: oklch(0.86 0.022 72);
-  --rule-2: oklch(0.78 0.022 66);
-  --chip-on-bg: oklch(0.21 0.022 52);
-  --chip-on-fg: oklch(0.945 0.026 84);
-  --chip-off-fg: oklch(0.5 0.02 55);
+  /* Surfaces — light is the default run. Oyster stock: a grey with a green cast,
+     printed in bottle-green-black.
+
+     Two rules run down this ramp, and they are the whole reason it does not read
+     as one hue picked and multiplied out:
+
+     1. Hue rotates with value. Green pigment deepens toward blue as it is laid
+        on thick, so the ramp swings 128° at the lit sheet to 162° at full
+        density. A ramp that holds one hue at every step is a tint of a swatch,
+        not a colour that was mixed.
+     2. Chroma climbs the whole way down. Thinnest on the sheet (0.008) — oyster
+        is barely tinted, which is what makes it read as paper rather than as a
+        colour — and fullest in the ink itself (0.046), because the bottle green
+        is the most saturated thing on the page. That is the reverse of the usual
+        arrangement, where the ground is tinted and the ink is a near-neutral.
+
+     --ink is therefore not a black: it is a bottle green dense enough to read as
+     one, which is exactly what apothecary glass does. */
+  --paper: oklch(0.942 0.016 134);
+  --raise: oklch(0.986 0.008 128);
+  --sunk: oklch(0.894 0.024 142);
+  --ink: oklch(0.19 0.046 162);
+  --ink-2: oklch(0.394 0.038 160);
+  --ink-3: oklch(0.504 0.03 158);
+  --rule: oklch(0.848 0.026 148);
+  --rule-2: oklch(0.754 0.028 154);
+  --chip-on-bg: oklch(0.19 0.046 162);
+  --chip-on-fg: oklch(0.942 0.016 134);
+  --chip-off-fg: oklch(0.504 0.03 158);
   /* Overprint blend. Multiply on light paper, screen on dark — a real second
      ink pass behaves the same way. */
   --blend: multiply;
   color-scheme: light;
 }
 
+/* The dark run is not the light run inverted. It is a different material: the
+   oyster stock is gone and the ground is the bottle green at full density, so
+   the same two rules apply but read from the other end — hue rotates 164° in the
+   deepest well up to 100° at the brightest text, and chroma thins as it climbs
+   rather than thickening. The wells go very deep here (0.126) because a green
+   this saturated needs the room; matching the light ramp step for step is what
+   would have flattened it. */
 [data-theme="dark"] {
-  --paper: oklch(0.19 0.018 56);
-  --raise: oklch(0.24 0.02 56);
-  --sunk: oklch(0.15 0.014 54);
-  --ink: oklch(0.94 0.016 82);
-  --ink-2: oklch(0.78 0.018 76);
-  --ink-3: oklch(0.66 0.018 70);
-  --rule: oklch(0.32 0.02 58);
-  --rule-2: oklch(0.4 0.022 58);
-  --chip-on-bg: oklch(0.94 0.016 82);
-  --chip-on-fg: oklch(0.19 0.018 56);
-  --chip-off-fg: oklch(0.68 0.018 70);
+  --paper: oklch(0.186 0.038 158);
+  --raise: oklch(0.246 0.034 152);
+  --sunk: oklch(0.126 0.032 164);
+  --ink: oklch(0.948 0.01 100);
+  --ink-2: oklch(0.8 0.014 112);
+  --ink-3: oklch(0.668 0.02 126);
+  --rule: oklch(0.33 0.03 146);
+  --rule-2: oklch(0.42 0.026 138);
+  --chip-on-bg: oklch(0.948 0.01 100);
+  --chip-on-fg: oklch(0.186 0.038 158);
+  --chip-off-fg: oklch(0.688 0.02 122);
   --blend: screen;
   color-scheme: dark;
 }
@@ -171,93 +190,109 @@
 /* 3 — INK MATRIX ------------------------------------------------------------
    --accent      the ink itself: rails, plates, fills, rules that carry meaning
    --accent-ink  text that is a live value or an action; never headings or chrome
-   --accent-lit  the ink lifted for large text on ink-coloured ground
-   --accent-soft the wash: hover rows, ::selection, quiet fills            */
+   --accent-soft the wash: hover rows, ::selection, quiet fills
+   --accent-flip the ink tuned for the opposite ground
 
-[data-ink="terracotta"] {
-  --accent: oklch(0.55 0.13 42);
-  --accent-ink: oklch(0.43 0.13 42);
-  --accent-lit: oklch(0.83 0.1105 42);
-  --accent-soft: oklch(0.925 0.05 42);
-  --accent-flip: oklch(0.74 0.13 44);
+   Three things govern this matrix, and none of them are arithmetic.
+
+   1. Hue rotates within each ink. Every weight of an ink is a different hue, not
+      the same colour at a different opacity: bottle green runs 136° at the wash
+      to 166° at text weight, oxblood 50° to 15°. Warm pigments go yellow as they
+      are let down and red as they are laid on thick; green and blue go the other
+      way, deepening toward blue. Holding one hue across an ink's four weights is
+      the loudest tell that a palette was generated rather than mixed.
+
+   2. Each ink is its own pigment, not one colour at six angles. Brass cannot be
+      dark and stay brass, so it lives at 0.618 while aubergine lives at 0.442 —
+      a 0.176 lightness spread. Burnt umber is genuinely low-chroma at 0.054;
+      oxblood is genuinely high at 0.118.
+
+   3. These are pigments, not signals, and that is deliberate. The six accents on
+      microcharts.dev all sit between L .498 and .553 at mean chroma .152 —
+      forced, because chart colours must be equiluminant or one series shouts
+      over another. A press has the opposite job. These six average .095 chroma
+      across a .176 lightness spread, so the two properties cannot be mistaken
+      for one another even though both offer six inks.
+
+   The one hand-made exception is brass. Its dark --accent-flip is NOT its light
+   --accent, the way the other five are: that flip paints onto the dark run's
+   near-white --ink slab, and a yellow light enough to be brass cannot hold 3:1
+   there. It is pulled to 0.566 and toward amber. Yellow has no dark form. */
+
+[data-ink="bottle"] {
+  --accent: oklch(0.472 0.098 158);
+  --accent-ink: oklch(0.36 0.077 166);
+  --accent-soft: oklch(0.926 0.029 136);
+  --accent-flip: oklch(0.758 0.092 150);
 }
-[data-ink="saffron"] {
-  --accent: oklch(0.6 0.115 80);
-  --accent-ink: oklch(0.48 0.115 80);
-  --accent-lit: oklch(0.86 0.0978 80);
-  --accent-soft: oklch(0.925 0.046 80);
-  --accent-flip: oklch(0.83 0.12 84);
+[data-ink="brass"] {
+  --accent: oklch(0.618 0.106 84);
+  --accent-ink: oklch(0.506 0.099 77);
+  --accent-soft: oklch(0.926 0.032 103);
+  --accent-flip: oklch(0.758 0.1 91);
 }
-[data-ink="sage"] {
-  --accent: oklch(0.52 0.11 148);
-  --accent-ink: oklch(0.4 0.11 148);
-  --accent-lit: oklch(0.8 0.0935 148);
-  --accent-soft: oklch(0.925 0.044 148);
-  --accent-flip: oklch(0.76 0.12 150);
+[data-ink="oxblood"] {
+  --accent: oklch(0.488 0.118 24);
+  --accent-ink: oklch(0.376 0.11 15);
+  --accent-soft: oklch(0.926 0.035 50);
+  --accent-flip: oklch(0.758 0.111 33);
 }
-[data-ink="rose"] {
-  --accent: oklch(0.57 0.14 8);
-  --accent-ink: oklch(0.45 0.14 8);
-  --accent-lit: oklch(0.85 0.119 8);
-  --accent-soft: oklch(0.925 0.05 8);
-  --accent-flip: oklch(0.76 0.13 10);
+[data-ink="dustblue"] {
+  --accent: oklch(0.502 0.078 240);
+  --accent-ink: oklch(0.39 0.073 231);
+  --accent-soft: oklch(0.926 0.023 266);
+  --accent-flip: oklch(0.758 0.073 249);
 }
-[data-ink="plum"] {
-  --accent: oklch(0.5 0.15 313);
-  --accent-ink: oklch(0.38 0.15 313);
-  --accent-lit: oklch(0.78 0.1275 313);
-  --accent-soft: oklch(0.925 0.05 313);
-  --accent-flip: oklch(0.72 0.14 310);
+[data-ink="aubergine"] {
+  --accent: oklch(0.442 0.116 316);
+  --accent-ink: oklch(0.33 0.108 308);
+  --accent-soft: oklch(0.926 0.035 338);
+  --accent-flip: oklch(0.758 0.109 324);
 }
-[data-ink="coffee"] {
-  --accent: oklch(0.47 0.075 52);
-  --accent-ink: oklch(0.35 0.075 52);
-  --accent-lit: oklch(0.75 0.0638 52);
-  --accent-soft: oklch(0.925 0.03 52);
-  --accent-flip: oklch(0.72 0.075 55);
+[data-ink="umber"] {
+  --accent: oklch(0.466 0.054 54);
+  --accent-ink: oklch(0.354 0.05 49);
+  --accent-soft: oklch(0.926 0.016 70);
+  --accent-flip: oklch(0.758 0.051 60);
 }
 
-[data-theme="dark"][data-ink="terracotta"] {
-  --accent: oklch(0.74 0.13 44);
-  --accent-ink: oklch(0.74 0.13 44);
-  --accent-lit: oklch(0.74 0.13 44);
-  --accent-soft: oklch(0.311 0.0494 44);
-  --accent-flip: oklch(0.55 0.13 42);
+/* The dark run keeps a real ladder: --accent and --accent-ink are different
+   values, so a live value still reads hotter than the structure beside it. */
+[data-theme="dark"][data-ink="bottle"] {
+  --accent: oklch(0.748 0.094 154);
+  --accent-ink: oklch(0.8 0.088 148);
+  --accent-soft: oklch(0.298 0.041 162);
+  --accent-flip: oklch(0.472 0.098 158);
 }
-[data-theme="dark"][data-ink="saffron"] {
-  --accent: oklch(0.83 0.12 84);
-  --accent-ink: oklch(0.83 0.12 84);
-  --accent-lit: oklch(0.83 0.12 84);
-  --accent-soft: oklch(0.34 0.0456 84);
-  --accent-flip: oklch(0.6 0.115 80);
+[data-theme="dark"][data-ink="brass"] {
+  --accent: oklch(0.826 0.102 88);
+  --accent-ink: oklch(0.878 0.095 92);
+  --accent-soft: oklch(0.298 0.045 80);
+  --accent-flip: oklch(0.566 0.104 72);
 }
-[data-theme="dark"][data-ink="sage"] {
-  --accent: oklch(0.76 0.12 150);
-  --accent-ink: oklch(0.76 0.12 150);
-  --accent-lit: oklch(0.76 0.12 150);
-  --accent-soft: oklch(0.319 0.0456 150);
-  --accent-flip: oklch(0.52 0.11 148);
+[data-theme="dark"][data-ink="oxblood"] {
+  --accent: oklch(0.732 0.113 29);
+  --accent-ink: oklch(0.784 0.106 35);
+  --accent-soft: oklch(0.298 0.05 19);
+  --accent-flip: oklch(0.488 0.118 24);
 }
-[data-theme="dark"][data-ink="rose"] {
-  --accent: oklch(0.76 0.13 10);
-  --accent-ink: oklch(0.76 0.13 10);
-  --accent-lit: oklch(0.76 0.13 10);
-  --accent-soft: oklch(0.319 0.0494 10);
-  --accent-flip: oklch(0.57 0.14 8);
+[data-theme="dark"][data-ink="dustblue"] {
+  --accent: oklch(0.746 0.075 245);
+  --accent-ink: oklch(0.798 0.07 251);
+  --accent-soft: oklch(0.298 0.033 235);
+  --accent-flip: oklch(0.502 0.078 240);
 }
-[data-theme="dark"][data-ink="plum"] {
-  --accent: oklch(0.72 0.14 310);
-  --accent-ink: oklch(0.72 0.14 310);
-  --accent-lit: oklch(0.72 0.14 310);
-  --accent-soft: oklch(0.302 0.05 310);
-  --accent-flip: oklch(0.5 0.15 313);
+[data-theme="dark"][data-ink="aubergine"] {
+  --accent: oklch(0.708 0.111 320);
+  --accent-ink: oklch(0.76 0.104 326);
+  --accent-soft: oklch(0.298 0.049 312);
+  --accent-flip: oklch(0.442 0.116 316);
 }
-[data-theme="dark"][data-ink="coffee"] {
-  --accent: oklch(0.72 0.075 55);
-  --accent-ink: oklch(0.72 0.075 55);
-  --accent-lit: oklch(0.72 0.075 55);
-  --accent-soft: oklch(0.302 0.0285 55);
-  --accent-flip: oklch(0.47 0.075 52);
+[data-theme="dark"][data-ink="umber"] {
+  --accent: oklch(0.728 0.052 57);
+  --accent-ink: oklch(0.78 0.049 61);
+  --accent-soft: oklch(0.298 0.023 51);
+  --accent-flip: oklch(0.466 0.054 54);
 }
 
 /* 4 — PRESS RUNS ------------------------------------------------------------
@@ -288,7 +323,6 @@
 [data-mode="plain"] {
   --accent: var(--ink);
   --accent-ink: var(--ink);
-  --accent-lit: var(--ink);
   --accent-soft: var(--sunk);
   --accent-flip: var(--paper);
   --plate: var(--ink);
@@ -302,7 +336,6 @@
   transition:
     --accent var(--dur-ink) var(--ease-quart),
     --accent-ink var(--dur-ink) var(--ease-quart),
-    --accent-lit var(--dur-ink) var(--ease-quart),
     --accent-soft var(--dur-ink) var(--ease-quart),
     --accent-flip var(--dur-ink) var(--ease-quart),
     --plate var(--dur-ink) var(--ease-quart),
@@ -355,12 +388,12 @@
   --t-h2: 37px;
   --track-mega: 0.14em;
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --shadow-sm: 0 1px 2px oklch(0.21 0.022 52 / 0.08);
-  --shadow-xl: 0 24px 60px oklch(0.21 0.022 52 / 0.22);
-  --khadi: oklch(0.985 0.014 86);
-  --turmeric: oklch(0.9 0.032 80);
-  --peat: oklch(0.3 0.03 50);
-  --moonless: oklch(0.15 0.014 54);
+  --shadow-sm: 0 1px 2px oklch(0.19 0.046 162 / 0.08);
+  --shadow-xl: 0 24px 60px oklch(0.19 0.046 162 / 0.22);
+  --khadi: oklch(0.986 0.008 128);
+  --turmeric: oklch(0.894 0.024 142);
+  --peat: oklch(0.3 0.036 158);
+  --moonless: oklch(0.126 0.032 164);
 }
 [data-theme="dark"] {
   --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.4);

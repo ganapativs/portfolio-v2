@@ -66,7 +66,7 @@ export const ROLES: readonly Role[] = [
     body: "First commit on day one. The landing page, the dashboard, feeds, the signup flow. Then the mobile app on React Native and Redux, when both were new.",
   },
   {
-    era: "2013 – 2014 · before",
+    era: "2013 – 2015 · before",
     title: "Thinkappz, then InvenZone",
     before: true,
     body: "The frontend for eezyconnect.com. Then the UI for invenzone.com, a social network for researchers, and for early arya.ai. My first public repos date from here. They're still up there.",

@@ -109,8 +109,8 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f5ecda" },
-    { media: "(prefers-color-scheme: dark)", color: "#1a120c" },
+    { media: "(prefers-color-scheme: light)", color: "#e7eee4" },
+    { media: "(prefers-color-scheme: dark)", color: "#03180c" },
   ],
 };
 
@@ -119,9 +119,9 @@ export const viewport: Viewport = {
 // first paint. The only values duplicated here are the two paper hexes, which
 // have to be inline because they paint the canvas before any stylesheet has
 // been parsed — everything else the CSS derives on its own.
-const noFlash = `(function(){try{var d=document.documentElement;var t=localStorage.getItem('mg_theme');if(t!=='light'&&t!=='dark'){t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}d.dataset.theme=t;d.style.colorScheme=t;d.style.backgroundColor=t==='dark'?'#1a120c':'#f5ecda';var i=localStorage.getItem('mg_ink');if(!/^(terracotta|saffron|sage|rose|plum|coffee)$/.test(i||''))i='terracotta';d.dataset.ink=i;var m=localStorage.getItem('mg_mode');if(m!=='mono'&&m!=='plain')m='colorful';d.dataset.mode=m;}catch(e){}})();`;
+const noFlash = `(function(){try{var d=document.documentElement;var t=localStorage.getItem('mg_theme');if(t!=='light'&&t!=='dark'){t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}d.dataset.theme=t;d.style.colorScheme=t;d.style.backgroundColor=t==='dark'?'#03180c':'#e7eee4';var i=localStorage.getItem('mg_ink');if(!/^(bottle|brass|oxblood|dustblue|aubergine|umber)$/.test(i||''))i='bottle';d.dataset.ink=i;var m=localStorage.getItem('mg_mode');if(m!=='mono'&&m!=='plain')m='colorful';d.dataset.mode=m;}catch(e){}})();`;
 
-const consoleSig = `(function(){var a=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#ae532d';console.log('%cmeetguns press · set by hand · vsg.inbox@gmail.com','font-family:Georgia,serif;font-style:italic;font-size:18px;color:'+a+';line-height:1.6;');})();`;
+const consoleSig = `(function(){var a=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#1b6c46';console.log('%cmeetguns press · set by hand · vsg.inbox@gmail.com','font-family:Georgia,serif;font-style:italic;font-size:18px;color:'+a+';line-height:1.6;');})();`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

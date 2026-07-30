@@ -13,6 +13,9 @@ Next.js **16.2** + React **19.2** + Tailwind **v4** in this repo. APIs, conventi
 **When you change a watched surface, update this file in the same change.** Stale agent rules lie. Fragile pairs:
 
 - `styles/press/tokens.css` ⇆ this file's token snapshot and ink table ⇆ the hex mirrors in `lib/ink.ts` (satori can't read CSS)
+- **ink ids** in `lib/ink.ts` ⇆ `[data-ink=…]` in `tokens.css` ⇆ `[data-ink-id=…]` in `chrome.css` ⇆ the validation regex in the no-flash script in `app/layout.tsx` ⇆ the literal ids in `app/icon.tsx`, `app/manifest.ts`, `lib/icon-png.tsx`, `lib/og.tsx`, `app/opengraph-image.tsx`, `components/ParticlePortrait.tsx` and the per-post `accent` in `lib/posts.ts`. Renaming an ink touches all of them; the regex silently falls back to the default when it doesn't match, so a miss is invisible rather than loud
+- the ink matrix in `styles/press/tokens.css` ⇆ the **swatch matrix** at the bottom of `styles/press/chrome.css`. The picker has to paint all six inks at once, so it cannot read `--accent` (which is only ever the active one) — those twelve values are a second hand-maintained copy and nothing fails loudly when they drift
+- the surface tokens ⇆ the two paper hexes inlined in the no-flash script and `themeColor` in `app/layout.tsx` (they paint the canvas before any stylesheet is parsed) ⇆ the print palette in `styles/press/resume.css`
 - `app/**/page.tsx` route changes ⇆ this file's route map ⇆ `app/sitemap.ts` ⇆ `app/llms.txt/route.ts`
 - `next.config.ts` (headers, redirects, rewrites, experimental flags, image config) ⇆ this file
 - `lib/posts.ts` ⇆ the loader map in `app/(press)/blog/[slug]/page.tsx` (the build fails loudly if they drift)
@@ -316,8 +319,8 @@ All reads/writes wrapped in `try/catch`. Storage may be unavailable.
 (`colorful`/`mono`/`plain`). The no-flash script sets those three and nothing
 else, which is why there is no palette duplicated between CSS and TypeScript.
 
-`--accent`, `--accent-ink`, `--accent-lit`, `--accent-soft`, `--accent-flip`,
-`--plate` and `--wash` are registered with `@property { syntax: "<color>" }`.
+`--accent`, `--accent-ink`, `--accent-soft`, `--accent-flip`, `--plate` and
+`--wash` are registered with `@property { syntax: "<color>" }`.
 That is what makes an ink change a real 340ms oklch interpolation rather than a
 hard swap — unregistered custom properties are token streams and cannot be
 transitioned.
@@ -328,16 +331,41 @@ change a colour in the CSS, change its mirror too.**
 
 ### The six inks (`lib/ink.ts` ⇆ `styles/press/tokens.css`)
 
-| ID                     | Label         | On light paper       | On dark paper        | Pitch |
-| ---------------------- | ------------- | -------------------- | -------------------- | ----- |
-| `terracotta` (default) | monsoon clay  | `oklch(.55 .13 42)`  | `oklch(.74 .13 44)`  | E5    |
-| `saffron`              | turmeric milk | `oklch(.60 .115 80)` | `oklch(.83 .12 84)`  | G5    |
-| `sage`                 | neem leaf     | `oklch(.52 .11 148)` | `oklch(.76 .12 150)` | A5    |
-| `rose`                 | gulkand rose  | `oklch(.57 .14 8)`   | `oklch(.76 .13 10)`  | B5    |
-| `plum`                 | jamun         | `oklch(.50 .15 313)` | `oklch(.72 .14 310)` | D5    |
-| `coffee`               | filter coffee | `oklch(.47 .075 52)` | `oklch(.72 .075 55)` | C5    |
+| ID                 | Label        | On light paper         | On dark paper          | Pitch |
+| ------------------ | ------------ | ---------------------- | ---------------------- | ----- |
+| `bottle` (default) | bottle green | `oklch(.472 .098 158)` | `oklch(.748 .094 154)` | E5    |
+| `brass`            | brass        | `oklch(.618 .106 84)`  | `oklch(.826 .102 88)`  | G5    |
+| `oxblood`          | oxblood      | `oklch(.488 .118 24)`  | `oklch(.732 .113 29)`  | A5    |
+| `dustblue`         | dust blue    | `oklch(.502 .078 240)` | `oklch(.746 .075 245)` | B5    |
+| `aubergine`        | aubergine    | `oklch(.442 .116 316)` | `oklch(.708 .111 320)` | D5    |
+| `umber`            | burnt umber  | `oklch(.466 .054 54)`  | `oklch(.728 .052 57)`  | C5    |
 
 The pitch is what the picker chimes when you pick that ink.
+
+Three rules govern the matrix, and none of them are arithmetic. **Hue rotates
+within each ink** — every weight is a different hue, so bottle green runs 136° at
+the wash to 166° at text weight and oxblood 50° to 15°. **Each ink is its own
+pigment**, not one colour at six angles: brass cannot be dark and stay brass so
+it lives at `.618` while aubergine lives at `.442`, and burnt umber is genuinely
+low-chroma (`.054`) where oxblood is genuinely high (`.118`).
+
+**These are pigments, not signals, and that is load-bearing.** The six accents on
+`microcharts.dev` — the sibling property — all sit between L `.498` and `.553` at
+mean chroma `.152`, because chart colours must be equiluminant or one series
+shouts over another. A press has the opposite job. These six average `.095`
+chroma across a `.176` lightness spread. That contrast, plus the ground, is what
+keeps the two properties from being mistaken for one another even though both
+offer six inks. **Do not "harmonise" this palette toward microcharts' accents.**
+
+**Brass's dark `--accent-flip` is deliberately not its light `--accent`**, the way
+the other five are — that flip paints onto the dark run's near-white `--ink` slab
+and a yellow light enough to be brass cannot hold 3:1 there, so it is pulled to
+`.566` and toward amber. Yellow has no dark form; the exception is the point.
+
+In the dark run `--accent` and `--accent-ink` are **different values**. They used
+to be identical in all six inks, which threw away a third of the palette's range
+the moment the paper went dark — a live value and the rail beside it were
+literally the same colour.
 
 ### Press runs
 
@@ -358,16 +386,26 @@ ladder moves · `--blend` `multiply` on light paper, `screen` on dark.
 
 ### Surfaces
 
-| Token      | Light                 | Dark                 |
-| ---------- | --------------------- | -------------------- |
-| `--paper`  | `oklch(.945 .026 84)` | `oklch(.19 .018 56)` |
-| `--raise`  | `oklch(.985 .014 86)` | `oklch(.24 .02 56)`  |
-| `--sunk`   | `oklch(.9 .032 80)`   | `oklch(.15 .014 54)` |
-| `--ink`    | `oklch(.21 .022 52)`  | `oklch(.94 .016 82)` |
-| `--ink-2`  | `oklch(.4 .022 52)`   | `oklch(.78 .018 76)` |
-| `--ink-3`  | `oklch(.5 .02 55)`    | `oklch(.66 .018 70)` |
-| `--rule`   | `oklch(.86 .022 72)`  | `oklch(.32 .02 58)`  |
-| `--rule-2` | `oklch(.78 .022 66)`  | `oklch(.4 .022 58)`  |
+| Token      | Light                  | Dark                   |
+| ---------- | ---------------------- | ---------------------- |
+| `--paper`  | `oklch(.942 .016 134)` | `oklch(.186 .038 158)` |
+| `--raise`  | `oklch(.986 .008 128)` | `oklch(.246 .034 152)` |
+| `--sunk`   | `oklch(.894 .024 142)` | `oklch(.126 .032 164)` |
+| `--ink`    | `oklch(.19 .046 162)`  | `oklch(.948 .01 100)`  |
+| `--ink-2`  | `oklch(.394 .038 160)` | `oklch(.8 .014 112)`   |
+| `--ink-3`  | `oklch(.504 .03 158)`  | `oklch(.668 .02 126)`  |
+| `--rule`   | `oklch(.848 .026 148)` | `oklch(.33 .03 146)`   |
+| `--rule-2` | `oklch(.754 .028 154)` | `oklch(.42 .026 138)`  |
+
+The stock is **oyster** — a grey with a green cast — printed in bottle-green-black.
+Two rules run down both ramps. **Hue rotates with value**: the light ramp swings
+128° at the lit sheet to 162° at full density, the dark ramp 164° in the deepest
+well to 100° at the brightest text. Green pigment deepens toward blue as it is
+laid on thick. **Chroma climbs the whole way down** rather than peaking in the
+tints — thinnest on the sheet (`.008`, which is what makes oyster read as paper
+and not as a colour) and fullest in the ink (`.046`). That is the reverse of the
+usual arrangement, where the ground is tinted and the ink is near-neutral.
+`--ink` is therefore not a black but a bottle green dense enough to read as one.
 
 ---
 

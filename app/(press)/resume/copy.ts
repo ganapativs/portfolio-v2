@@ -13,22 +13,22 @@
  */
 export const ROLE_COPY: Record<string, string[]> = {
   "Vice President — Technology": [
-    "Built the company's customer-facing AI assistant and the API documentation portal it lives in: docs generated from OpenAPI, an intent router that picks the model per question, a tools and skills layer, server-side document export, versioned prompts behind an eval harness, and logging you can audit. Shipped it, then kept hardening it while running the rest of the engineering queue.",
+    "Built the company's customer-facing AI assistant and the API documentation portal it lives in: docs generated from OpenAPI, an intent router that picks the model per question, a tools and skills layer, server-side document export, versioned prompts behind an eval harness, and logging you can audit. Shipped and hardened since, while running the engineering queue.",
     "Designed the MCP server surface and shipped its first version — read-only connectors behind OAuth, so AI coding clients reach the API without anyone pasting a key. The team co-owns it now.",
-    "Wrote @microcharts/react on my own time: 106 word-sized chart types, no runtime dependencies, 1–7 kB gzip each, accessible by default and safe in server components. Design, code, docs and release, all of it solo.",
+    "Wrote @microcharts/react on my own time: 106 word-sized chart types, no runtime dependencies, 1–7 kB gzip each, accessible by default and server-component safe. Design, code, docs and release — solo.",
     "Ran a performance program across the stack — native image loading with DPR-aware URLs, compression on portal assets, render profiling, and a pass over scroll, re-renders and CSS at the framework level.",
-    "Rewrote the PDF viewer in the internal component library: new animation system, vertical-scroll mode, the small interactions. Every product surface that shows a document uses it.",
-    "Hardened the server-side PDF report pipeline, and wrote the Cursor and Claude Code rule packs that set how the team contributes with AI.",
+    "Rewrote the PDF viewer in the internal component library: new animation system, vertical-scroll mode, micro-interactions. Every document surface uses it.",
+    "Hardened the server-side PDF report pipeline and wrote the team's Cursor and Claude Code rule packs for AI-assisted contribution.",
   ],
   "Senior Associate VP — Technology": [
-    "Owned the technical side across several engineering teams — architecture review, hiring loops, and design partnerships through the queue.",
+    "Owned the technical side across several engineering teams — architecture review, hiring loops and design partnerships.",
     "Wrote a custom AST codemod to migrate a foundational button component across a large, long-lived frontend.",
     "Built the browser-extension pipeline for Chrome and Firefox, and pushed through the Storybook and build-toolchain upgrades.",
   ],
   "Associate VP — Technology": [
     "Multi-team architect: turned product strategy into engineering work, and owned both the review queue and the escalation path.",
     "Kept the React Native app alive through a major framework upgrade and the Apple App Site Association work, without a dedicated mobile team.",
-    "Built sgb.vercel.app on my own time — a tracker for India's Sovereign Gold Bond secondary market. A Puppeteer scraper on a scheduled Lambda writes one JSON file to S3; the Next.js front end works out fair value, effective interest rate and effective cash-flow rate for every series. Live since 2021, and I still run it.",
+    "Built sgb.vercel.app on my own time — a tracker for India's Sovereign Gold Bond secondary market. A Puppeteer scraper on a scheduled Lambda writes a JSON file to S3; a Next.js front end derives fair value, effective interest and cash-flow rate per series. Live since 2021, still running.",
   ],
   "Technology Lead": [
     "Created the internal React component library in November 2016 and have been its primary maintainer for ten years. Every product surface is built on it.",
@@ -46,4 +46,4 @@ export const ROLE_COPY: Record<string, string[]> = {
 };
 
 export const SUMMARY =
-  "I've been at Tracxn since 2015 — joined as an engineer, run part of technology there now, and still write code most weeks. Four promotions in, the work splits between the architecture and the people doing it: the frontend hiring loop and the rubric we interview against, the review queue, and the calls about what gets built next. Most recently I designed and shipped the customer-facing AI assistant and the API documentation portal it lives in, and wrote @microcharts/react on my own time.";
+  "I've been at Tracxn since 2015 — joined as an engineer, run part of technology now, and still write code most weeks. Four promotions in, the work splits between the architecture and the people: the frontend hiring loop, the review queue, and what gets built next. Most recently: the customer-facing AI assistant and its API documentation portal, and @microcharts/react on my own time.";

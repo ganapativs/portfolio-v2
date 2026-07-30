@@ -237,19 +237,19 @@
   [data-theme="dark"] {
     --paper: #fff;
     --raise: #fff;
-    --sunk: #f4f0e8;
-    --ink: #16110d;
-    --ink-2: #3c342e;
-    --ink-3: #5d544c;
-    --rule: #cfc7bb;
-    --rule-2: #b3a99c;
-    --accent: #7c4e32;
-    --accent-ink: #6a4028;
+    --sunk: #eef3ec;
+    --ink: #0d1a12;
+    --ink-2: #33463a;
+    --ink-3: #56655b;
+    --rule: #c8d4c8;
+    --rule-2: #a8b7ab;
+    --accent: #1b6c46;
+    --accent-ink: #145436;
     --wash: transparent;
-    --plate: #7c4e32;
+    --plate: #1b6c46;
   }
   /* `!important` is load-bearing. The no-flash script in app/layout.tsx sets
-     `style.backgroundColor` on <html> inline (#f5ecda light, #1a120c dark) so
+     `style.backgroundColor` on <html> inline (#e7eee4 light, #03180c dark) so
      the first paint isn't a white flash. An inline declaration outranks a normal
      rule from a stylesheet, so a plain `background: #fff` here lost — and the
      canvas, which is painted from <html>, kept the paper colour. Body's white

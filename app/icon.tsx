@@ -13,7 +13,7 @@ export const contentType = "image/svg+xml";
 export default function Icon() {
   const isProd = process.env.NODE_ENV === "production";
   // Live ink. Sage in development so a dev tab is tellable at a glance.
-  const accent = INK_HEX[isProd ? "terracotta" : "sage"];
+  const accent = INK_HEX[isProd ? "bottle" : "aubergine"];
   return new Response(markSvg(accent), {
     headers: {
       "Content-Type": "image/svg+xml",
