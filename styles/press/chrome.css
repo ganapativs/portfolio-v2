@@ -366,6 +366,10 @@
   font-size: 13px;
   cursor: pointer;
   flex: none;
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
 }
 /* Sound "on" is the resting state, so it reads as a lit control rather than a
    filled slab — a second black block beside the ink dot made the dock's right
@@ -377,6 +381,35 @@
 .dock-btn:hover {
   color: var(--ink);
   border-color: var(--ink);
+}
+/* Same 0.94 the ink swatches take, so every press in the dock answers with the
+   same amount of give. */
+.dock-btn:active {
+  transform: scale(0.94);
+}
+/* The mute cut is drawn on rather than switched on. `pathLength="1"` on the
+   path normalises the dash to its own length, so this is 0/1 rather than the
+   15.56 units the line actually measures. It runs from the bottom-left end —
+   the direction you'd strike it out by hand.
+
+   Both the ink stroke and the paper one under it carry this, so the gap in the
+   note opens exactly as far as the ink has travelled. Slightly slower than
+   --dur-fast: this is the state change itself, not the button acknowledging a
+   press, and at 140ms it reads as a swap rather than a stroke. */
+.dock-note-cut {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset var(--dur-base) var(--ease-out);
+}
+.dock-btn[aria-pressed="false"] .dock-note-cut {
+  stroke-dashoffset: 0;
+}
+/* Muted is read from localStorage after mount, so for a muted reader the first
+   commit flips this attribute — without the guard the cut would draw itself in
+   on every page load, which is an entrance animation nobody asked for. Same
+   trick the sliding indicator above uses: no transition until placed. */
+.dock-btn[data-ready="false"] .dock-note-cut {
+  transition: none;
 }
 .dock-pal {
   width: 36px;

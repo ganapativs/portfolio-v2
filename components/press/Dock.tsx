@@ -192,10 +192,75 @@ function AnchorLink({ item }: { item: (typeof ANCHORS)[number] }) {
   );
 }
 
+/**
+ * The mute state used to be typed: `♪` and `♪` + U+0336 COMBINING LONG STROKE
+ * OVERLAY. Android's system fonts carry the note but not that mark on it, so
+ * Chrome on a phone drew a note plus a tofu box — and where the combining mark
+ * *did* resolve it landed on the wrong side of the glyph. Drawn instead, so the
+ * two states are the same shape under every font stack.
+ *
+ * The mark itself is state-independent — the mute cut is driven from the
+ * button's own `aria-pressed`, in CSS, so this renders identically on the
+ * server and the client and needs no hydration escape hatch.
+ */
+function NoteIcon() {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      width="16"
+      height="16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      {/* Both stems and the beam are one unbroken stroke — drawn as three
+          elements they meet at a corner the rasteriser seams at icon size.
+          The 16-unit box is rendered at 16px so a unit is a pixel: the stems
+          sit on x=6 and x=13, which puts a 2-wide stroke on whole pixels. */}
+      <path d="M6 12V4l7-2v8" />
+      {/* Each head is centred 1.8 left of its stem, not 2.3 — the stem has to
+          end *inside* the disc. Landing it on the tangent leaves a hairline of
+          paper between the two at 16px, which is the gap that was showing. */}
+      <circle cx="4.2" cy="12.3" r="2.3" fill="currentColor" stroke="none" />
+      <circle cx="11.2" cy="10.3" r="2.3" fill="currentColor" stroke="none" />
+      {/* The cut is always in the DOM and retracted by `stroke-dashoffset`
+          rather than mounted on demand — a stroke that is drawn on has to have
+          something to draw. It is painted in the dock's own ground first, so it
+          reads as a cut through the note rather than another stroke crossing
+          it, and both copies carry the same dash so the gap opens ahead of the
+          ink instead of appearing under it.
+          `pathLength="1"` normalises the dash to the path, so the CSS is 0 and
+          1 rather than a magic 15.56. */}
+      <path
+        className="dock-note-cut"
+        d="M2.5 13.5L13.5 2.5"
+        pathLength="1"
+        stroke="var(--paper)"
+        strokeWidth="3.2"
+      />
+      <path className="dock-note-cut" d="M2.5 13.5L13.5 2.5" pathLength="1" />
+    </svg>
+  );
+}
+
 function SoundToggle() {
   const fx = useFX();
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  // `ready` is deliberately a second flag rather than a reuse of `mounted`. The
+  // commit that reveals a muted reader's real state is the same one that would
+  // turn the transition on, so a single flag never actually suppresses
+  // anything — the cut would draw itself in on every load. Enabling motion a
+  // frame later is the same trick the sliding indicator above uses.
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+    const id = requestAnimationFrame(() => setReady(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
 
   const ref = useShortcut<HTMLButtonElement>({
     id: "sound.toggle",
@@ -220,6 +285,7 @@ function SoundToggle() {
       ref={ref}
       type="button"
       className="dock-btn"
+      data-ready={ready}
       aria-pressed={soundOn}
       aria-label={soundOn ? "Mute interface sounds" : "Enable interface sounds"}
       onClick={() => {
@@ -230,9 +296,7 @@ function SoundToggle() {
       }}
       suppressHydrationWarning
     >
-      <span aria-hidden="true" suppressHydrationWarning>
-        {soundOn ? "♪" : "♪̶"}
-      </span>
+      <NoteIcon />
     </button>
   );
 }
