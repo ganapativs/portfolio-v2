@@ -56,6 +56,14 @@ export function withViewTransition(cb: () => void, origin?: RecolorOrigin) {
 
   const t = d.startViewTransition(cb);
 
+  // `ready` rejects whenever the transition is skipped or aborted — a second
+  // toggle landing mid-flight, a hidden tab, or the browser deciding the
+  // snapshot is invalid. Nothing below is guaranteed to attach a handler (the
+  // WAAPI chain is fallback-only and origin-only), so claim the rejection here
+  // or it surfaces as an unhandled rejection:
+  //   InvalidStateError: Transition was aborted because of invalid state
+  t.ready.catch(() => {});
+
   // Iris reveal strategy:
   //   1. Primary — CSS animation against an `@property`-typed `<length>`
   //      (`--vt-r-now`). The typed property makes the radius a first-class
