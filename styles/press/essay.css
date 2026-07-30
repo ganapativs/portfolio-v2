@@ -527,8 +527,16 @@
 }
 
 /* highlight.js — two token sets, because the panel follows the page rather
-   than staying dark in both themes. Every hue is pinned to a lightness that
-   clears 4.5:1 on its own ground. */
+   than staying dark in both themes.
+
+   The six token groups are printed in the six press inks rather than a generic
+   editor rainbow: keyword is the oxblood, string the bottle green, number the
+   aubergine, title the dust blue, variable the umber, and comment falls back to
+   a near-neutral so it recedes. Lightness varies per group instead of being
+   pinned to one value. The dark set has the headroom to spread 0.62–0.84; the
+   light set is squeezed into 0.40–0.47 because --sunk is the ground here and the
+   quietest token still has to clear 4.5:1 on it — a real constraint, not a
+   shortcut. */
 .prose .hljs {
   color: var(--ink);
   background: transparent;
@@ -538,34 +546,34 @@
 .prose .hljs-literal,
 .prose .hljs-section,
 .prose .hljs-link {
-  color: oklch(0.4 0.14 32);
+  color: oklch(0.412 0.116 22);
 }
 .prose .hljs-string,
 .prose .hljs-attr,
 .prose .hljs-symbol {
-  color: oklch(0.4 0.1 148);
+  color: oklch(0.436 0.094 156);
 }
 .prose .hljs-number,
 .prose .hljs-built_in,
 .prose .hljs-name {
-  color: oklch(0.4 0.11 300);
+  color: oklch(0.404 0.122 314);
 }
 .prose .hljs-comment,
 .prose .hljs-quote,
 .prose .hljs-meta {
-  color: oklch(0.48 0.02 58);
+  color: oklch(0.47 0.022 150);
   font-style: italic;
 }
 .prose .hljs-title,
 .prose .hljs-class .hljs-title,
 .prose .hljs-type,
 .prose .hljs-doctag {
-  color: oklch(0.4 0.12 352);
+  color: oklch(0.442 0.082 242);
 }
 .prose .hljs-variable,
 .prose .hljs-template-variable,
 .prose .hljs-tag {
-  color: oklch(0.42 0.09 70);
+  color: oklch(0.462 0.062 58);
 }
 
 [data-theme="dark"] .prose .hljs-keyword,
@@ -573,34 +581,34 @@
 [data-theme="dark"] .prose .hljs-literal,
 [data-theme="dark"] .prose .hljs-section,
 [data-theme="dark"] .prose .hljs-link {
-  color: oklch(0.79 0.12 40);
+  color: oklch(0.79 0.112 32);
 }
 [data-theme="dark"] .prose .hljs-string,
 [data-theme="dark"] .prose .hljs-attr,
 [data-theme="dark"] .prose .hljs-symbol {
-  color: oklch(0.82 0.11 148);
+  color: oklch(0.822 0.096 152);
 }
 [data-theme="dark"] .prose .hljs-number,
 [data-theme="dark"] .prose .hljs-built_in,
 [data-theme="dark"] .prose .hljs-name {
-  color: oklch(0.8 0.11 300);
+  color: oklch(0.782 0.108 320);
 }
 [data-theme="dark"] .prose .hljs-comment,
 [data-theme="dark"] .prose .hljs-quote,
 [data-theme="dark"] .prose .hljs-meta {
-  color: oklch(0.66 0.02 62);
+  color: oklch(0.616 0.02 140);
   font-style: italic;
 }
 [data-theme="dark"] .prose .hljs-title,
 [data-theme="dark"] .prose .hljs-class .hljs-title,
 [data-theme="dark"] .prose .hljs-type,
 [data-theme="dark"] .prose .hljs-doctag {
-  color: oklch(0.82 0.11 355);
+  color: oklch(0.802 0.074 246);
 }
 [data-theme="dark"] .prose .hljs-variable,
 [data-theme="dark"] .prose .hljs-template-variable,
 [data-theme="dark"] .prose .hljs-tag {
-  color: oklch(0.84 0.09 78);
+  color: oklch(0.842 0.06 72);
 }
 /* One ink means one ink, including in the code panel. */
 [data-mode="plain"]
@@ -664,8 +672,11 @@
   --mc-cat-6: #83446b;
 }
 [data-theme="dark"] .prose {
-  /* Same rule on dark paper, tuned to turmeric milk — the lightest of the six
-     dark washes, and so the one that squeezes light text hardest. */
+  /* Same rule on dark paper, tuned to brass — the lightest of the six dark
+     washes, and so the one that squeezes light text hardest. These stay a
+     separate palette from the press inks on purpose: chart series have to be
+     equiluminant to be readable, which is the one thing a press ink must not
+     be. See the ink matrix in tokens.css. */
   --mc-positive: #4cb392;
   --mc-negative: #e38b6e;
   --mc-moon: #e0be6f;

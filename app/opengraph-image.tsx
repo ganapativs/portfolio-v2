@@ -8,6 +8,6 @@ export default async function Image() {
   return renderOG({
     eyebrow: "no. 01 · the masthead",
     title: "Eleven years, one company. Still writing code.",
-    accent: "terracotta",
+    accent: "bottle",
   });
 }

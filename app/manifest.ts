@@ -5,7 +5,7 @@ export const dynamic = "force-static";
 
 export default function manifest(): MetadataRoute.Manifest {
   const isProd = process.env.NODE_ENV === "production";
-  const accent = INK_HEX[isProd ? "terracotta" : "sage"];
+  const accent = INK_HEX[isProd ? "bottle" : "aubergine"];
   const suffix = isProd ? "" : " (dev)";
 
   return {

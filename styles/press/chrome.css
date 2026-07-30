@@ -615,66 +615,66 @@
    the theme instead of snapping. `color` feeds the selected ring through
    currentColor. */
 
-.ink-btn[data-ink-id="terracotta"],
-.swatch[data-ink-id="terracotta"] {
-  background: oklch(0.55 0.13 42);
-  color: oklch(0.55 0.13 42);
+.ink-btn[data-ink-id="bottle"],
+.swatch[data-ink-id="bottle"] {
+  background: oklch(0.472 0.098 158);
+  color: oklch(0.472 0.098 158);
 }
-.ink-btn[data-ink-id="saffron"],
-.swatch[data-ink-id="saffron"] {
-  background: oklch(0.6 0.115 80);
-  color: oklch(0.6 0.115 80);
+.ink-btn[data-ink-id="brass"],
+.swatch[data-ink-id="brass"] {
+  background: oklch(0.618 0.106 84);
+  color: oklch(0.618 0.106 84);
 }
-.ink-btn[data-ink-id="sage"],
-.swatch[data-ink-id="sage"] {
-  background: oklch(0.52 0.11 148);
-  color: oklch(0.52 0.11 148);
+.ink-btn[data-ink-id="oxblood"],
+.swatch[data-ink-id="oxblood"] {
+  background: oklch(0.488 0.118 24);
+  color: oklch(0.488 0.118 24);
 }
-.ink-btn[data-ink-id="rose"],
-.swatch[data-ink-id="rose"] {
-  background: oklch(0.57 0.14 8);
-  color: oklch(0.57 0.14 8);
+.ink-btn[data-ink-id="dustblue"],
+.swatch[data-ink-id="dustblue"] {
+  background: oklch(0.502 0.078 240);
+  color: oklch(0.502 0.078 240);
 }
-.ink-btn[data-ink-id="plum"],
-.swatch[data-ink-id="plum"] {
-  background: oklch(0.5 0.15 313);
-  color: oklch(0.5 0.15 313);
+.ink-btn[data-ink-id="aubergine"],
+.swatch[data-ink-id="aubergine"] {
+  background: oklch(0.442 0.116 316);
+  color: oklch(0.442 0.116 316);
 }
-.ink-btn[data-ink-id="coffee"],
-.swatch[data-ink-id="coffee"] {
-  background: oklch(0.47 0.075 52);
-  color: oklch(0.47 0.075 52);
+.ink-btn[data-ink-id="umber"],
+.swatch[data-ink-id="umber"] {
+  background: oklch(0.466 0.054 54);
+  color: oklch(0.466 0.054 54);
 }
 
-[data-theme="dark"] .ink-btn[data-ink-id="terracotta"],
-[data-theme="dark"] .swatch[data-ink-id="terracotta"] {
-  background: oklch(0.74 0.13 44);
-  color: oklch(0.74 0.13 44);
+[data-theme="dark"] .ink-btn[data-ink-id="bottle"],
+[data-theme="dark"] .swatch[data-ink-id="bottle"] {
+  background: oklch(0.748 0.094 154);
+  color: oklch(0.748 0.094 154);
 }
-[data-theme="dark"] .ink-btn[data-ink-id="saffron"],
-[data-theme="dark"] .swatch[data-ink-id="saffron"] {
-  background: oklch(0.83 0.12 84);
-  color: oklch(0.83 0.12 84);
+[data-theme="dark"] .ink-btn[data-ink-id="brass"],
+[data-theme="dark"] .swatch[data-ink-id="brass"] {
+  background: oklch(0.826 0.102 88);
+  color: oklch(0.826 0.102 88);
 }
-[data-theme="dark"] .ink-btn[data-ink-id="sage"],
-[data-theme="dark"] .swatch[data-ink-id="sage"] {
-  background: oklch(0.76 0.12 150);
-  color: oklch(0.76 0.12 150);
+[data-theme="dark"] .ink-btn[data-ink-id="oxblood"],
+[data-theme="dark"] .swatch[data-ink-id="oxblood"] {
+  background: oklch(0.732 0.113 29);
+  color: oklch(0.732 0.113 29);
 }
-[data-theme="dark"] .ink-btn[data-ink-id="rose"],
-[data-theme="dark"] .swatch[data-ink-id="rose"] {
-  background: oklch(0.76 0.13 10);
-  color: oklch(0.76 0.13 10);
+[data-theme="dark"] .ink-btn[data-ink-id="dustblue"],
+[data-theme="dark"] .swatch[data-ink-id="dustblue"] {
+  background: oklch(0.746 0.075 245);
+  color: oklch(0.746 0.075 245);
 }
-[data-theme="dark"] .ink-btn[data-ink-id="plum"],
-[data-theme="dark"] .swatch[data-ink-id="plum"] {
-  background: oklch(0.72 0.14 310);
-  color: oklch(0.72 0.14 310);
+[data-theme="dark"] .ink-btn[data-ink-id="aubergine"],
+[data-theme="dark"] .swatch[data-ink-id="aubergine"] {
+  background: oklch(0.708 0.111 320);
+  color: oklch(0.708 0.111 320);
 }
-[data-theme="dark"] .ink-btn[data-ink-id="coffee"],
-[data-theme="dark"] .swatch[data-ink-id="coffee"] {
-  background: oklch(0.72 0.075 55);
-  color: oklch(0.72 0.075 55);
+[data-theme="dark"] .ink-btn[data-ink-id="umber"],
+[data-theme="dark"] .swatch[data-ink-id="umber"] {
+  background: oklch(0.728 0.052 57);
+  color: oklch(0.728 0.052 57);
 }
 
 .ink-btn,

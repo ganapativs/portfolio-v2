@@ -16,7 +16,7 @@ import { MARK_BAR_PATH, MARK_G_PATH, MARK_VIEWBOX } from "@/lib/mark";
  */
 export function markPng(size: number, { maskable = false } = {}) {
   const isProd = process.env.NODE_ENV === "production";
-  const accent = INK_HEX[isProd ? "terracotta" : "sage"];
+  const accent = INK_HEX[isProd ? "bottle" : "aubergine"];
   const bg = SURFACE_HEX.light.paper;
 
   // Android crops a maskable icon to an arbitrary shape and only guarantees the
