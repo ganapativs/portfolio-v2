@@ -1,5 +1,6 @@
 "use client";
 import { useRef, useState, type ComponentProps } from "react";
+import { track } from "@/lib/analytics";
 
 type Status = "idle" | "copied" | "failed";
 
@@ -23,6 +24,7 @@ export function CodeBlock(props: CodeBlockProps) {
     try {
       await navigator.clipboard.writeText(text);
       flash("copied");
+      track({ name: "copy", kind: "code" });
     } catch {
       flash("failed");
     }

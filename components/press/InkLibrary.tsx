@@ -29,7 +29,7 @@ export function InkLibrary() {
             data-ink-id={i.id}
             aria-label={i.label}
             aria-pressed={ink === i.id}
-            onClick={() => setInk(i.id)}
+            onClick={() => setInk(i.id, "library")}
           />
         ))}
       </div>

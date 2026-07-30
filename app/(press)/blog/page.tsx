@@ -40,7 +40,12 @@ export default function WritingPage() {
 
         <div className="entries">
           {published.map((p) => (
-            <Link key={p.slug} className="entry" href={`/blog/${p.slug}`}>
+            <Link
+              key={p.slug}
+              className="entry"
+              href={`/blog/${p.slug}`}
+              data-analytics={`nav:blog.entry.${p.slug}`}
+            >
               <div className="entry-head">
                 <h2 className="entry-title">{p.title}</h2>
                 <span className="entry-meta">
@@ -56,10 +61,14 @@ export default function WritingPage() {
           <div className="entries-foot">
             {/* RSS is a static asset, not a Next.js page route. */}
             {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-            <a href="/rss.xml">RSS</a>
+            <a href="/rss.xml" data-analytics="feed:rss">
+              RSS
+            </a>
             {/* Route handlers, not pages — next/link would 404 on prefetch. */}
             {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-            <a href="/llms.txt">llms.txt</a>
+            <a href="/llms.txt" data-analytics="feed:llms">
+              llms.txt
+            </a>
           </div>
         </div>
       </div>

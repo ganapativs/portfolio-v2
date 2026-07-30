@@ -9,6 +9,7 @@ import {
   useState,
 } from "react";
 import { useFX } from "@/components/providers/FXProvider";
+import { track } from "@/lib/analytics";
 
 export type ShortcutScope = "global" | "modal" | "page";
 
@@ -131,6 +132,7 @@ export function ShortcutProvider({ children }: { children: React.ReactNode }) {
           fx?.tick();
           fx?.haptic(6);
           setHelpOpen(true);
+          track({ name: "help" });
         }
         return;
       }
@@ -163,6 +165,10 @@ export function ShortcutProvider({ children }: { children: React.ReactNode }) {
           fx?.tick();
           fx?.haptic(6);
         }
+        // Reported here rather than at each registration site: this is the one
+        // place that knows a shortcut fired *from the keyboard* rather than
+        // from the control it shares a handler with.
+        track({ name: "shortcut", id: s.id });
         s.run();
         return;
       }

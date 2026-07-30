@@ -16,10 +16,14 @@ export function PressFooter({ width = "" }: { width?: string }) {
         <span>meetguns · est. 2013</span>
         <span>© 2013–2026 · made in India</span>
         <span className="press-foot-links">
-          <Link href="/resume">Résumé</Link>
+          <Link href="/resume" data-analytics="nav:footer.resume">
+            Résumé
+          </Link>
           {/* RSS is a static asset, not a Next.js page route. */}
           {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-          <a href="/rss.xml">RSS</a>
+          <a href="/rss.xml" data-analytics="feed:rss">
+            RSS
+          </a>
         </span>
       </div>
     </footer>

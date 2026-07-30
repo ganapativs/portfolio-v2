@@ -96,6 +96,7 @@ export const roles: Role[] = [
     bullets: [
       "Multi-team architect translating product strategy into engineering work, owning the review queue and the escalation path across engineering.",
       "Sustained the React Native mobile app across a major framework upgrade and Apple App Site Association integration without a dedicated mobile team.",
+      "Built and still operate sgb.vercel.app outside the day job — a Sovereign Gold Bond tracker for India's secondary market. A Puppeteer scraper on a scheduled AWS Lambda writes a single JSON file to S3; a Next.js front end derives fair value, effective interest rate and effective cash-flow rate per series. Live since 2021, iterated on for four years.",
     ],
   },
   {

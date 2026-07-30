@@ -8,7 +8,13 @@ import { InkLibrary } from "@/components/press/InkLibrary";
 import { PressFooter } from "@/components/press/PressFooter";
 import { published } from "@/lib/posts";
 import { identity, speaking } from "@/lib/resume";
-import { JsonLd, profilePageSchema, SITE_URL } from "@/lib/jsonld";
+import {
+  JsonLd,
+  employmentSchema,
+  profilePageSchema,
+  projectsSchema,
+  SITE_URL,
+} from "@/lib/jsonld";
 import {
   ROLES,
   LEDGER,
@@ -18,6 +24,7 @@ import {
   BTTN_STARS,
   STACK,
   ASSISTANT,
+  SGB,
 } from "./content";
 
 export const metadata: Metadata = {
@@ -29,7 +36,13 @@ const TEASERS = published.slice(0, 3);
 export default function HomePage() {
   return (
     <div className="home">
-      <JsonLd data={[profilePageSchema(SITE_URL)]} />
+      {/* The home page absorbed /about and /work, so it carries the schema
+          for both: who this is, where he has worked, and what he has shipped. */}
+      <JsonLd
+        data={[profilePageSchema(SITE_URL), projectsSchema(), employmentSchema()].filter(
+          (s) => s !== null,
+        )}
+      />
       <Folio />
 
       <header className="wrap masthead">
@@ -116,7 +129,11 @@ export default function HomePage() {
               on the page that argues rather than lists, so it gets the room. */}
           <article className="made-lead">
             <div className="made-head">
-              <a className="made-title" href={ASSISTANT.href}>
+              <a
+                className="made-title"
+                href={ASSISTANT.href}
+                data-analytics="cta:project.assistant"
+              >
                 {ASSISTANT.name}
               </a>
               <span className="made-meta made-meta--live">{ASSISTANT.meta}</span>
@@ -130,7 +147,11 @@ export default function HomePage() {
           <div className="made">
             <article>
               <div className="made-head">
-                <a className="made-title" href="https://microcharts.dev">
+                <a
+                  className="made-title"
+                  href="https://microcharts.dev"
+                  data-analytics="cta:project.microcharts"
+                >
                   microcharts
                 </a>
                 <span className="made-meta made-meta--live">2026 · microcharts.dev</span>
@@ -149,7 +170,11 @@ export default function HomePage() {
 
             <article>
               <div className="made-head">
-                <a className="made-title" href="https://github.com/ganapativs/bttn.css">
+                <a
+                  className="made-title"
+                  href="https://github.com/ganapativs/bttn.css"
+                  data-analytics="cta:project.bttn-css"
+                >
                   bttn.css
                 </a>
                 <span className="made-meta">
@@ -170,6 +195,17 @@ export default function HomePage() {
                 Ten years on, it is still the thing strangers write to me about.
               </p>
             </article>
+
+            <article>
+              <div className="made-head">
+                <a className="made-title" href={SGB.href} data-analytics="cta:project.sgb">
+                  {SGB.name}
+                </a>
+                <span className="made-meta made-meta--live">{SGB.meta}</span>
+              </div>
+              <p className="made-body">{SGB.what}</p>
+              <p className="made-body made-body--quiet">{SGB.caveat}</p>
+            </article>
           </div>
 
           <div className="ledger">
@@ -182,7 +218,13 @@ export default function HomePage() {
               <div key={row.name} className="ledger-row">
                 <span className="ledger-year">{row.year}</span>
                 <span className="ledger-name">
-                  {row.href ? <a href={row.href}>{row.name}</a> : row.name}
+                  {row.href ? (
+                    <a href={row.href} data-analytics={`cta:ledger.${row.name}`}>
+                      {row.name}
+                    </a>
+                  ) : (
+                    row.name
+                  )}
                 </span>
                 <span className="ledger-what">{row.what}</span>
               </div>
@@ -218,13 +260,18 @@ export default function HomePage() {
         <section id="writing" data-section="writing">
           <div className="sechead">
             <h2>Writing</h2>
-            <Link className="sechead-meta" href="/blog">
+            <Link className="sechead-meta" href="/blog" data-analytics="nav:home.all-posts">
               All posts →
             </Link>
           </div>
           <div className="teasers">
             {TEASERS.map((p) => (
-              <Link key={p.slug} className="teaser" href={`/blog/${p.slug}`}>
+              <Link
+                key={p.slug}
+                className="teaser"
+                href={`/blog/${p.slug}`}
+                data-analytics={`nav:home.teaser.${p.slug}`}
+              >
                 <span className="teaser-read">{p.read}</span>
                 <span className="teaser-title">{p.title}</span>
                 <span className="teaser-sub">{p.spoiler}</span>
@@ -248,16 +295,22 @@ export default function HomePage() {
             Hiring, mentoring, architecture, open source. Replies in IST: slowest in March, fastest
             on Sundays.
           </p>
-          <a className="hello-mail" href={`mailto:${identity.email}`}>
+          <a
+            className="hello-mail"
+            href={`mailto:${identity.email}`}
+            data-analytics="mail:say-hello"
+          >
             {identity.email}
           </a>
           <div className="hello-links">
             {SOCIAL.map((s) => (
-              <a key={s.href} href={s.href} rel="me">
+              <a key={s.href} href={s.href} rel="me" data-analytics={`cta:social.${s.label}`}>
                 {s.label}
               </a>
             ))}
-            <Link href="/resume">Résumé</Link>
+            <Link href="/resume" data-analytics="nav:home.resume">
+              Résumé
+            </Link>
             <span className="quiet">all ganapativs</span>
           </div>
         </section>

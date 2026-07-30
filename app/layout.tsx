@@ -9,6 +9,7 @@ import { ShortcutHelp } from "@/components/shortcuts/ShortcutHelp";
 import { WebVitals } from "@/components/WebVitals";
 import { Analytics } from "@/components/Analytics";
 import { JsonLd, personSchema, websiteSchema, SITE_URL } from "@/lib/jsonld";
+import { GA_ENABLED, gaStub } from "@/lib/analytics/ga-id";
 import { identity } from "@/lib/resume";
 // eslint-disable-next-line import/no-unassigned-import
 import "@/styles/press.css";
@@ -51,7 +52,25 @@ export const metadata: Metadata = {
   alternates: {
     types: {
       "application/rss+xml": [{ url: "/rss.xml", title: "meetguns blog" }],
+      // The curated plain-text map, advertised the same way the feed is, so an
+      // agent that reads <head> finds it without guessing the path.
+      "text/plain": [{ url: "/llms.txt", title: "meetguns for LLMs" }],
     },
+  },
+  // Declared explicitly rather than left to the file conventions: the moment
+  // an `icons` object exists, Next stops emitting the automatic <link> tags
+  // for app/icon.tsx, app/apple-icon.tsx and app/favicon.ico, so everything
+  // has to be listed here. Order is preference order — Safari and older
+  // crawlers take the .ico, everything current takes the SVG, and Google's
+  // SERP favicon wants a raster that is a multiple of 48 (the 192).
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "48x48 32x32 16x16", type: "image/x-icon" },
+      { url: "/icon", type: "image/svg+xml", sizes: "any" },
+      { url: "/icon-192", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-icon", sizes: "180x180", type: "image/png" }],
   },
   appleWebApp: { capable: true, title: "meetguns", statusBarStyle: "default" },
   openGraph: {
@@ -106,10 +125,23 @@ const consoleSig = `(function(){var a=getComputedStyle(document.documentElement)
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={pressFontVars} suppressHydrationWarning>
+    // `data-scroll-behavior="smooth"` acknowledges the `scroll-behavior: smooth`
+    // in styles/press/base.css. Without it Next warns, because a router
+    // navigation would otherwise animate the jump back to the top of the next
+    // page — the attribute is what lets it suppress that while leaving in-page
+    // anchor jumps (the dock's Work / Off-screen links) gliding as designed.
+    <html
+      lang="en"
+      className={pressFontVars}
+      data-scroll-behavior="smooth"
+      suppressHydrationWarning
+    >
       <head>
         <script dangerouslySetInnerHTML={{ __html: noFlash }} />
         <script dangerouslySetInnerHTML={{ __html: consoleSig }} />
+        {/* The gtag queue, ahead of gtag.js. See lib/analytics/ga-id.ts —
+            this exists so a click in the first second is still counted. */}
+        {GA_ENABLED && <script dangerouslySetInnerHTML={{ __html: gaStub }} />}
         <JsonLd data={[personSchema, websiteSchema]} />
         <link rel="author" href="/humans.txt" />
         {identity.social

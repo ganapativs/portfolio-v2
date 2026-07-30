@@ -62,13 +62,14 @@ export function SiteHeader({ progress = false }: { progress?: boolean }) {
   return (
     <header className="site-head" data-scrolled={scrolled}>
       <div className="wrap wrap-doc site-head-in">
-        <Link href="/" className="brand" onClick={() => fx?.nav()}>
+        <Link href="/" className="brand" data-analytics="nav:header.home" onClick={() => fx?.nav()}>
           <Mark className="brand-mark" />
           <span className="brand-name">meetguns</span>
         </Link>
         <nav className="site-nav" aria-label="Sections">
           <Link
             href="/blog"
+            data-analytics="nav:header.writing"
             aria-current={on("/blog") ? "page" : undefined}
             onClick={() => fx?.nav()}
           >
@@ -76,6 +77,7 @@ export function SiteHeader({ progress = false }: { progress?: boolean }) {
           </Link>
           <Link
             href="/resume"
+            data-analytics="nav:header.resume"
             aria-current={on("/resume") ? "page" : undefined}
             onClick={() => fx?.nav()}
           >

@@ -15,7 +15,7 @@ export const YEARS: readonly (readonly [string, string])[] = [
   ["2018", "react-dynamic-import. Otherwise a quiet year on the record."],
   ["2019", "react-spectrum, react-delightful-scroller, and one conference talk."],
   ["2020", "Associate VP. Multi-team architecture. Most of it does not show up in commits."],
-  ["2021", "The quiet one. Reviewing the queue, escalating what needed escalating."],
+  ["2021", "Quiet at work. Off it, the Sovereign Gold Bond tracker — a scraper, a cron, a site."],
   ["2022", "Senior Associate VP. A codemod across eight years of frontend."],
   ["2023", "VP, Technology. The hiring loop and the rubric we interview against."],
   ["2024", "priority, a new-tab extension that shows you one task."],
@@ -136,6 +136,30 @@ export const ASSISTANT = {
   // The counterpart to microcharts' "Entirely my own time." — this one was the
   // day job, and it was built alongside the day job rather than instead of it.
   caveat: "Shipped it, then kept hardening it while running the rest of the engineering queue.",
+} as const;
+
+/**
+ * The side project that outlived the itch that started it.
+ *
+ * It gets a card rather than a ledger row because it is the only thing here
+ * that is a *product* — two private repos (`sgb-data-generator`, a Puppeteer
+ * scraper on a scheduled Lambda; `sgb-data-generator-ui`, the Next.js front
+ * end) behind one public URL, kept running for four years.
+ *
+ * Written from the repos and the live site, not from memory — the arithmetic it
+ * claims is spelled out on sgb.vercel.app/help.
+ *
+ * Kept to the same length as the microcharts card beside it: one paragraph and
+ * a quiet line. The architecture is the interesting part but it is not what a
+ * reader needs here.
+ */
+export const SGB = {
+  name: "sgb",
+  href: "https://sgb.vercel.app",
+  meta: "2021 · still live",
+  what: "A tracker for India's Sovereign Gold Bonds. Every series on one page, ranked by what a buyer actually earns at today's price rather than the coupon printed on the face value.",
+  caveat:
+    "A scraper on a cron, one JSON file on S3, four years of iteration. Still up, still mine.",
 } as const;
 
 export type LedgerRow = { year: string; name: string; href?: string; what: string };

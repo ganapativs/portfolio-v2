@@ -1,6 +1,15 @@
 "use client";
-import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { withViewTransition, type RecolorOrigin } from "@/lib/vt";
+import { track } from "@/lib/analytics";
 
 type Theme = "light" | "dark";
 type Ctx = { theme: Theme; toggle: (origin?: RecolorOrigin) => void };
@@ -51,14 +60,21 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     try {
       localStorage.setItem("mg_theme", theme);
     } catch {}
+    // Reported from here rather than from `toggle`, for two reasons: this runs
+    // only on a real change (the first-sync guard above already swallowed the
+    // mount), and `theme` here is the value that won rather than the one the
+    // handler happened to close over. An origin exists only when a pointer
+    // landed on a control — the keyboard path passes null — which is the
+    // cheapest honest read of how the flip was made.
+    track({ name: "theme", to: theme, via: origin ? "pointer" : "key" });
   }, [theme]);
 
-  const toggle = (origin?: RecolorOrigin) => {
+  const toggle = useCallback((origin?: RecolorOrigin) => {
     pendingOrigin.current = origin ?? null;
     setTheme((t) => (t === "light" ? "dark" : "light"));
-  };
+  }, []);
 
-  const value = useMemo(() => ({ theme, toggle }), [theme]);
+  const value = useMemo(() => ({ theme, toggle }), [theme, toggle]);
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }

@@ -80,6 +80,11 @@
   /* Faces. next/font supplies the variables; the fallback stacks are already
      metric-matched by `adjustFontFallback`. */
   --f-sans: var(--font-anek), "Helvetica Neue", Helvetica, Arial, sans-serif;
+  /* Kannada first, deliberately. Putting Anek Latin ahead of it saves the
+     40 kB latin subset this face would otherwise be asked for just to set the
+     spaces in the name — but it also hands those spaces a different word-space
+     advance, and the name comes out measurably wider. The two faces are the
+     same design, not the same metrics. Correct setting wins. */
   --f-kannada: var(--font-anek-kannada), var(--font-anek), sans-serif;
   --f-serif: var(--font-piazzolla), Georgia, "Times New Roman", serif;
   --f-mono: var(--font-fragment), ui-monospace, Menlo, monospace;

@@ -22,6 +22,9 @@
     "fix": "oxfmt && oxlint --fix",
     "knip": "knip",
     "index:submit": "node scripts/submit-index.mjs",
+    "gen:favicon": "python3 scripts/gen-favicon.py",
+    "gen:pwa-screenshots": "bash scripts/gen-pwa-screenshots.sh",
+    "gen:kannada-subset": "python3 scripts/subset-kannada.py",
     "prepare": "simple-git-hooks || true"
   },
   "dependencies": {
@@ -67,5 +70,12 @@
     "*.{md,mdx,css}": [
       "oxfmt"
     ]
-  }
+  },
+  "browserslist": [
+    "chrome >= 111",
+    "edge >= 111",
+    "firefox >= 128",
+    "safari >= 16.4",
+    "ios_saf >= 16.4"
+  ]
 }

@@ -11,11 +11,15 @@ import {
   type Mode,
 } from "@/lib/ink";
 import { useFX } from "@/components/providers/FXProvider";
+import { track } from "@/lib/analytics";
+
+/** Which surface the pick came from — the dock popover or the page's library. */
+export type InkVia = "popover" | "library";
 
 type Ctx = {
   ink: InkId;
   mode: Mode;
-  setInk: (id: InkId) => void;
+  setInk: (id: InkId, via?: InkVia) => void;
   setMode: (next: Mode) => void;
   cycleMode: () => void;
   cycleInk: (dir?: 1 | -1) => void;
@@ -82,10 +86,11 @@ export function InkProvider({ children }: { children: React.ReactNode }) {
   // call it during a render — so a beep in there fires at unpredictable times
   // and warns about updating an unmounted component.
   const setInk = useCallback(
-    (id: InkId) => {
+    (id: InkId, via: InkVia = "popover") => {
       if (id !== ink) {
         fx?.click(INKS.find((i) => i.id === id)?.freq ?? 660, 0.05, "sine");
         fx?.haptic(6);
+        track({ name: "ink", id, via });
       }
       setInkState(id);
     },
@@ -97,6 +102,7 @@ export function InkProvider({ children }: { children: React.ReactNode }) {
       if (next !== mode) {
         fx?.toggle();
         fx?.haptic(6);
+        track({ name: "press_run", mode: next });
       }
       setModeState(next);
     },

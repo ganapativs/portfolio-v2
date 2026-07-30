@@ -4,6 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Fragment, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useFX } from "@/components/providers/FXProvider";
 import { useShortcut } from "@/components/shortcuts/useShortcut";
+import { track } from "@/lib/analytics";
 import { InkPopover } from "./InkPopover";
 
 const ROUTES = [
@@ -142,6 +143,7 @@ function RouteLink({
       }}
       href={item.href}
       className="dock-link"
+      data-analytics={`nav:dock.${item.k}`}
       aria-current={active ? "page" : undefined}
       onClick={() => {
         fx?.nav();
@@ -177,6 +179,7 @@ function AnchorLink({ item }: { item: (typeof ANCHORS)[number] }) {
       href={item.hash}
       className="dock-link"
       data-anchor="true"
+      data-analytics={`nav:dock.${item.k}`}
       onClick={(e) => {
         e.preventDefault();
         fx?.nav();
@@ -223,6 +226,7 @@ function SoundToggle() {
         fx.toggle();
         fx.haptic(6);
         fx.toggleSound();
+        track({ name: "sound", on: !soundOn });
       }}
       suppressHydrationWarning
     >

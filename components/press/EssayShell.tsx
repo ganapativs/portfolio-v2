@@ -37,7 +37,7 @@ export function EssayShell({ post, children }: { post: Post; children: React.Rea
       <SiteHeader progress />
 
       <div className="wrap wrap-essay doc-main">
-        <Link href="/blog" className="essay-back">
+        <Link href="/blog" className="essay-back" data-analytics="nav:essay.back">
           <span aria-hidden="true">←</span> Writing
         </Link>
 
@@ -48,12 +48,19 @@ export function EssayShell({ post, children }: { post: Post; children: React.Rea
             <span aria-hidden="true">·</span>
             <span>{post.read}</span>
             <span aria-hidden="true">·</span>
-            <a href={shareUrl} target="_blank" rel="noreferrer">
+            <a
+              href={shareUrl}
+              target="_blank"
+              rel="noreferrer"
+              data-analytics={`cta:essay.share.${post.slug}`}
+            >
               Share
             </a>
             <span aria-hidden="true">·</span>
             {/* The markdown mirror of this page — see app/blog/[slug].md. */}
-            <a href={`/blog/${post.slug}.md`}>.md</a>
+            <a href={`/blog/${post.slug}.md`} data-analytics="feed:markdown">
+              .md
+            </a>
           </div>
 
           {cover && (

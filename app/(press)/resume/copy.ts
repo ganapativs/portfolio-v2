@@ -28,6 +28,7 @@ export const ROLE_COPY: Record<string, string[]> = {
   "Associate VP — Technology": [
     "Multi-team architect: turned product strategy into engineering work, and owned both the review queue and the escalation path.",
     "Kept the React Native app alive through a major framework upgrade and the Apple App Site Association work, without a dedicated mobile team.",
+    "Built sgb.vercel.app on my own time — a tracker for India's Sovereign Gold Bond secondary market. A Puppeteer scraper on a scheduled Lambda writes one JSON file to S3; the Next.js front end works out fair value, effective interest rate and effective cash-flow rate for every series. Live since 2021, and I still run it.",
   ],
   "Technology Lead": [
     "Created the internal React component library in November 2016 and have been its primary maintainer for ten years. Every product surface is built on it.",

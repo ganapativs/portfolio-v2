@@ -647,8 +647,14 @@
   --mc-surface-edge: var(--rule);
   --mc-font: var(--f-sans);
   --mc-font-numeric: var(--f-mono);
-  --mc-positive: #0e7a5f;
-  --mc-negative: #bd4b2d;
+  /* Valence renders as *text* (the delta numerals), so it has to clear 4.5:1 —
+     not against the paper, but against the darkest surface it can land on,
+     which is a chart row highlighted with --accent-soft. Gulkand rose is the
+     deepest of the six light washes, so these two are tuned to it and pass
+     everywhere else by margin. The categorical hues below stay exactly as the
+     library ships them: they are marks, not text, and 3:1 is their bar. */
+  --mc-positive: #0d7158;
+  --mc-negative: #a94328;
   --mc-moon: #8a6417;
   --mc-cat-1: #8a6417;
   --mc-cat-2: #2f6b96;
@@ -658,8 +664,10 @@
   --mc-cat-6: #83446b;
 }
 [data-theme="dark"] .prose {
-  --mc-positive: #45a385;
-  --mc-negative: #df7856;
+  /* Same rule on dark paper, tuned to turmeric milk — the lightest of the six
+     dark washes, and so the one that squeezes light text hardest. */
+  --mc-positive: #4cb392;
+  --mc-negative: #e38b6e;
   --mc-moon: #e0be6f;
   --mc-cat-1: #e2b45c;
   --mc-cat-2: #6fb0e0;
