@@ -297,10 +297,11 @@ export default function HomePage() {
           </p>
           <a
             className="hello-mail"
-            href={`mailto:${identity.email}`}
+            href={`mailto:${identity.email}?subject=${encodeURIComponent("Hello from the press")}`}
             data-analytics="mail:say-hello"
+            aria-label={`Email ${identity.email}`}
           >
-            {identity.email}
+            Write to me →
           </a>
           <div className="hello-links">
             {SOCIAL.map((s) => (

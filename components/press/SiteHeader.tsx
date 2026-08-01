@@ -75,14 +75,6 @@ export function SiteHeader({ progress = false }: { progress?: boolean }) {
           >
             Writing
           </Link>
-          <Link
-            href="/resume"
-            data-analytics="nav:header.resume"
-            aria-current={on("/resume") ? "page" : undefined}
-            onClick={() => fx?.nav()}
-          >
-            Résumé
-          </Link>
         </nav>
       </div>
       {progress && <span ref={railRef} className="read-line" aria-hidden="true" />}

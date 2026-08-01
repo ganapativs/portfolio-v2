@@ -907,9 +907,9 @@
 .hello-mail {
   display: inline-block;
   margin-top: clamp(20px, 3vh, 30px);
-  font-family: var(--f-mono);
-  font-size: clamp(18px, calc(15px + 0.8vw), 30px);
-  letter-spacing: -0.015em;
+  font-weight: 600;
+  font-size: clamp(20px, calc(17px + 0.8vw), 32px);
+  letter-spacing: -0.02em;
   color: var(--paper);
   border-bottom: 3px solid var(--accent-flip);
   padding-bottom: 2px;
