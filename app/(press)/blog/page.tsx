@@ -34,7 +34,9 @@ export default function WritingPage() {
       {/* Same ruled table as the parts list on the home sheet, because it is the
           same kind of object: a numbered index of things that exist. */}
       <section className="panel" id="index" data-sec="index">
-        <span className="sec-label">Revision index</span>
+        {/* No section label. The drawing title above already says "revision
+            index" and the h1 already says "Writing"; a third heading for four
+            rows is furniture. */}
         <p className="meta">
           {published.length} entries · newest first ·{" "}
           {/* Route handlers, not pages — next/link would 404 on prefetch. */}
@@ -58,7 +60,7 @@ export default function WritingPage() {
             >
               <span className="entry-no">{String(i + 1).padStart(3, "0")}</span>
               <span className="entry-main">
-                <span className="entry-title">{p.title}</span>
+                <h2 className="entry-title">{p.title}</h2>
                 <span className="entry-sub">{p.spoiler}</span>
               </span>
               <span className="entry-meta">

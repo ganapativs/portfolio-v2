@@ -88,15 +88,15 @@ export function EssayShell({ post, children }: { post: Post; children: React.Rea
 
       {related.length > 0 && (
         <aside className="readnext" aria-labelledby="readnext-h">
-          <span className="sec-label" id="readnext-h">
+          <h2 className="sec-label" id="readnext-h">
             Read next
-          </span>
+          </h2>
           <div className="entries">
             {related.map((p, i) => (
               <Link key={p.slug} className="entry" href={`/blog/${p.slug}`}>
                 <span className="entry-no">{String(i + 1).padStart(3, "0")}</span>
                 <span className="entry-main">
-                  <span className="entry-title">{p.title}</span>
+                  <h3 className="entry-title">{p.title}</h3>
                   <span className="entry-sub">{p.spoiler}</span>
                 </span>
                 <span className="entry-meta">

@@ -96,8 +96,12 @@
   display: block;
   min-width: 0;
 }
+/* An h2 in the index and an h3 under Read next, so the outline is real. The
+   type is the same either way: this is a list of links that happens to be
+   navigable by heading, not a hierarchy of sizes. */
 .entry-title {
   display: block;
+  margin: 0;
   font-weight: 600;
   font-size: 18px;
   line-height: 1.3;

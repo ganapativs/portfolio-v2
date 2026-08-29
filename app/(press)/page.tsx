@@ -71,7 +71,7 @@ export default function HomePage() {
       </section>
 
       {/* ---- fold 2 · the mechanisms ------------------------------------- */}
-      <section className="mechs" id="mechanisms" data-sec="mechanisms">
+      <section className="mechs" id="mechanisms" data-sec="figures">
         <article className="panel">
           <span className="p-fig">fig. 1 · exploded view</span>
           <h2>The assistant</h2>
@@ -128,7 +128,7 @@ export default function HomePage() {
       <section className="mechs2">
         <article className="panel">
           <span className="p-fig">fig. 3 · running series</span>
-          <h3>sgb</h3>
+          <h2>sgb</h2>
           <p className="meta">
             {SGB.meta} ·{" "}
             <a href={SGB.href} target="_blank" rel="noopener" data-analytics="cta:project.sgb">
@@ -141,7 +141,7 @@ export default function HomePage() {
 
         <article className="panel">
           <span className="p-fig">fig. 4 · generated specimen</span>
-          <h3>react-spectrum</h3>
+          <h2>react-spectrum</h2>
           <p className="meta">
             {SPECTRUM.meta} ·{" "}
             <a
@@ -177,13 +177,13 @@ export default function HomePage() {
         </div>
 
         <div className="panel">
-          <span className="sec-label">Parts list</span>
+          <h2 className="sec-label">Parts list</h2>
           <p className="meta">55 public repos · 2,400+ stars · 15 npm packages</p>
           <PartsList />
         </div>
 
         <div className="panel" id="writing">
-          <span className="sec-label">Revisions</span>
+          <h2 className="sec-label">Revisions</h2>
           <p className="meta">the written record, newest first</p>
           <div className="rev">
             {published.map((p) => (

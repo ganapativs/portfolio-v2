@@ -557,6 +557,13 @@
 .p-body a:focus-visible {
   border-color: var(--accent);
 }
+/* A section title that is set as a label rather than as a heading. It is still
+   an h2: the block it opens is a section of the page, and a screen reader
+   walking the outline should find it. */
+h2.sec-label {
+  margin: 0;
+  font-weight: 400;
+}
 .sec-label {
   font-family: var(--f-mono);
   font-size: 11px;
@@ -731,7 +738,10 @@
 .tb-say-v {
   font-family: var(--f-mono);
   font-size: 13px;
-  color: var(--ink-3);
+  /* --ink-3 measured 4.29:1 against this block's accent wash in the light run,
+     just under AA for text this size, in all six inks. One step up clears it
+     everywhere. */
+  color: var(--ink-2);
   overflow-wrap: anywhere;
 }
 .tb-say:hover .tb-say-l,

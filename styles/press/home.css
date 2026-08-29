@@ -173,9 +173,13 @@
 
 /* ---- the figure grids ---------------------------------------------------- */
 
+/* Deliberately not two equal columns. A 2x2 grid of equal cards is the most
+   template-shaped thing a page can do, and these are figures on a sheet: they
+   are sized by what is in them. fig. 2 carries a loupe and a specimen tray, so
+   it takes the wider half. */
 .mechs {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.18fr);
   gap: 20px;
   padding: 0 0 20px;
 }
@@ -184,7 +188,7 @@
 }
 .mechs2 {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
   gap: 20px;
   padding: 0 0 44px;
 }
@@ -192,6 +196,7 @@
   min-width: 0;
   padding: 18px 22px;
 }
+.mechs2 h2,
 .mechs2 h3 {
   font-size: 16px;
 }
