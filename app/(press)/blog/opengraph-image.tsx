@@ -1,6 +1,6 @@
 import { renderOG, OG_SIZE, OG_CONTENT_TYPE } from "@/lib/og";
 
-export const alt = "Writing — notes on the bones of better software.";
+export const alt = "Writing: notes on the bones of better software.";
 export const size = OG_SIZE;
 export const contentType = OG_CONTENT_TYPE;
 

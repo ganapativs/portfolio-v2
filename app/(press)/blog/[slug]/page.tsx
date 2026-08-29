@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { EssayShell } from "@/components/press/EssayShell";
+import { EssayShell } from "@/components/schematic/EssayShell";
 import { posts, published } from "@/lib/posts";
 import { blogPostingSchema, breadcrumbSchema, JsonLd, SITE_URL } from "@/lib/jsonld";
 

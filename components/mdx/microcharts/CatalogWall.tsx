@@ -21,7 +21,7 @@ import { Ohlc } from "@microcharts/react/ohlc/interactive";
 import { ProgressRing } from "@microcharts/react/progress-ring/interactive";
 import { TallyMarks } from "@microcharts/react/tally-marks/interactive";
 
-// One believable dataset per tile — the wall demos the real components,
+// One believable dataset per tile: the wall demos the real components,
 // not screenshots, so it re-themes with the site accent and stays crisp.
 const wave = Array.from({ length: 48 }, (_, i) => Math.sin(i / 2.4) * (1 - i / 96) + 0.2);
 
@@ -211,7 +211,7 @@ const TILES: { label: string; chart: React.ReactNode; hint?: string }[] = [
 export function CatalogWall() {
   const gridRef = useRef<HTMLDivElement>(null);
 
-  // Stagger the tiles in when the wall first scrolls into view — the wall is
+  // Stagger the tiles in when the wall first scrolls into view: the wall is
   // the post's first big moment, so it earns an entrance. Reduced-motion users
   // get the static grid (CSS gates the transition).
   useEffect(() => {
@@ -256,7 +256,7 @@ export function CatalogWall() {
         </a>
       </div>
       <figcaption className="mcx-wall-caption">
-        20 of the 106 types — the shipped components, drawn in this site's palette, not screenshots.
+        20 of the 106 types: the shipped components, drawn in this site's palette, not screenshots.
         All interactive: hover or arrow keys to activate a unit, click or Enter to pin its readout,
         Escape to clear.
       </figcaption>

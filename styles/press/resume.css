@@ -2,8 +2,13 @@
    A document, not a page: two columns, tight leading, and a print pass that
    lands it on one or two sheets with 16mm margins. */
 
+/* Same reasoning as the essay: a CV is a document, and it sits on the board
+   rather than being printed through it. */
 .cv {
-  margin-top: clamp(20px, 3vh, 30px);
+  margin-top: 44px;
+  padding: clamp(28px, 4vw, 44px);
+  background: var(--raise);
+  border: 1px solid var(--rule);
 }
 .cv-topline {
   display: flex;
@@ -80,7 +85,7 @@
   margin: 13px 0 0;
   padding-top: 13px;
   border-top: 1px solid var(--rule);
-  font-family: var(--f-serif);
+  font-family: var(--f-sans);
   font-size: 16.5px;
   line-height: 1.58;
   color: var(--ink-2);
@@ -237,16 +242,15 @@
   [data-theme="dark"] {
     --paper: #fff;
     --raise: #fff;
-    --sunk: #eef3ec;
-    --ink: #0d1a12;
-    --ink-2: #33463a;
-    --ink-3: #56655b;
-    --rule: #c8d4c8;
-    --rule-2: #a8b7ab;
-    --accent: #1b6c46;
-    --accent-ink: #145436;
-    --wash: transparent;
-    --plate: #1b6c46;
+    --sunk: #f2f0e8;
+    --ink: #16170f;
+    --ink-2: #3c3d36;
+    --ink-3: #5d5e55;
+    --rule-3: #e6e2d6;
+    --rule: #cdc8b8;
+    --rule-2: #a29c88;
+    --accent: #7a4e0a;
+    --accent-soft: transparent;
   }
   /* `!important` is load-bearing. The no-flash script in app/layout.tsx sets
      `style.backgroundColor` on <html> inline (#e7eee4 light, #03180c dark) so
@@ -266,27 +270,24 @@
   body {
     background: #fff !important;
   }
-  .dock,
-  .reg-mark,
-  .site-head,
+  /* Everything that is chrome for a screen and furniture on paper. The sheet
+     frame goes too: a printed page already has edges. */
+  .dither,
+  .ruler,
+  .progress,
+  .hd,
+  .tick-c,
+  .fl,
+  .tblock,
+  .foot-pad,
   .cv-topline,
-  .doc > footer,
-  .press-foot,
-  .skip-link,
-  .read-line {
+  .skip-link {
     display: none !important;
   }
-  /* `.doc` is a full-height flex column on screen so the footer sits at the
-     bottom of short pages. In print that guarantees at least one page of height
-     and stretches `.doc-main`, which is what was emitting a trailing blank
-     sheet. Print wants ordinary block flow. */
-  .doc {
+  .sheet {
+    margin: 0;
     min-height: 0;
-    display: block;
-  }
-  .doc-main {
-    flex: none;
-    padding-top: 0;
+    border: 0;
   }
   .wrap {
     max-width: none;
@@ -294,6 +295,9 @@
   }
   .cv {
     margin-top: 0;
+    padding: 0;
+    background: none;
+    border: 0;
   }
   /* Two columns are a screen idea. In print a flex line cannot split across
      sheets — Chrome moves the whole row to the next page and leaves a blank —

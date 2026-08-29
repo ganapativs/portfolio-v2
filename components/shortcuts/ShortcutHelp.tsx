@@ -71,7 +71,7 @@ export function ShortcutHelp() {
           <header className="khelp-header">
             <Dialog.Title className="khelp-title">Keyboard</Dialog.Title>
             <Dialog.Description className="khelp-sub">
-              Direct keys for every move. No leader, no chord — just press.
+              Direct keys for every move. No leader, no chord, just press.
             </Dialog.Description>
           </header>
 

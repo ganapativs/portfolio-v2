@@ -9,7 +9,12 @@ const PERSON_NAME = identity.name;
 // distinct entities.
 const PERSON_ID = `${SITE_URL}/#person`;
 const WEBSITE_ID = `${SITE_URL}/#website`;
+const BLOG_ID = `${SITE_URL}/blog#blog`;
+// The employer, declared once so `Person.worksFor` and the employment schema on
+// the home page name the same node instead of two look-alike Organizations.
+const ORG_ID = `${SITE_URL}/#tracxn`;
 const PERSON_REF = { "@id": PERSON_ID };
+const WEBSITE_REF = { "@id": WEBSITE_ID };
 
 const DEGREE = education.find((e) => e.kind === "degree");
 
@@ -23,8 +28,13 @@ export const personSchema = {
   alternateName: "meetguns",
   url: SITE_URL,
   image: `${SITE_URL}/portrait/ganapativs.webp`,
+  description:
+    "Full-stack engineer with a design mind. Twelve years in, based in Bengaluru. Intern to VP of Technology at Tracxn, still writing code.",
   jobTitle: identity.jobTitle,
-  worksFor: { "@type": "Organization", ...identity.worksFor },
+  // The home page is the profile page for this Person; naming it here is what
+  // lets a crawler resolve the node to a page rather than to a bare identifier.
+  mainEntityOfPage: { "@type": "ProfilePage", "@id": SITE_URL },
+  worksFor: { "@type": "Organization", "@id": ORG_ID, ...identity.worksFor },
   address: {
     "@type": "PostalAddress",
     addressLocality: identity.location.split(",")[0].trim(),
@@ -47,6 +57,9 @@ export const personSchema = {
   hasOccupation: {
     "@type": "Occupation",
     name: identity.jobTitle,
+    // The BLS/O*NET code schema.org asks for. It is the classification an
+    // occupation is *matched* on; a free-text title alone is not resolvable.
+    occupationalCategory: "15-1252.00 Software Developers",
     occupationLocation: { "@type": "City", name: identity.location.split(",")[0].trim() },
     // Every skill the résumé claims, flattened. This is the property a
     // knowledge-graph builder actually reads to decide what this person is
@@ -59,12 +72,13 @@ export const personSchema = {
     "React",
     "TypeScript",
     "Next.js",
-    "frontend engineering",
-    "engineering management",
+    "full-stack engineering",
+    "design systems",
     "AI assistants",
     "Model Context Protocol",
     "API documentation",
     "data visualization",
+    "web accessibility",
     "open source",
   ],
 };
@@ -76,8 +90,14 @@ export const websiteSchema = {
   name: "meetguns",
   alternateName: PERSON_NAME,
   url: SITE_URL,
+  description:
+    "The personal site of Ganapati V S: the work, the writing and the CV. Drawn as an engineering schematic.",
   inLanguage: "en",
   author: PERSON_REF,
+  publisher: PERSON_REF,
+  copyrightHolder: PERSON_REF,
+  // No SearchAction: this site has no search endpoint, and declaring one it
+  // cannot serve is worse than declaring nothing.
 };
 
 // Posts that are *about* a nameable artefact link the entity explicitly —
@@ -88,7 +108,7 @@ const POST_ABOUT: Record<string, JsonLdObject> = {
     name: "microcharts",
     alternateName: "@microcharts/react",
     description:
-      "Word-sized charts for React — 106 chart types, zero runtime dependencies, accessible by default, server-component safe.",
+      "Word-sized charts for React: 106 chart types, zero runtime dependencies, accessible by default, server-component safe.",
     codeRepository: "https://github.com/ganapativs/microcharts",
     programmingLanguage: "TypeScript",
     runtimePlatform: "React",
@@ -98,13 +118,21 @@ const POST_ABOUT: Record<string, JsonLdObject> = {
   },
 };
 
+/** "10 min" → "PT10M". Anything unparseable is left out rather than guessed. */
+function isoDuration(read: string): string | null {
+  const m = /^(\d+)\s*min/.exec(read.trim());
+  return m ? `PT${m[1]}M` : null;
+}
+
 export function blogPostingSchema(post: Post) {
   const url = `${SITE_URL}/blog/${post.slug}`;
   const about = POST_ABOUT[post.slug];
   const cover = post.cover ? `${SITE_URL}/posts/${post.slug}/${post.cover}` : null;
+  const reading = isoDuration(post.read);
   return {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
+    "@id": `${url}#post`,
     headline: post.title,
     description: post.spoiler,
     datePublished: post.date,
@@ -112,6 +140,11 @@ export function blogPostingSchema(post: Post) {
     inLanguage: "en",
     author: PERSON_REF,
     publisher: PERSON_REF,
+    // The post belongs to the Blog node the index declares, not to a second
+    // anonymous blog invented per page.
+    isPartOf: { "@id": BLOG_ID },
+    articleSection: post.tag,
+    ...(reading ? { timeRequired: reading } : {}),
     mainEntityOfPage: { "@type": "WebPage", "@id": url },
     // The per-route OG image lives behind a hashed metadata segment Next
     // generates at build time — no stable public URL — so only the cover
@@ -128,16 +161,20 @@ export function blogPostingSchema(post: Post) {
  *
  * This is the one part of the site that an answer engine has no way to
  * reconstruct from prose: "55 public repos" is a number in a sentence, whereas
- * this names the four that matter, their repositories and their authorship in
- * a form that can be cited. Rendered on the home page, beside the section that
- * lists them in words.
+ * this names the ones that matter, their repositories and their authorship in
+ * a form that can be cited. Rendered on the home page, beside the parts list
+ * that names them in words.
+ *
+ * No `itemListOrder`: the list is curated, not sorted by any property a reader
+ * could verify, and claiming a sort it does not have is a claim that is false.
  */
 export function projectsSchema() {
   return {
     "@context": "https://schema.org",
     "@type": "ItemList",
     name: "Open-source work by Ganapati V S",
-    itemListOrder: "https://schema.org/ItemListOrderDescending",
+    description:
+      "Public repositories by Ganapati V S, from a CSS button library in 2016 to microcharts in 2026.",
     numberOfItems: flagships.length,
     itemListElement: flagships.map((f, i) => ({
       "@type": "ListItem",
@@ -158,9 +195,13 @@ export function projectsSchema() {
 }
 
 /**
- * The employment history, as a single Organization node with the roles hung
- * off the Person. Eleven years at one company is the central claim this site
- * makes; stated in prose it is a sentence, stated here it is a fact with dates.
+ * The employment history, as one Organization node carrying an EmployeeRole per
+ * title held. Intern to VP of Technology at one company is the central claim
+ * this site makes; in prose it is a sentence, here it is five dated facts.
+ *
+ * The nesting is the shape schema.org documents for Role: the relationship
+ * property (`employee`) holds the Role, and the Role repeats that property with
+ * the actual value. A bare top-level EmployeeRole is not attached to anything.
  */
 const MONTHS = "jan feb mar apr may jun jul aug sep oct nov dec".split(" ");
 
@@ -174,20 +215,24 @@ function isoMonth(human: string): string {
 
 export function employmentSchema() {
   const tracxn = roles.filter((r) => r.org === identity.worksFor.name);
-  const earliest = tracxn.at(-1);
-  if (!earliest) return null;
+  if (tracxn.length === 0) return null;
   return {
     "@context": "https://schema.org",
-    "@type": "EmployeeRole",
-    roleName: identity.jobTitle,
-    startDate: isoMonth(earliest.start),
-    employee: PERSON_REF,
-    worksFor: {
-      "@type": "Organization",
-      name: identity.worksFor.name,
-      url: identity.worksFor.url,
-      ...(identity.orgTagline ? { description: identity.orgTagline } : {}),
-    },
+    "@type": "Organization",
+    "@id": ORG_ID,
+    name: identity.worksFor.name,
+    url: identity.worksFor.url,
+    sameAs: identity.worksFor.url,
+    ...(identity.orgTagline ? { description: identity.orgTagline } : {}),
+    employee: tracxn.map((r) => ({
+      "@type": "EmployeeRole",
+      roleName: r.role,
+      startDate: isoMonth(r.start),
+      // The current role has no end date, and an invented one would date the
+      // whole record wrong the moment it is read.
+      ...(r.end.toLowerCase() === "present" ? {} : { endDate: isoMonth(r.end) }),
+      employee: PERSON_REF,
+    })),
   };
 }
 
@@ -195,7 +240,10 @@ export function profilePageSchema(url: string) {
   return {
     "@context": "https://schema.org",
     "@type": "ProfilePage",
+    "@id": url,
     url,
+    isPartOf: WEBSITE_REF,
+    inLanguage: "en",
     // The layout already emits the full Person node on every page; reference
     // it instead of inlining a second, unlinked copy.
     mainEntity: PERSON_REF,
@@ -206,16 +254,25 @@ export function blogIndexSchema(posts: Post[]) {
   return {
     "@context": "https://schema.org",
     "@type": "Blog",
-    name: "meetguns blog",
+    "@id": BLOG_ID,
+    name: "Writing by Ganapati V S",
+    alternateName: "meetguns blog",
     url: `${SITE_URL}/blog`,
+    description:
+      "Mostly engineering. The occasional library announcement. New posts arrive when there is something worth saying, not on a schedule.",
     inLanguage: "en",
     author: PERSON_REF,
+    publisher: PERSON_REF,
+    isPartOf: WEBSITE_REF,
     blogPost: posts.map((p) => ({
       "@type": "BlogPosting",
+      // Same node the post's own page declares, so the two describe one post.
+      "@id": `${SITE_URL}/blog/${p.slug}#post`,
       headline: p.title,
       url: `${SITE_URL}/blog/${p.slug}`,
       mainEntityOfPage: { "@type": "WebPage", "@id": `${SITE_URL}/blog/${p.slug}` },
       datePublished: p.date,
+      dateModified: p.updated ?? p.date,
       description: p.spoiler,
       keywords: p.tag,
       author: PERSON_REF,

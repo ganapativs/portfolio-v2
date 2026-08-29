@@ -1,27 +1,16 @@
 "use client";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import {
-  DEFAULT_INK,
-  INKS,
-  MODES,
-  STORAGE_KEYS,
-  isInkId,
-  isMode,
-  type InkId,
-  type Mode,
-} from "@/lib/ink";
+import { DEFAULT_INK, INKS, STORAGE_KEYS, isInkId, type InkId } from "@/lib/ink";
 import { useFX } from "@/components/providers/FXProvider";
+import { withViewTransition, type RecolorOrigin } from "@/lib/vt";
 import { track } from "@/lib/analytics";
 
-/** Which surface the pick came from — the dock popover or the page's library. */
-export type InkVia = "popover" | "library";
+/** Which surface the pick came from. Today there is one: the header tray. */
+export type InkVia = "tray" | "key";
 
 type Ctx = {
   ink: InkId;
-  mode: Mode;
-  setInk: (id: InkId, via?: InkVia) => void;
-  setMode: (next: Mode) => void;
-  cycleMode: () => void;
+  setInk: (id: InkId, origin?: RecolorOrigin, via?: InkVia) => void;
   cycleInk: (dir?: 1 | -1) => void;
   inks: typeof INKS;
 };
@@ -29,8 +18,8 @@ type Ctx = {
 const InkContext = createContext<Ctx | null>(null);
 
 // Read from the DOM first. The no-flash script in app/layout.tsx has already
-// stamped both attributes before React sees the page, so the first render
-// matches what is on screen and mounting never causes a repaint.
+// stamped the attribute before React sees the page, so the first render matches
+// what is on screen and mounting never causes a repaint.
 function readInk(): InkId {
   if (typeof document === "undefined") return DEFAULT_INK;
   const fromDom = document.documentElement.dataset.ink;
@@ -42,88 +31,74 @@ function readInk(): InkId {
   return DEFAULT_INK;
 }
 
-function readMode(): Mode {
-  if (typeof document === "undefined") return "colorful";
-  const fromDom = document.documentElement.dataset.mode;
-  if (isMode(fromDom)) return fromDom;
-  try {
-    const stored = localStorage.getItem(STORAGE_KEYS.mode);
-    if (isMode(stored)) return stored;
-  } catch {}
-  return "colorful";
-}
-
 export function InkProvider({ children }: { children: React.ReactNode }) {
   const [ink, setInkState] = useState<InkId>(DEFAULT_INK);
-  const [mode, setModeState] = useState<Mode>("colorful");
   const [hydrated, setHydrated] = useState(false);
-  const fx = useFX();
+  // The origin of the pick that produced the ink now in state, held next to it
+  // so the sync effect below knows whether to open an iris or let the tokens
+  // tween. Kept in state rather than a ref: two picks of the same swatch in a
+  // row are the same `ink` value, and a ref would leave the second one holding
+  // the first one's origin.
+  const [origin, setOrigin] = useState<RecolorOrigin>(null);
 
   useEffect(() => {
     setInkState(readInk());
-    setModeState(readMode());
     setHydrated(true);
   }, []);
 
-  // No withViewTransition here, deliberately. An ink change is a 340ms oklch
-  // interpolation of the registered colour properties (styles/press/tokens.css);
-  // a view transition would freeze a snapshot of the page and crossfade over
-  // the top of that tween, which reads as a stutter. Theme changes are the
-  // opposite case and do go through the iris — see ThemeProvider.
+  // Two ways an ink arrives, and they are deliberately different.
+  //
+  // Picked with a pointer: the iris opens from the swatch, exactly as the theme
+  // toggle does. The reader pressed a specific place on the page, so the change
+  // comes from that place. lib/vt.ts kills the token transition for the length
+  // of the reveal, so the ink is already the new one behind the wipe.
+  //
+  // Picked from the keyboard (1-6): no iris, because there is no point on the
+  // page to open one from. The registered --accent property interpolates over
+  // 340ms instead and the whole drawing re-inks in place.
   useEffect(() => {
     if (!hydrated) return;
-    const root = document.documentElement;
-    root.dataset.ink = ink;
-    root.dataset.mode = mode;
+    const write = () => {
+      document.documentElement.dataset.ink = ink;
+    };
+    if (origin) withViewTransition(write, origin);
+    else write();
     try {
       localStorage.setItem(STORAGE_KEYS.ink, ink);
-      localStorage.setItem(STORAGE_KEYS.mode, mode);
     } catch {}
-  }, [ink, mode, hydrated]);
+  }, [ink, origin, hydrated]);
 
-  // Every one of these chimes *outside* the state updater. An updater passed to
-  // setState has to be pure — React is free to call it more than once, and to
-  // call it during a render — so a beep in there fires at unpredictable times
-  // and warns about updating an unmounted component.
+  const fx = useFX();
+
+  // The chime is outside the state updater on purpose. An updater passed to
+  // setState has to be pure — React is free to call it more than once, and
+  // during a render — so a beep in there fires at unpredictable times.
   const setInk = useCallback(
-    (id: InkId, via: InkVia = "popover") => {
+    (id: InkId, from: RecolorOrigin = null, via: InkVia = "tray") => {
       if (id !== ink) {
-        fx?.click(INKS.find((i) => i.id === id)?.freq ?? 660, 0.05, "sine");
+        // Six inks, six pitches, rising with the tray order. Playing the picker
+        // left to right plays a scale, which is the point.
+        fx?.pluck(INKS.find((i) => i.id === id)?.freq ?? 520);
         fx?.haptic(6);
         track({ name: "ink", id, via });
       }
+      setOrigin(from);
       setInkState(id);
     },
     [ink, fx],
   );
 
-  const setMode = useCallback(
-    (next: Mode) => {
-      if (next !== mode) {
-        fx?.toggle();
-        fx?.haptic(6);
-        track({ name: "press_run", mode: next });
-      }
-      setModeState(next);
-    },
-    [mode, fx],
-  );
-
-  const cycleMode = useCallback(() => {
-    setMode(MODES[(MODES.indexOf(mode) + 1) % MODES.length]);
-  }, [mode, setMode]);
-
   const cycleInk = useCallback(
     (dir: 1 | -1 = 1) => {
       const i = INKS.findIndex((x) => x.id === ink);
-      setInk(INKS[(i + dir + INKS.length) % INKS.length].id);
+      setInk(INKS[(i + dir + INKS.length) % INKS.length].id, null, "key");
     },
     [ink, setInk],
   );
 
   const value = useMemo<Ctx>(
-    () => ({ ink, mode, setInk, setMode, cycleMode, cycleInk, inks: INKS }),
-    [ink, mode, setInk, setMode, cycleMode, cycleInk],
+    () => ({ ink, setInk, cycleInk, inks: INKS }),
+    [ink, setInk, cycleInk],
   );
 
   return <InkContext.Provider value={value}>{children}</InkContext.Provider>;

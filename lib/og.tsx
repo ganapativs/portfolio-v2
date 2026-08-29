@@ -2,39 +2,41 @@ import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { INK_HEX, SURFACE_HEX, type InkId } from "@/lib/ink";
+import { MARK_BAR_PATH, MARK_G_PATH, MARK_VIEWBOX } from "@/lib/mark";
 
 export const OG_SIZE = { width: 1200, height: 630 } as const;
 export const OG_CONTENT_TYPE = "image/png" as const;
 
-// satori resolves neither CSS custom properties nor oklch(), so the press
-// surfaces arrive here as the flat hexes mirrored in lib/ink.ts.
+// satori resolves neither CSS custom properties nor oklch(), so the drawing's
+// grounds arrive here as the flat hexes mirrored in lib/ink.ts.
 const PAPER = SURFACE_HEX.light.paper;
+const SHEET = SURFACE_HEX.light.raise;
 const INK = SURFACE_HEX.light.ink;
 const INK_2 = SURFACE_HEX.light.ink2;
 const INK_3 = SURFACE_HEX.light.ink3;
 const RULE = SURFACE_HEX.light.rule;
+const RULE_2 = SURFACE_HEX.light.rule2;
 
 // @fontsource ships the raw files; next/font keeps its copies inside the build
-// output where a render-time read can't reach them. Same reason the retired
-// design kept its own @fontsource devDependency for this.
-let anek400: Buffer | null = null;
-let anek700: Buffer | null = null;
-let fragment400: Buffer | null = null;
+// output where a render-time read cannot reach them.
+let sans400: Buffer | null = null;
+let sans700: Buffer | null = null;
+let mono400: Buffer | null = null;
 
 async function getFonts() {
-  if (!anek400 || !anek700 || !fragment400) {
-    const anek = join(process.cwd(), "node_modules", "@fontsource", "anek-latin", "files");
-    const mono = join(process.cwd(), "node_modules", "@fontsource", "fragment-mono", "files");
+  if (!sans400 || !sans700 || !mono400) {
+    const sans = join(process.cwd(), "node_modules", "@fontsource", "hanken-grotesk", "files");
+    const mono = join(process.cwd(), "node_modules", "@fontsource", "ibm-plex-mono", "files");
     const [a, b, c] = await Promise.all([
-      readFile(join(anek, "anek-latin-latin-400-normal.woff")),
-      readFile(join(anek, "anek-latin-latin-700-normal.woff")),
-      readFile(join(mono, "fragment-mono-latin-400-normal.woff")),
+      readFile(join(sans, "hanken-grotesk-latin-400-normal.woff")),
+      readFile(join(sans, "hanken-grotesk-latin-700-normal.woff")),
+      readFile(join(mono, "ibm-plex-mono-latin-400-normal.woff")),
     ]);
-    anek400 = a;
-    anek700 = b;
-    fragment400 = c;
+    sans400 = a;
+    sans700 = b;
+    mono400 = c;
   }
-  return { anek400, anek700, fragment400 };
+  return { sans400, sans700, mono400 };
 }
 
 type RenderArgs = {
@@ -44,15 +46,27 @@ type RenderArgs = {
   accent?: InkId;
 };
 
+/** A corner registration tick, the same one the sheet carries. */
+function Tick({ x, y, dx, dy }: { x: number; y: number; dx: number; dy: number }) {
+  return (
+    <div style={{ position: "absolute", left: x, top: y, display: "flex" }}>
+      <div style={{ position: "absolute", width: 22, height: 2, background: RULE_2, top: 10 }} />
+      <div style={{ position: "absolute", height: 22, width: 2, background: RULE_2, left: 10 }} />
+      <div style={{ position: "absolute", width: dx, height: dy }} />
+    </div>
+  );
+}
+
 /**
- * The share card, set the way the page is: warm paper, a rule at the top in the
- * live ink, the folio line in Fragment Mono and the title in Anek.
+ * The share card, set the way the sheet is: the drawing's ground, a title block
+ * across the foot, registration ticks at the corners, and the mark in the live
+ * ink. Nothing decorative — it is the same object at a different size.
  */
 export async function renderOG({
   eyebrow,
   title,
   footer = "meetguns.com",
-  accent = "bottle",
+  accent = "amber",
 }: RenderArgs) {
   const fonts = await getFonts();
   const ink = INK_HEX[accent];
@@ -63,128 +77,126 @@ export async function renderOG({
         width: "100%",
         height: "100%",
         display: "flex",
-        flexDirection: "column",
         background: PAPER,
         color: INK,
-        fontFamily: '"Anek"',
-        padding: "64px 80px",
+        fontFamily: '"Sans"',
+        padding: 28,
         position: "relative",
       }}
     >
-      {/* The ink rule across the head of the sheet. */}
-      <div
-        style={{ position: "absolute", top: 0, left: 0, right: 0, height: 12, background: ink }}
-      />
-
-      {/* Folio line, same words as the bar on the site. */}
+      {/* The sheet, inset from the trim with its frame drawn. */}
       <div
         style={{
+          flex: 1,
           display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          fontFamily: '"Fragment"',
-          fontSize: 21,
-          letterSpacing: 2,
-          textTransform: "uppercase",
-          color: INK_3,
+          flexDirection: "column",
+          border: `2px solid ${RULE_2}`,
+          background: SHEET,
+          padding: "44px 56px 0",
+          position: "relative",
         }}
       >
-        <span>meetguns press · est. 2013 · Bengaluru</span>
-        <span style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <span
+        {/* Header line: the mark, the name, the drawing title. */}
+        <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+          <svg
+            width={(34 * MARK_VIEWBOX.width) / MARK_VIEWBOX.height}
+            height={34}
+            viewBox={`0 0 ${MARK_VIEWBOX.width} ${MARK_VIEWBOX.height}`}
+          >
+            <path d={MARK_G_PATH} fill={INK} />
+            <path d={MARK_BAR_PATH} fill={ink} />
+          </svg>
+          <div style={{ fontSize: 30, fontWeight: 700, letterSpacing: -0.6 }}>Ganapati V S</div>
+          <div
             style={{
-              width: 14,
-              height: 14,
-              borderRadius: 999,
-              border: `3px solid ${ink}`,
-              display: "block",
+              marginLeft: "auto",
+              fontFamily: '"Mono"',
+              fontSize: 18,
+              letterSpacing: 2.4,
+              textTransform: "uppercase",
+              color: INK_3,
             }}
-          />
-          <span>{eyebrow}</span>
-        </span>
-      </div>
+          >
+            {eyebrow}
+          </div>
+        </div>
+        <div style={{ display: "flex", height: 1, background: RULE, marginTop: 22 }} />
 
-      <div style={{ display: "flex", flex: 1, alignItems: "center", marginTop: 28 }}>
-        <div
-          style={{
-            fontFamily: '"Anek"',
-            fontWeight: 700,
-            fontSize: title.length > 60 ? 72 : 92,
-            lineHeight: 1.02,
-            letterSpacing: -2.5,
-            color: INK,
-            maxWidth: 1040,
-          }}
-        >
-          {title}
+        <div style={{ display: "flex", flex: 1, alignItems: "center" }}>
+          <div
+            style={{
+              fontWeight: 700,
+              fontSize: title.length > 60 ? 62 : 78,
+              lineHeight: 1.08,
+              letterSpacing: -2,
+              color: INK,
+              maxWidth: 980,
+            }}
+          >
+            {title}
+          </div>
+        </div>
+
+        {/* The title block, cells and all, across the foot of the sheet. */}
+        <div style={{ display: "flex", borderTop: `2px solid ${RULE_2}`, marginTop: 8 }}>
+          {[
+            ["Drawn by", "Ganapati V S"],
+            ["Role", "VP, Technology · Tracxn"],
+            ["Scale", "1:1"],
+          ].map(([l, v], i) => (
+            <div
+              key={l}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 6,
+                padding: "16px 24px 20px",
+                borderLeft: i === 0 ? "none" : `1px solid ${RULE}`,
+                paddingLeft: i === 0 ? 0 : 24,
+              }}
+            >
+              <div
+                style={{
+                  fontFamily: '"Mono"',
+                  fontSize: 14,
+                  letterSpacing: 2,
+                  textTransform: "uppercase",
+                  color: INK_3,
+                }}
+              >
+                {l}
+              </div>
+              <div style={{ fontSize: 22, color: INK_2 }}>{v}</div>
+            </div>
+          ))}
+          <div
+            style={{
+              marginLeft: "auto",
+              display: "flex",
+              alignItems: "flex-end",
+              padding: "16px 0 20px",
+              fontFamily: '"Mono"',
+              fontSize: 18,
+              letterSpacing: 2,
+              color: ink,
+            }}
+          >
+            {footer}
+          </div>
         </div>
       </div>
 
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "baseline",
-          paddingTop: 24,
-          borderTop: `3px solid ${INK}`,
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "baseline",
-            gap: 16,
-            fontSize: 30,
-            color: INK,
-          }}
-        >
-          <span style={{ fontWeight: 700 }}>Ganapati V S</span>
-          <span style={{ fontSize: 24, color: INK_2 }}>VP, Technology · Tracxn</span>
-        </div>
-        <div
-          style={{
-            fontFamily: '"Fragment"',
-            fontSize: 21,
-            letterSpacing: 2,
-            textTransform: "uppercase",
-            color: INK_3,
-          }}
-        >
-          {footer}
-        </div>
-      </div>
-
-      {/* Registration marks, bottom corners — the same pair the site fixes to
-          the viewport. */}
-      <div
-        style={{
-          position: "absolute",
-          left: 26,
-          bottom: 26,
-          width: 18,
-          height: 18,
-          borderLeft: `2px solid ${RULE}`,
-          borderBottom: `2px solid ${RULE}`,
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          right: 26,
-          bottom: 26,
-          width: 18,
-          height: 18,
-          borderRight: `2px solid ${RULE}`,
-          borderBottom: `2px solid ${RULE}`,
-        }}
-      />
+      <Tick x={6} y={6} dx={1} dy={1} />
+      <Tick x={1172} y={6} dx={1} dy={1} />
+      <Tick x={6} y={596} dx={1} dy={1} />
+      <Tick x={1172} y={596} dx={1} dy={1} />
     </div>,
     {
       ...OG_SIZE,
       fonts: [
-        { name: "Anek", data: fonts.anek400, style: "normal", weight: 400 },
-        { name: "Anek", data: fonts.anek700, style: "normal", weight: 700 },
-        { name: "Fragment", data: fonts.fragment400, style: "normal", weight: 400 },
+        { name: "Sans", data: fonts.sans400, style: "normal", weight: 400 },
+        { name: "Sans", data: fonts.sans700, style: "normal", weight: 700 },
+        { name: "Mono", data: fonts.mono400, style: "normal", weight: 400 },
       ],
     },
   );

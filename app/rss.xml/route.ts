@@ -37,7 +37,11 @@ function enclosureFor(slug: string, cover: string): string {
 }
 
 export async function GET() {
-  const latest = published[0]?.updated ?? published[0]?.date ?? new Date().toISOString();
+  // `published` is newest-first. lastBuildDate moves when a post is revised;
+  // the channel pubDate is when the newest post was published, which is not the
+  // same date and is what a reader sorts a subscription list by.
+  const newest = published[0]?.date ?? new Date().toISOString();
+  const latest = published[0]?.updated ?? newest;
   const items = published
     .map((p) => {
       const link = `${SITE_URL}/blog/${p.slug}`;
@@ -49,6 +53,7 @@ export async function GET() {
       <guid isPermaLink="true">${link}</guid>
       <pubDate>${new Date(p.date).toUTCString()}</pubDate>
       <author>${escape(identity.email)} (${escape(identity.name)})</author>
+      <dc:creator>${escape(identity.name)}</dc:creator>
       <category>${escape(p.tag)}</category>
       <description>${escape(p.spoiler)}</description>${enclosure}
     </item>`;
@@ -56,16 +61,21 @@ export async function GET() {
     .join("");
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
   <channel>
-    <title>${escape(identity.name)} — meetguns</title>
+    <title>${escape(identity.name)} · meetguns</title>
     <link>${SITE_URL}</link>
     <atom:link href="${SITE_URL}/rss.xml" rel="self" type="application/rss+xml"/>
-    <description>Notes on the bones of better software.</description>
-    <language>en-us</language>
+    <description>Mostly engineering. The occasional library announcement. Writing by ${escape(identity.name)}.</description>
+    <language>en</language>
+    <copyright>Copyright ${new Date(latest).getUTCFullYear()} ${escape(identity.name)}</copyright>
     <lastBuildDate>${new Date(latest).toUTCString()}</lastBuildDate>
+    <pubDate>${new Date(newest).toUTCString()}</pubDate>
     <managingEditor>${escape(identity.email)} (${escape(identity.name)})</managingEditor>
     <webMaster>${escape(identity.email)} (${escape(identity.name)})</webMaster>
+    <docs>https://www.rssboard.org/rss-specification</docs>
+    <generator>Next.js</generator>
+    <ttl>1440</ttl>
     ${items}
   </channel>
 </rss>`;

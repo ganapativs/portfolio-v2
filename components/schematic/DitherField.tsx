@@ -1,0 +1,161 @@
+"use client";
+import { useEffect, useRef } from "react";
+
+/**
+ * The light under the hand.
+ *
+ * A soft radial falloff around the cursor, quantised through a 4×4 Bayer matrix
+ * so it prints as a halftone rather than a glow — the same screen the portrait
+ * is drawn with, at a much lower density. It is the one thing on the page that
+ * is genuinely generative, and it is deliberately at the edge of visible: about
+ * 5% ink on paper, 6% light on graphite.
+ *
+ * Everything here is a cost decision:
+ *   - fine pointers only. There is no cursor on a phone to light anything.
+ *   - DPR clamped to 2. A 3× field is four times the fill for no visible gain.
+ *   - the loop stops itself the moment the blob has caught up with the pointer
+ *     and stopped fading, so a still hand costs nothing.
+ *   - it pauses with the tab and re-reads its colour when the theme changes.
+ */
+export function DitherField() {
+  const ref = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const cv = ref.current;
+    if (!cv) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const c = cv.getContext("2d");
+    if (!c) return;
+
+    const root = document.documentElement;
+    // The ordered-dither threshold map, normalised to (0,1).
+    const B = [
+      [0, 8, 2, 10],
+      [12, 4, 14, 6],
+      [3, 11, 1, 9],
+      [15, 7, 13, 5],
+    ].map((r) => r.map((v) => (v + 0.5) / 16));
+    const CELL = 4;
+    const DOT = 2;
+    const fine = window.matchMedia("(pointer: fine)");
+
+    let W = 0;
+    let H = 0;
+    let dot = "";
+    // px/py is where the pointer is; cx/cy is where the light has got to. The
+    // gap between them is the whole feel of it.
+    let px = -9999;
+    let py = -9999;
+    let cx = -9999;
+    let cy = -9999;
+    let a = 0;
+    let raf = 0;
+
+    const draw = () => {
+      c.clearRect(0, 0, W, H);
+      c.fillStyle = dot;
+      if (a <= 0.02) return;
+      const bx = cx;
+      const by = cy;
+      const sigma = 175;
+      const amp = a * 0.55;
+      const R = sigma * 2.6;
+      const i0 = Math.max(0, Math.floor((bx - R) / CELL));
+      const i1 = Math.min(Math.ceil(W / CELL), Math.ceil((bx + R) / CELL));
+      const j0 = Math.max(0, Math.floor((by - R) / CELL));
+      const j1 = Math.min(Math.ceil(H / CELL), Math.ceil((by + R) / CELL));
+      const s2 = 2 * sigma * sigma;
+      for (let j = j0; j < j1; j++) {
+        const y = j * CELL;
+        const dy = y - by;
+        const dy2 = dy * dy;
+        const bj = B[j & 3];
+        for (let i = i0; i < i1; i++) {
+          const x = i * CELL;
+          const dx = x - bx;
+          const f = amp * Math.exp(-(dx * dx + dy2) / s2);
+          if (f > bj[i & 3]) c.fillRect(x, y, DOT, DOT);
+        }
+      }
+    };
+
+    const size = () => {
+      const d = Math.min(window.devicePixelRatio || 1, 2);
+      W = window.innerWidth;
+      H = window.innerHeight;
+      cv.width = W * d;
+      cv.height = H * d;
+      c.setTransform(d, 0, 0, d, 0, 0);
+      dot = getComputedStyle(root).getPropertyValue("--dither-dot").trim();
+      draw();
+    };
+
+    const frame = () => {
+      raf = requestAnimationFrame(frame);
+      if (cx < -999) {
+        cx = px;
+        cy = py;
+      }
+      cx += (px - cx) * 0.1;
+      cy += (py - cy) * 0.1;
+      const t = px > -999 ? 1 : 0;
+      a += (t - a) * 0.08;
+      draw();
+      if (Math.abs(px - cx) < 0.5 && Math.abs(py - cy) < 0.5 && Math.abs(t - a) < 0.01) {
+        a = t;
+        if (t === 0) draw();
+        cancelAnimationFrame(raf);
+        raf = 0;
+      }
+    };
+    const wake = () => {
+      if (!raf && !document.hidden) raf = requestAnimationFrame(frame);
+    };
+
+    const onMove = (e: PointerEvent) => {
+      if (!fine.matches) return;
+      px = e.clientX;
+      py = e.clientY;
+      wake();
+    };
+    const onLeave = () => {
+      px = -9999;
+      py = -9999;
+      wake();
+    };
+    const onVis = () => {
+      if (document.hidden) {
+        cancelAnimationFrame(raf);
+        raf = 0;
+      } else wake();
+    };
+    // The dot colour is a token, so a theme flip has to be re-read. Ink changes
+    // do not touch it — the light is never in the ink.
+    const themeObs = new MutationObserver(size);
+    themeObs.observe(root, { attributes: true, attributeFilter: ["data-theme"] });
+
+    let rz = 0;
+    const onResize = () => {
+      clearTimeout(rz);
+      rz = window.setTimeout(size, 150);
+    };
+
+    window.addEventListener("pointermove", onMove, { passive: true });
+    document.addEventListener("pointerleave", onLeave);
+    document.addEventListener("visibilitychange", onVis);
+    window.addEventListener("resize", onResize);
+    size();
+
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(rz);
+      themeObs.disconnect();
+      window.removeEventListener("pointermove", onMove);
+      document.removeEventListener("pointerleave", onLeave);
+      document.removeEventListener("visibilitychange", onVis);
+      window.removeEventListener("resize", onResize);
+    };
+  }, []);
+
+  return <canvas ref={ref} className="dither" aria-hidden="true" />;
+}

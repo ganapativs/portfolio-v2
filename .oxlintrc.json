@@ -12,7 +12,14 @@
     "es2024": true
   },
   "rules": {
-    "react/react-in-jsx-scope": "off"
+    "react/react-in-jsx-scope": "off",
+    // Every `role` in this codebase is on a custom widget that has no HTML
+    // equivalent: a canvas that is artwork (role="img"), an inline SVG chart
+    // with a text alternative, a lens dragged in two dimensions over prose and
+    // a scrubber that draws its own rail, detents and plumb line. An <input
+    // type="range"> can do none of those, and the rule has no per-line escape
+    // that survives being written above a JSX attribute.
+    "jsx-a11y/prefer-tag-over-role": "off"
   },
   "ignorePatterns": [
     ".next/**",

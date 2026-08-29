@@ -5,11 +5,12 @@ import { SITE_URL } from "@/lib/jsonld";
 // Hand-maintained content dates — bump a surface's entry when its copy
 // meaningfully changes. Deliberately NOT the build date: a lastmod that
 // moves on every deploy teaches crawlers to ignore it.
-// /about and /work are gone — the press homepage absorbed both, and
-// next.config.ts redirects them. They must not reappear here.
+// /about and /work are gone — the home page absorbed both, and next.config.ts
+// redirects them. They must not reappear here.
 const SURFACE_UPDATED: Record<string, string> = {
-  "": "2026-07-30",
-  "/resume": "2026-07-30",
+  // The schematic redesign: the home sheet and the CV were both rewritten.
+  "": "2026-08-29",
+  "/resume": "2026-08-29",
 };
 
 // Relative priority *within this site* — not a claim about the wider web.
@@ -23,9 +24,13 @@ const PRIORITY: Record<string, number> = {
 };
 
 export default function sitemap(): MetadataRoute.Sitemap {
+  // The index changed when its newest post landed *or* when the page itself was
+  // rewritten, whichever is later. Taking only the post date would have claimed
+  // the redesigned index was untouched since July.
+  const newestPost = published[0]?.updated ?? published[0]?.date ?? SURFACE_UPDATED[""];
   const surfaceDates: Record<string, string> = {
     ...SURFACE_UPDATED,
-    "/blog": published[0]?.date ?? SURFACE_UPDATED[""],
+    "/blog": newestPost > SURFACE_UPDATED[""] ? newestPost : SURFACE_UPDATED[""],
   };
   const surfaces = Object.entries(surfaceDates).map(([path, date]) => ({
     // Root serves at "/", so emit the trailing slash there to match.

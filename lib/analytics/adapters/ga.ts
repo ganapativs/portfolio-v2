@@ -62,9 +62,6 @@ export const gaAdapter: AnalyticsAdapter = {
       case "ink":
         gtagEvent("ink_change", { ink: event.id, method: event.via });
         break;
-      case "press_run":
-        gtagEvent("press_run_change", { press_run: event.mode });
-        break;
       case "sound":
         gtagEvent("sound_toggle", { enabled: event.on });
         break;

@@ -12,11 +12,11 @@ import { MARK_BAR_PATH, MARK_G_PATH, MARK_VIEWBOX } from "@/lib/mark";
  * half of them. The tab-strip favicon is the exception and stays a transparent
  * SVG (app/icon.tsx), because there the surrounding chrome *is* the paper.
  *
- * Sage in development so a dev install is tellable from the real one.
+ * Aubergine in development so a dev install is tellable from the real one.
  */
 export function markPng(size: number, { maskable = false } = {}) {
   const isProd = process.env.NODE_ENV === "production";
-  const accent = INK_HEX[isProd ? "bottle" : "aubergine"];
+  const accent = INK_HEX[isProd ? "amber" : "aubergine"];
   const bg = SURFACE_HEX.light.paper;
 
   // Android crops a maskable icon to an arbitrary shape and only guarantees the

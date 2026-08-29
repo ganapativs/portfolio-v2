@@ -1,40 +1,33 @@
-// The press ink system.
+// The drawing inks.
 //
-// Six press inks, one active at a time. Nothing here writes CSS custom
-// properties from JavaScript: the whole palette lives in styles/press.css keyed
-// on `[data-ink]` × `[data-theme]` × `[data-mode]`. JS only ever stamps three
-// data attributes on <html>.
+// Six inks, one active at a time. Nothing here writes CSS custom properties
+// from JavaScript: the whole palette lives in styles/press/tokens.css keyed on
+// `[data-ink]` × `[data-theme]` stamped on <html>. JS only ever stamps those
+// two attributes.
 //
 // Two things fall out of that:
-//   1. The no-flash script in app/layout.tsx is three attribute writes, so there
-//      is no palette to keep in sync between here and there.
-//   2. `--accent` and friends are @property-registered <color>s, so an ink
-//      change is a real 340ms oklch interpolation rather than a hard swap.
+//   1. The no-flash script in app/layout.tsx is two attribute writes plus the
+//      ground colour, so there is no palette to keep in sync between here and
+//      there.
+//   2. `--accent` is an @property-registered <color>, so an ink change is a
+//      real 340ms interpolation rather than a hard swap. On a pointer pick the
+//      iris covers it — see lib/vt.ts.
 
 export const INKS = [
-  { id: "bottle", label: "bottle green", hex: "#1b6c46", darkHex: "#7dbf92", freq: 659.25 },
-  { id: "brass", label: "brass", hex: "#a48030", darkHex: "#e2c276", freq: 783.99 },
-  { id: "oxblood", label: "oxblood", hex: "#97403e", darkHex: "#e78c7f", freq: 880.0 },
-  { id: "dustblue", label: "dust blue", hex: "#36698c", darkHex: "#84b2d9", freq: 987.77 },
-  { id: "aubergine", label: "aubergine", hex: "#6b3c7e", darkHex: "#c08acc", freq: 587.33 },
-  { id: "umber", label: "burnt umber", hex: "#72523d", darkHex: "#c19f88", freq: 523.25 },
+  { id: "amber", label: "drafting amber", hex: "#8f5c0c", darkHex: "#d9962b", freq: 440 },
+  { id: "bottle", label: "bottle green", hex: "#176540", darkHex: "#7fbf93", freq: 492 },
+  { id: "oxblood", label: "oxblood", hex: "#8d3936", darkHex: "#e58c7f", freq: 544 },
+  { id: "dustblue", label: "dust blue", hex: "#2b6083", darkHex: "#86b3db", freq: 596 },
+  { id: "aubergine", label: "aubergine", hex: "#6a3c7c", darkHex: "#c28fce", freq: 648 },
+  { id: "slate", label: "slate", hex: "#435a73", darkHex: "#99b1ca", freq: 700 },
 ] as const;
 
 export type InkId = (typeof INKS)[number]["id"];
 
-export const DEFAULT_INK: InkId = "bottle";
-
-// Press run. The dock labels these 2 INK / SPOT / 1 INK:
-//   colorful — ink plus its wash, the full two-colour run
-//   mono     — ink kept for spot use only, washes off
-//   plain    — one ink: the accent collapses onto the text colour
-export type Mode = "colorful" | "mono" | "plain";
-export const MODES: readonly Mode[] = ["colorful", "mono", "plain"];
-export const MODE_LABEL: Record<Mode, string> = {
-  colorful: "2 ink",
-  mono: "spot",
-  plain: "1 ink",
-};
+// Drafting amber. The drawing is a drawing before it is a colour, and amber is
+// the one pigment on this list that reads as pencil-on-tracing-paper rather
+// than as a brand.
+export const DEFAULT_INK: InkId = "amber";
 
 const INK_IDS: readonly InkId[] = INKS.map((i) => i.id);
 
@@ -42,43 +35,44 @@ export function isInkId(v: unknown): v is InkId {
   return typeof v === "string" && (INK_IDS as readonly string[]).includes(v);
 }
 
-export function isMode(v: unknown): v is Mode {
-  return v === "colorful" || v === "mono" || v === "plain";
-}
-
-// Flat id → hex map. Used by the edge-rendered OG/Twitter cards, which run in
-// satori and can read neither CSS custom properties nor oklch(). Mirrors the
-// light-paper column of the ink matrix in styles/press/tokens.css.
+// Flat id → hex maps. Used by the edge-rendered OG/Twitter cards and by the
+// portrait canvas, neither of which can read a CSS custom property. Mirrors the
+// ink matrix in styles/press/tokens.css — change one, change the other.
 export const INK_HEX = Object.fromEntries(INKS.map((i) => [i.id, i.hex])) as Record<InkId, string>;
+export const INK_HEX_DARK = Object.fromEntries(INKS.map((i) => [i.id, i.darkHex])) as Record<
+  InkId,
+  string
+>;
 
-// Surface hexes, mirrored from the oklch values in styles/press.css. Same
-// consumers, same reason. Keep both sides in step.
+// The two grounds, mirrored from tokens.css. Same consumers, same reason.
+// Light is warm drawing paper; dark is graphite.
 export const SURFACE_HEX = {
   light: {
-    paper: "#e7eee4",
-    raise: "#f9fcf6",
-    sunk: "#d3e0d2",
-    ink: "#001a0d",
-    ink2: "#344d3f",
-    ink3: "#566a5e",
-    rule: "#c2d2c4",
-    rule2: "#a2b5a7",
+    paper: "#f5f3ec",
+    raise: "#faf8f1",
+    sunk: "#f0ede2",
+    ink: "#1d1e1a",
+    ink2: "#42433c",
+    ink3: "#68695f",
+    rule: "#cfc9b6",
+    rule2: "#98937f",
+    rule3: "#e6e1d2",
   },
   dark: {
-    paper: "#03180c",
-    raise: "#142519",
-    sunk: "#000a04",
-    ink: "#efeee7",
-    ink2: "#bebfb5",
-    ink3: "#91978a",
-    rule: "#2c3a2c",
-    rule2: "#465143",
+    paper: "#131417",
+    raise: "#191b1f",
+    sunk: "#15171b",
+    ink: "#e8e9e4",
+    ink2: "#b6b9bd",
+    ink3: "#8e9299",
+    rule: "#2e3238",
+    rule2: "#4c525c",
+    rule3: "#23262b",
   },
 } as const;
 
 export const STORAGE_KEYS = {
   theme: "mg_theme",
   ink: "mg_ink",
-  mode: "mg_mode",
   sound: "mg_sound",
 } as const;

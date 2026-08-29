@@ -1,1008 +1,899 @@
-/* 7 — HOME -----------------------------------------------------------------
-   The masthead, the press run, the roles, the catalogue, off-screen, the
-   teasers, the contact slab and the ink library. One page, no about tab. */
+/* =============================================================================
+   THE DRAWING — the home page's figures.
 
-.home {
-  padding-bottom: var(--dock-safe);
-  overflow-x: clip;
+   subject + portrait · fig 1 exploded view · fig 2 loupe + specimens ·
+   fig 3/4 specimen cards · fig 5 dimensioned career · parts list · revisions ·
+   fig 6 the pipeline
+   ============================================================================ */
+
+/* ---- fold 1 · the subject ------------------------------------------------ */
+
+.subject {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 48px;
+  align-items: center;
+  padding: 52px 0 44px;
 }
-.home-main > section {
-  margin-top: clamp(52px, 9vh, 104px);
-  /* Clears the sticky folio bar when the dock's anchors jump here. */
-  scroll-margin-top: 72px;
+.intro p {
+  font-size: 1.32rem;
+  line-height: 1.5;
+  letter-spacing: -0.011em;
+  margin: 0 0 0.85em;
+  font-weight: 400;
+  max-width: 30em;
 }
-.home-main > section:first-child {
-  margin-top: clamp(48px, 8vh, 96px);
+.intro strong,
+.intro .amber {
+  font-weight: 600;
+}
+.intro .chip {
+  margin-top: 10px;
+}
+.intro .socials {
+  margin-top: 22px;
 }
 
-/* ---- Masthead ------------------------------------------------------------ */
-
-.masthead {
-  padding-top: clamp(26px, 5vh, 58px);
-}
-.name-wrap {
+/* The annotated portrait. The canvas sits inside the SVG's coordinate space by
+   percentage, so the dimension lines stay attached to it at every width. */
+.fig {
   position: relative;
+  width: 100%;
+  max-width: 460px;
+  margin-left: auto;
 }
-.name {
-  position: relative;
-  margin: 0;
-  font-weight: 700;
-  font-size: clamp(46px, 10.6vw, 140px);
-  line-height: 0.92;
-  letter-spacing: -0.036em;
-}
-/* The misregistered second pass. Offset is driven from JS in rAF (components/
-   press/Masthead.tsx) with an eased follow, so the first pointer entry glides
-   in from rest instead of snapping to the cursor. No CSS transition here —
-   two easings fighting each other is exactly what makes it feel sticky. */
-.name-ghost {
+.fig canvas {
   position: absolute;
-  top: 0;
-  left: 0;
-  color: var(--misreg);
-  mix-blend-mode: var(--blend);
-  pointer-events: none;
-  transform: translate(var(--gx, 5px), var(--gy, 6px));
-  will-change: transform;
+  left: 5.71%;
+  top: 8.33%;
+  width: 61.9%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  border: 1px solid var(--rule-2);
+  background: var(--sunk);
+  display: block;
+  cursor: crosshair;
+  touch-action: manipulation;
 }
-.name-real {
+.fig-photo {
+  position: absolute;
+  left: 5.71%;
+  top: 8.33%;
+  width: 61.9%;
+  aspect-ratio: 1 / 1;
+  border: 1px solid var(--rule-2);
+  object-fit: cover;
+  display: block;
+}
+/* Once the halftone has drawn itself the photograph underneath is redundant,
+   but it renders on the server so a crawler and a reader without JavaScript
+   still get a real portrait with real alt text. */
+.fig[data-drawn="true"] .fig-photo {
+  visibility: hidden;
+}
+.fig svg {
+  display: block;
+  width: 100%;
+  height: auto;
   position: relative;
+  pointer-events: none;
 }
-/* The offset is a fixed number of points on the plate, so at phone sizes it
-   stops reading as misregistration and starts reading as a blur. Pull it in.
-   The JS follow only runs on fine pointers, so this default is what a phone
-   actually gets. */
-@media (max-width: 640px) {
-  .name-ghost {
-    transform: translate(var(--gx, 3px), var(--gy, 3.5px));
+.fig text {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  fill: var(--ink-3);
+}
+.fig .ext {
+  stroke: var(--rule-2);
+  stroke-width: 1;
+  fill: none;
+}
+.fig .dim {
+  stroke: var(--accent);
+  stroke-width: 1;
+  fill: none;
+}
+.fig .ldr {
+  stroke: var(--rule-2);
+  stroke-width: 1;
+  fill: none;
+  stroke-dasharray: 3 3;
+}
+.fig .dot {
+  fill: var(--accent);
+}
+/* The dimensions draw themselves once, on load, then hold. They are a
+   measurement, and a measurement that keeps re-measuring is a fidget. */
+@media (prefers-reduced-motion: no-preference) {
+  .fig .dim,
+  .fig .ext,
+  .fig .ldr {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: fig-draw 500ms var(--ease-out) 340ms forwards;
+  }
+  .fig .anno {
+    opacity: 0;
+    animation: fig-in var(--dur-base) var(--ease-out) 640ms forwards;
+  }
+  @keyframes fig-draw {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  @keyframes fig-in {
+    to {
+      opacity: 1;
+    }
   }
 }
 
-.stamp-row {
-  margin-top: clamp(14px, 2vh, 22px);
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 8px 16px;
+/* ---- the figure grids ---------------------------------------------------- */
+
+.mechs {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 20px;
+  padding: 0 0 20px;
 }
-.stamp {
-  font-family: var(--f-mono);
-  font-size: clamp(12px, 1.1vw, 14px);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 5px 10px;
-  background: var(--ink);
-  color: var(--paper);
+.mechs > .panel {
+  min-width: 0;
 }
-.stamp-meta {
-  font-family: var(--f-mono);
-  font-size: clamp(11.5px, 1vw, 13px);
-  letter-spacing: 0.08em;
-  color: var(--ink-2);
+.mechs2 {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 20px;
+  padding: 0 0 44px;
+}
+.mechs2 > .panel {
+  min-width: 0;
+  padding: 18px 22px;
+}
+.mechs2 h3 {
+  font-size: 16px;
 }
 
-.lede-row {
-  margin-top: clamp(26px, 4.6vh, 52px);
+/* ---- fig. 1 · the assistant, exploded ------------------------------------ */
+
+.xp {
   display: flex;
-  flex-wrap: wrap;
-  gap: clamp(20px, 4vw, 58px);
-  align-items: flex-start;
+  gap: 10px;
+  margin-top: 16px;
 }
-.lede {
-  margin: 0;
-  flex: 1 1 400px;
-  max-width: 44ch;
-  font-family: var(--f-serif);
-  font-size: clamp(20px, calc(17px + 0.9vw), 29px);
-  line-height: 1.42;
-  text-wrap: pretty;
+.xp svg {
+  width: 58%;
+  min-width: 0;
+  flex: 0 0 58%;
+  height: auto;
+  overflow: visible;
 }
-.note {
-  margin: 0;
-  flex: 0 1 210px;
-  transform: rotate(-1.4deg);
+.xp .slab {
+  cursor: pointer;
+  transition: transform var(--dur-base) var(--ease-out);
+}
+.xp .slab polygon {
+  fill: var(--raise);
+  stroke: var(--ink);
+  stroke-width: 1.4;
+  transition: stroke var(--dur-fast) var(--ease-out);
+}
+.xp .slab .side {
+  fill: var(--sunk);
+}
+.xp .slab .hatch {
+  fill: url(#hatchP);
+  stroke: none;
+  opacity: 0;
+  transition: opacity var(--dur-base) var(--ease-out);
+}
+.xp .slab[data-on="true"] {
+  transform: translateY(-4px);
+}
+.xp .slab[data-on="true"] polygon {
+  stroke: var(--accent);
+}
+.xp .slab[data-on="true"] .hatch {
+  opacity: 0.5;
+}
+.xp .leader {
+  stroke: var(--rule-2);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+  fill: none;
+}
+/* Each slab carries one drawn glyph on its top face, projected into the same
+   isometric as the slab. vector-effect keeps it a 1px line at any scale, so it
+   reads as printed on the surface rather than as an icon dropped over it. */
+.xp .slab .glyph path {
+  stroke: var(--ink-3);
+  stroke-width: 1;
+  fill: none;
+  vector-effect: non-scaling-stroke;
+  transition: stroke var(--dur-fast) var(--ease-out);
+}
+.xp .slab[data-on="true"] .glyph path {
+  stroke: var(--accent);
+}
+.xp-labels {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+.xp-label {
+  position: absolute;
+  left: 0;
+  transform: translateY(-50%);
   font-family: var(--f-mono);
   font-size: 12px;
-  line-height: 1.75;
-  letter-spacing: 0.02em;
   color: var(--ink-3);
-  border-left: 2px solid var(--accent);
-  padding-left: 12px;
+  padding: 3px 7px;
+  border: 1px solid transparent;
+  border-radius: var(--r-chip);
+  white-space: nowrap;
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out);
+}
+.xp-label:hover,
+.xp-label:focus-visible,
+.xp-label[data-on="true"] {
+  color: var(--accent);
+  border-color: var(--rule);
+  background: var(--accent-soft);
+}
+/* A fixed-height caption slot, so naming a part never reflows the panel. */
+.xp-cap,
+.tl-cap {
+  min-height: 44px;
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid var(--rule-3);
+  font-size: 13.5px;
+  color: var(--ink-3);
+  line-height: 1.5;
+}
+.xp-cap b,
+.tl-cap b {
+  font-family: var(--f-mono);
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--accent);
+  display: block;
+  margin-bottom: 1px;
 }
 
-.kn-row {
-  margin-top: clamp(34px, 6vh, 70px);
-  border-top: 3px solid var(--ink);
-  padding-top: clamp(12px, 1.8vh, 18px);
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px 24px;
+/* Draw-on-first-view: the assembly builds itself once, bottom slab up. */
+.willdraw .slab polygon,
+.willdraw .leader,
+.willdraw .glyph path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
 }
-.kn-name {
+.willdraw[data-drawn="true"] .slab polygon,
+.willdraw[data-drawn="true"] .leader,
+.willdraw[data-drawn="true"] .glyph path {
+  transition: stroke-dashoffset 420ms var(--ease-out);
+  stroke-dashoffset: 0;
+}
+.willdraw[data-drawn="true"] .slab polygon {
+  transition-delay: calc(var(--i) * 70ms);
+}
+.willdraw[data-drawn="true"] .glyph path {
+  transition-delay: calc(140ms + var(--i) * 70ms);
+}
+.willdraw[data-drawn="true"] .leader {
+  transition-delay: 300ms;
+  transition-duration: 280ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  .willdraw .slab polygon,
+  .willdraw .leader,
+  .willdraw .glyph path {
+    stroke-dasharray: none;
+    stroke-dashoffset: 0;
+  }
+}
+
+/* ---- fig. 2 · the loupe -------------------------------------------------- */
+
+.lp-stage {
   position: relative;
-  font-family: var(--f-kannada);
-  font-weight: 600;
-  font-size: clamp(30px, 5.4vw, 72px);
-  line-height: 1.2;
-  letter-spacing: -0.012em;
+  margin-top: 16px;
 }
-.kn-ghost {
+.lp-sentence {
+  font-size: 17.5px;
+  line-height: 2;
+  position: relative;
+  z-index: 2;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: crosshair;
+  max-width: 34em;
+}
+.lp-sentence .w {
+  border-radius: var(--r-chip);
+}
+.lp-sentence .w[data-lit="true"] {
+  background: var(--accent-soft);
+}
+/* Tailwind's preflight sets `svg { display: block }`, which turns this one
+   into a line of its own. It is a word, so it is set as one. */
+.lp-sentence .spark svg {
+  display: inline-block;
+  vertical-align: -3px;
+}
+.lp-sentence .spark polyline {
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  fill: none;
+}
+/* The loupe is a real lens: a ring with cross hairs that run past its edge, and
+   a wash of ink inside the glass. It is dragged, so it has no transition while
+   the hand is on it. */
+.loupe {
   position: absolute;
-  top: 0;
+  width: 58px;
+  height: 58px;
+  border-radius: var(--r-point);
   left: 0;
-  transform: translate(3px, 4px);
-  color: var(--misreg);
-  mix-blend-mode: var(--blend);
+  top: 0;
+  border: 1.5px solid var(--accent);
+  cursor: grab;
+  touch-action: none;
+  z-index: 3;
+  transition: transform var(--dur-base) var(--ease-out);
+  background: radial-gradient(circle, transparent 62%, var(--accent-soft) 63%);
+}
+.loupe:active {
+  cursor: grabbing;
+}
+.loupe::before,
+.loupe::after {
+  content: "";
+  position: absolute;
+  background: var(--accent);
+  opacity: 0.6;
+}
+.loupe::before {
+  left: 50%;
+  top: -7px;
+  width: 1px;
+  height: 6px;
+  box-shadow: 0 66px 0 var(--accent);
+}
+.loupe::after {
+  top: 50%;
+  left: -7px;
+  height: 1px;
+  width: 6px;
+  box-shadow: 66px 0 0 var(--accent);
+}
+.loupe[data-dragging="true"] {
+  transition: none;
+}
+.lp-lines {
+  position: absolute;
+  inset: 0;
   pointer-events: none;
+  z-index: 1;
 }
-.kn-real {
+/* The two tangents from the lens down to the detail box, the way an enlarged
+   detail is tied to its callout on a real drawing. */
+.lp-line {
+  position: absolute;
+  height: 1px;
+  background: var(--rule-2);
+  transform-origin: 0 0;
+  transition:
+    transform var(--dur-base) var(--ease-out),
+    width var(--dur-base) var(--ease-out);
+}
+.lp-detail {
+  margin-top: 18px;
+  border: 1px solid var(--rule);
+  background: var(--sunk);
+  height: 132px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   position: relative;
+  z-index: 2;
+  overflow: hidden;
 }
-.made-in {
-  font-family: var(--f-mono);
-  font-size: 11px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--ink-3);
-}
-
-/* ---- Section heads ------------------------------------------------------- */
-
-.sechead {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 12px 24px;
-  border-bottom: 3px solid var(--ink);
-  padding-bottom: 12px;
-}
-.sechead h2 {
-  margin: 0;
-  font-weight: 700;
-  font-size: clamp(28px, calc(22px + 1.6vw), 50px);
+.lp-word {
+  font-size: 44px;
+  font-weight: 500;
   line-height: 1;
-  letter-spacing: -0.028em;
+  position: relative;
+  letter-spacing: -0.01em;
 }
-.sechead-meta {
+.lp-hair {
+  position: absolute;
+  left: -999px;
+  right: -999px;
+  height: 1px;
+  background: var(--accent);
+  opacity: 0.45;
+}
+.lp-key {
+  position: absolute;
+  top: 8px;
+  right: 10px;
   font-family: var(--f-mono);
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  font-size: 9px;
   color: var(--ink-3);
+  letter-spacing: 0.05em;
+  text-align: right;
+  line-height: 1.7;
 }
-/* The intro pair used above "The long one" — heading left, standfirst right. */
-.sechead-open {
-  display: flex;
-  flex-wrap: wrap;
-  gap: clamp(18px, 3vw, 44px);
-  align-items: flex-end;
-  justify-content: space-between;
+.lp-mag {
+  display: block;
 }
-.sechead-open h2 {
-  margin: 0;
-  font-weight: 700;
-  font-size: clamp(28px, calc(22px + 1.6vw), 50px);
-  line-height: 1.02;
-  letter-spacing: -0.028em;
-  max-width: 20ch;
+.lp-mag polyline {
+  stroke: var(--accent);
+  stroke-width: 2;
+  fill: none;
 }
-.standfirst {
-  margin: 0;
-  max-width: 44ch;
-  font-family: var(--f-serif);
-  font-size: clamp(16.5px, calc(15px + 0.35vw), 19px);
-  line-height: 1.55;
-  color: var(--ink-2);
-  text-wrap: pretty;
+.lp-mag .dline {
+  stroke: var(--rule-2);
+  stroke-width: 1;
+  fill: none;
 }
-
-/* ---- The press run ------------------------------------------------------- */
-
-.press-block {
-  margin-top: clamp(22px, 3.4vh, 36px);
-  border: 2px solid var(--ink);
-  padding: clamp(16px, 2.6vw, 26px);
-}
-.press-top {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px 22px;
-  align-items: flex-end;
-  justify-content: space-between;
-}
-.press-count-row {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-}
-.press-count {
-  font-weight: 700;
-  font-size: clamp(54px, 11vw, 132px);
-  line-height: 0.82;
-  letter-spacing: -0.04em;
-  color: var(--accent-ink);
-  font-variant-numeric: tabular-nums;
-}
-.press-count-meta {
+.lp-mag text {
   font-family: var(--f-mono);
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--ink-3);
-  max-width: 14ch;
-  line-height: 1.6;
+  font-size: 10px;
+  fill: var(--ink-3);
 }
-.press-hint {
+.lp-hint {
   font-family: var(--f-mono);
   font-size: 10.5px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-top: 8px;
+}
+
+/* ---- the specimen tray: the real components, at word size ---------------- */
+
+.specimens {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--rule-3);
+}
+.spec {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+/* A fixed sample box. The eight components have genuinely different intrinsic
+   sizes — a donut is 20px square, a bullet is a 72px rule — so the tray gives
+   each the same plate to sit on and lets them find their own size inside it,
+   rather than stretching any of them to match. */
+.spec-chart {
+  display: flex;
+  align-items: center;
+  min-height: 26px;
+  overflow: hidden;
+  color: var(--accent);
+}
+.spec-chart > * {
+  max-width: 100%;
+}
+.spec .lbl {
+  font-family: var(--f-mono);
+  font-size: 9.5px;
+  color: var(--ink-3);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.specs-note {
+  grid-column: 1 / -1;
+  font-family: var(--f-mono);
+  font-size: 9.5px;
+  color: var(--ink-3);
+  letter-spacing: 0.04em;
+  margin-top: 2px;
+}
+
+/* ---- fig. 4 · react-spectrum, running ------------------------------------ */
+
+.spectrum {
+  margin-top: 14px;
+}
+/* The height is reserved, not measured. The library draws on the client only
+   (it picks its widths at random, so it cannot be server-rendered) and a box
+   that grew when it arrived would shift everything under it. */
+.spectrum-stage {
+  min-height: 90px;
+  padding: 14px 16px;
+  border: 1px solid var(--rule-3);
+  background: var(--sunk);
+  overflow: hidden;
+}
+.spectrum + .meta,
+.spectrum .chip {
+  margin-top: 12px;
+}
+
+/* ---- fig. 3 · one honest press effect ------------------------------------ */
+
+.bttn-demo {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  align-self: flex-start;
+  margin: 14px 0 4px;
+  border: 1.5px solid var(--accent);
+  border-radius: var(--r-chip);
+  padding: 8px 20px;
+  font-family: var(--f-sans);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--accent);
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+.bttn-demo::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--accent);
+  z-index: -1;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--dur-base) var(--ease-out);
+}
+.bttn-demo:hover,
+.bttn-demo:focus-visible {
+  color: var(--paper);
+}
+.bttn-demo:hover::before,
+.bttn-demo:focus-visible::before {
+  transform: scaleX(1);
+}
+.bttn-demo:active {
+  transform: translateY(2px);
+}
+
+/* ---- fold 3 · records ---------------------------------------------------- */
+
+.records {
+  padding: 0 0 44px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 20px;
+}
+.records > .panel {
+  min-width: 0;
+}
+
+/* ---- fig. 5 · the career, dimensioned ------------------------------------ */
+
+.tl-scroll {
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.tl {
+  position: relative;
+  min-width: 720px;
+  height: 168px;
+  margin-top: 8px;
+}
+.tl-axis {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 84px;
+  height: 1px;
+  background: var(--rule-2);
+}
+.tl-tick {
+  position: absolute;
+  top: 80px;
+  width: 1px;
+  height: 9px;
+  background: var(--rule-2);
+}
+.tl-year {
+  position: absolute;
+  top: 94px;
+  font-family: var(--f-mono);
+  font-size: 9.5px;
+  color: var(--ink-3);
+  transform: translateX(-50%);
+}
+.tl-role {
+  position: absolute;
+  transform: translateX(-50%);
+  font-family: var(--f-mono);
+  font-size: 12px;
+  color: var(--ink-3);
+  padding: 3px 8px;
+  border: 1px solid transparent;
+  border-radius: var(--r-chip);
+  white-space: nowrap;
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out);
+}
+.tl-role.above {
+  top: 38px;
+}
+.tl-role.below {
+  top: 112px;
+}
+.tl-role:hover,
+.tl-role:focus-visible,
+.tl-role[data-on="true"] {
+  color: var(--ink);
+  border-color: var(--rule);
+  background: var(--accent-soft);
+}
+.tl-role.now {
+  color: var(--accent);
+}
+.tl-node {
+  position: absolute;
+  top: 81.5px;
+  width: 6px;
+  height: 6px;
+  border-radius: var(--r-point);
+  background: var(--paper);
+  border: 1px solid var(--rule-2);
+  transform: translateX(-50%);
+}
+.tl-node.now {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+/* A real bracket dimension: two witness lines and the extent between them. On
+   hover the witness lines grow, the way you would press harder on the ones you
+   are actually reading. */
+.tl-brk {
+  position: absolute;
+  top: 140px;
+  height: 10px;
+  border-bottom: 1px solid var(--rule-2);
+}
+.tl-brk::before,
+.tl-brk::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  width: 1px;
+  height: 10px;
+  background: var(--rule-2);
+  transition: transform var(--dur-base) var(--ease-out);
+  transform-origin: bottom;
+}
+.tl-brk::before {
+  left: 0;
+}
+.tl-brk::after {
+  right: 0;
+}
+.tl-brk[data-on="true"] {
+  border-color: var(--accent);
+}
+.tl-brk[data-on="true"]::before,
+.tl-brk[data-on="true"]::after {
+  background: var(--accent);
+  transform: scaleY(1.7);
+}
+.tl-dur {
+  position: absolute;
+  top: 146px;
+  transform: translateX(-50%);
+  font-family: var(--f-mono);
+  font-size: 9.5px;
+  color: var(--ink-3);
+  background: var(--raise);
+  padding: 0 5px;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+.tl-dur[data-on="true"] {
+  color: var(--accent);
+}
+.tl-cap {
+  max-width: 60em;
+}
+.materials {
+  font-family: var(--f-mono);
+  font-size: 11.5px;
+  color: var(--ink-3);
+  line-height: 1.9;
+  margin: 14px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--rule-3);
+}
+
+/* ---- the parts list ------------------------------------------------------ */
+
+.plist {
+  position: relative;
+  margin-top: 14px;
+}
+/* One bar that slides to whichever row is under the cursor, rather than eight
+   rows each painting their own hover. */
+.pbar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background: var(--accent-soft);
+  border-left: 2px solid var(--accent);
+  opacity: 0;
+  transition:
+    transform var(--dur-base) var(--ease-out),
+    opacity var(--dur-fast) var(--ease-out);
+  pointer-events: none;
+}
+.prow,
+.phead {
+  display: grid;
+  grid-template-columns: 52px 1.3fr 1.6fr 64px;
+  align-items: center;
+  position: relative;
+}
+.phead {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--ink-3);
+  padding: 0 0 8px;
+  border-bottom: 1px solid var(--rule);
+}
+.prow {
+  min-height: 40px;
+  padding: 6px 0;
+  font-size: 14px;
+}
+.prow > *,
+.phead > * {
+  padding: 0 12px;
+  min-width: 0;
+}
+.prow > :nth-child(n + 2),
+.phead > :nth-child(n + 2) {
+  border-left: 1px solid var(--rule-3);
+}
+.prow .no {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  color: var(--ink-3);
+}
+.prow .nm a {
+  font-family: var(--f-mono);
+  font-size: 13px;
+  color: var(--ink);
+  border-bottom: 1px solid var(--rule);
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
+}
+.prow .nm a:hover,
+.prow .nm a:focus-visible {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.prow .sp {
+  color: var(--ink-3);
+  font-size: 13px;
+}
+.prow .yr {
+  font-family: var(--f-mono);
+  font-size: 12px;
   color: var(--ink-3);
   text-align: right;
 }
 
-.track {
-  position: relative;
-  container-type: inline-size;
-  margin-top: clamp(16px, 2.4vh, 24px);
-  height: clamp(46px, 7vh, 64px);
-  border: 1px solid var(--rule-2);
-  background: var(--sunk);
-  cursor: ew-resize;
-  touch-action: none;
-  user-select: none;
-  overflow: hidden;
-}
-.track:focus-visible {
-  outline-offset: 4px;
-}
-/* Both the ink and the head ride transforms driven by a single --p (0…1), so
-   dragging never touches layout. Container query units let the head translate
-   by a percentage of the track's own width without JS measuring it. */
-.track-ink {
-  position: absolute;
-  inset: 0 0 0 0;
-  background: var(--accent);
-  mix-blend-mode: var(--blend);
-  transform: scaleX(var(--p, 1));
-  transform-origin: 0 50%;
-  transition: transform var(--dur-base) var(--ease-out);
-  will-change: transform;
-}
-.track-ticks {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: flex-end;
-  pointer-events: none;
-}
-.tick {
-  flex: 1 1 0;
-  min-width: 0;
-  border-left: 1px solid var(--ink);
-  padding: 0 0 5px 4px;
-  font-family: var(--f-mono);
-  font-size: 10px;
-  letter-spacing: 0.02em;
-  color: var(--ink);
-  overflow: hidden;
-  opacity: 0.4;
-  transition: opacity var(--dur-base) var(--ease-out);
-}
-.tick[data-on="true"] {
-  opacity: 1;
-}
-.track-head {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 3px;
-  background: var(--ink);
-  transform: translateX(calc(var(--p, 1) * 100cqw - 3px));
-  transition: transform var(--dur-base) var(--ease-out);
-  will-change: transform;
-}
-.track[data-dragging="true"] .track-ink,
-.track[data-dragging="true"] .track-head {
-  transition-duration: 90ms;
-}
+/* ---- revisions ----------------------------------------------------------- */
 
-.press-read {
-  margin-top: 14px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 16px;
-  align-items: baseline;
-}
-.press-year {
-  font-family: var(--f-mono);
-  font-size: clamp(15px, calc(13px + 0.4vw), 19px);
-  letter-spacing: 0.02em;
-  color: var(--accent-ink);
-  font-variant-numeric: tabular-nums;
-}
-.press-line {
-  flex: 1 1 260px;
-  font-family: var(--f-serif);
-  font-size: clamp(17px, calc(15px + 0.4vw), 20px);
-  line-height: 1.5;
-  color: var(--ink-2);
-  animation: press-line-in 260ms var(--ease-out) both;
-}
-@keyframes press-line-in {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* ---- Roles --------------------------------------------------------------- */
-
-/* Six roles, so the column count is pinned to divisors of six rather than left
-   to auto-fit. auto-fit lands on four across at full width and leaves a hole in
-   the second row — and the hole is not empty, it is the 1px-gap background
-   showing through as a slab. 1 / 2 / 3 always fills. */
-.roles {
-  margin-top: clamp(24px, 4vh, 42px);
+.rev {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 1px;
-  background: var(--rule-2);
-  border: 1px solid var(--rule-2);
-}
-@media (min-width: 620px) {
-  .roles {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-@media (min-width: 1000px) {
-  .roles {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-.role {
-  position: relative;
-  padding: clamp(16px, 2.4vw, 22px);
-  background: var(--paper);
-  transition: background-color var(--dur-base) var(--ease-out);
-}
-.role::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  background: var(--accent);
-  transform: scaleY(0);
-  transform-origin: 50% 0;
-  transition: transform var(--dur-base) var(--ease-out);
-}
-.role:hover {
-  background: var(--raise);
-}
-.role:hover::before {
-  transform: scaleY(1);
-}
-.role--before {
-  background: var(--sunk);
-}
-.role-era {
-  font-family: var(--f-mono);
-  font-size: 11px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--ink-3);
-}
-.role--now .role-era {
-  color: var(--accent-ink);
-}
-.role--now::before {
-  transform: scaleY(1);
-}
-.role-title {
-  margin: 8px 0 0;
-  font-weight: 700;
-  font-size: clamp(19px, calc(17px + 0.4vw), 23px);
-  letter-spacing: -0.016em;
-}
-.role-body {
-  margin: 9px 0 0;
-  font-family: var(--f-serif);
-  font-size: 16.5px;
-  line-height: 1.55;
-  color: var(--ink-2);
-  text-wrap: pretty;
-}
-.role-body--live {
-  color: var(--accent-ink);
-}
-
-/* The stack line under the roles. A rule, a mono label and the names — the same
-   three parts as every other label/value pair on this page, so it reads as a
-   caption to the roles rather than as a new section. Names are set in the mono
-   face because that is what this design uses for anything a machine would also
-   recognise: repos, packages, versions, counts. */
-.stack {
-  margin-top: clamp(18px, 2.6vh, 26px);
-  padding-top: clamp(12px, 1.6vh, 16px);
-  border-top: 1px solid var(--rule);
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 8px clamp(14px, 2vw, 22px);
-}
-.stack-label {
-  font-family: var(--f-mono);
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--ink-3);
-  flex: none;
-}
-.stack-list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 14px;
-  font-family: var(--f-mono);
-  font-size: 13px;
-  color: var(--ink-2);
-}
-/* A separating tick rather than a comma: the names already carry punctuation
-   of their own ("Next.js", "tool-use / function calling"). */
-.stack-list li + li::before {
-  content: "·";
-  margin-right: 14px;
-  color: var(--rule-2);
-}
-
-/* ---- Things I made ------------------------------------------------------- */
-
-/* The lead case study. Full measure rather than a grid cell, because it argues
-   where the two-up below only describes — putting them in one row would set them
-   as equals, which is the weighting problem this block exists to fix.
-
-   No rule of its own: `.sechead` already draws one directly above, and a second
-   one a few pixels below it read as a mistake. The separation here is space. */
-.made-lead {
-  margin-top: clamp(18px, 2.6vh, 26px);
-}
-.made-lead .made-body {
-  max-width: 68ch;
-}
-/* The problem statement is the one sentence a skimmer is guaranteed to read, so
-   it sits a step above the paragraphs under it — a small step; the section
-   heading is still the loudest thing here. */
-.made-lead-open {
-  font-size: clamp(17px, calc(16px + 0.3vw), 19px);
-  color: var(--ink);
-}
-
-.made {
-  margin-top: clamp(22px, 3.4vh, 34px);
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
-  gap: clamp(20px, 3vw, 40px);
-}
-.made-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 6px 12px;
-}
-.made-title {
-  font-weight: 700;
-  font-size: clamp(26px, calc(21px + 1.1vw), 38px);
-  letter-spacing: -0.026em;
-}
-.made-meta {
-  font-family: var(--f-mono);
-  font-size: 11px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--ink-3);
-}
-.made-meta--live {
-  color: var(--accent-ink);
-}
-.made-body {
-  margin: 10px 0 0;
-  max-width: 52ch;
-  font-family: var(--f-serif);
-  font-size: clamp(17px, calc(15px + 0.4vw), 19.5px);
-  line-height: 1.56;
-  color: var(--ink-2);
-  text-wrap: pretty;
-}
-.made-body--quiet {
-  font-size: 16.5px;
-  line-height: 1.55;
-  color: var(--ink-3);
-}
-.made-cap {
-  margin-top: 6px;
-  font-family: var(--f-mono);
-  font-size: 10.5px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--ink-3);
-}
-
-/* One bar per chart type. The hover pass rolls left→right off --i, which is
-   the only place on the page where anything is staggered — it earns it by
-   being a picture of a hundred-and-six things. */
-.strip {
-  display: inline-flex;
-  align-items: flex-end;
-  gap: 1px;
-  height: 30px;
+  gap: 0;
   margin-top: 14px;
 }
-.strip i {
-  display: block;
-  width: 1.5px;
-  background: var(--accent);
-  opacity: 0.9;
-  height: var(--h);
-  transform-origin: 50% 100%;
-  transition: transform 320ms var(--ease-out) calc(var(--i) * 3ms);
-}
-.strip:hover i {
-  transform: scaleY(1.18);
-}
-.spark {
-  display: inline-flex;
-  align-items: flex-end;
-  gap: 1px;
-  height: 0.9em;
-  vertical-align: -0.08em;
-  margin-left: 0.5em;
-}
-.spark i {
-  display: block;
-  width: 2.5px;
-  background: currentColor;
-  opacity: 0.9;
-  height: var(--h);
-}
-
-/* ---- The ledger ---------------------------------------------------------- */
-
-.ledger {
-  margin-top: clamp(26px, 4vh, 40px);
-  border-top: 1px solid var(--ink);
-}
-.ledger-head,
-.ledger-row {
+.rev-row {
   display: flex;
-  flex-wrap: wrap;
-  gap: 4px 14px;
+  gap: 16px;
+  align-items: baseline;
+  padding: 9px 0;
+}
+.rev-row .d {
+  font-family: var(--f-mono);
+  font-size: 12px;
+  color: var(--ink-3);
+  flex: 0 0 88px;
+}
+.rev-row .t a {
+  font-size: 15px;
+  font-weight: 500;
   border-bottom: 1px solid var(--rule);
-}
-.ledger-head {
-  padding: 9px 8px;
-  font-family: var(--f-mono);
-  font-size: 10px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--ink-3);
-}
-.ledger-row {
-  position: relative;
-  padding: 13px 8px;
-  margin-inline: -8px;
-  transition: background-color var(--dur-fast) var(--ease-out);
-}
-.ledger-row::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: var(--accent);
-  transform: scaleY(0);
-  transform-origin: 50% 0;
-  transition: transform var(--dur-base) var(--ease-out);
-}
-.ledger-row:hover {
-  background: var(--wash);
-}
-.ledger-row:hover::before {
-  transform: scaleY(1);
-}
-/* Three different sizes across the row — 12px mono, 16px mono, 16.5px serif —
-   so stretching them to the same box top leaves the year riding high. Sit them
-   on a shared baseline instead; wrapped rows keep their own. */
-.ledger-head,
-.ledger-row {
-  align-items: baseline;
-}
-.ledger-year {
-  flex: 0 0 46px;
-  font-family: var(--f-mono);
-  font-size: 12px;
-  line-height: 1.5;
-  color: var(--ink-3);
-}
-.ledger-name {
-  flex: 1 1 150px;
-  font-family: var(--f-mono);
-  font-size: 16px;
-  line-height: 1.5;
-}
-.ledger-what {
-  flex: 2 1 280px;
-  font-family: var(--f-serif);
-  font-size: 16.5px;
-  line-height: 1.5;
-  color: var(--ink-2);
-}
-
-/* ---- Off-screen ---------------------------------------------------------- */
-
-.offscreen {
-  display: flex;
-  flex-wrap: wrap;
-  gap: clamp(24px, 4vw, 56px);
-  align-items: flex-start;
-}
-/* The figure stays one box, so the caption stays under the coin it names.
-
-   This used to be `display: contents` on the figure, putting the coin in grid
-   row one and the caption in row two, so the body could centre on the disc
-   alone. That only works while the body is shorter than the coin. It never is —
-   a heading and three paragraphs against a 300px disc — so row one was sized by
-   the body, and the caption, sitting in row two, was pushed to the bottom of it:
-   83px adrift of the coin at 810px wide, and further the taller the body got.
-
-   Keeping the figure whole makes the coin-to-caption gap the caption's own
-   margin at every width, which is the one thing that has to stay constant. The
-   cost is that when the body IS the shorter of the two it now centres on the
-   figure rather than the disc, sitting half a caption low. That is the smaller
-   error, and the rarer one. */
-@media (min-width: 700px) {
-  .offscreen {
-    display: grid;
-    grid-template-columns: clamp(190px, 28vw, 300px) minmax(0, 1fr);
-    column-gap: clamp(24px, 4vw, 56px);
-    row-gap: 0;
-    align-items: start;
-  }
-  .plate-fig {
-    grid-column: 1;
-    grid-row: 1;
-  }
-  .off-body {
-    grid-column: 2;
-    grid-row: 1;
-    align-self: center;
-  }
-}
-.plate-fig {
-  margin: 0;
-  flex: 0 0 auto;
-  width: clamp(190px, 28vw, 300px);
-}
-/* The coin the portrait is struck on. The dots are drawn to a canvas by
-   components/ParticlePortrait.tsx, which reads --pp-ink and --pp-accent from
-   here, so the field re-inks along with the rest of the page.
-
-   The coin itself deliberately does NOT flip with the theme. The portrait is
-   printed in "print" mode — dark ink on light paper, the way a halftone plate
-   actually works — so the paper it lands on has to stay light in both themes.
-   Flipping it would invert which end of the tonal range gets inked and the face
-   would dissolve. */
-.coin {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 1;
-  border-radius: var(--r-point);
-  background: oklch(0.953 0.017 132);
-  box-shadow: 0 0 0 1px var(--rule-2);
-  overflow: hidden;
-  --pp-ink: oklch(0.19 0.046 162);
-  /* Always the on-light-paper ink, whichever theme is showing. */
-  --pp-accent: var(--accent);
-}
-[data-theme="dark"] .coin {
-  --pp-accent: var(--accent-flip);
-}
-/* One ink means one ink: the midtones fall back to the same dark ink. */
-[data-mode="plain"] .coin {
-  --pp-accent: var(--pp-ink);
-}
-/* A hairline ring inside the edge, the way a struck coin has a rim. */
-.coin::after {
-  content: "";
-  position: absolute;
-  inset: 7px;
-  border: 1px solid oklch(0.848 0.026 148);
-  border-radius: var(--r-point);
-  pointer-events: none;
-}
-.coin canvas {
-  display: block;
-  position: relative;
-  z-index: 1;
-}
-/* The photograph the halftone is sampled from. It is what the server sends, so
-   a crawler and a reader without JavaScript get a real portrait with a real
-   `alt` instead of an empty disc. `data-drawn` is set the moment the canvas has
-   a measured width, and the canvas is opaque only where its dots land — so this
-   has to go, not sit behind it, or the halftone reads as a screen over a photo
-   rather than as ink. */
-.coin-photo {
-  object-fit: cover;
-  border-radius: var(--r-point);
-}
-.coin[data-drawn="true"] .coin-photo {
-  display: none;
-}
-.plate-cap {
-  margin-top: clamp(12px, 1.6vh, 16px);
-  font-family: var(--f-mono);
-  font-size: 11px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--ink-3);
-}
-.off-body {
-  flex: 1 1 320px;
-  min-width: 0;
-  max-width: 64ch;
-}
-.off-body h2 {
-  margin: 0;
-  font-weight: 700;
-  font-size: clamp(26px, calc(21px + 1.3vw), 42px);
-  line-height: 1.04;
-  letter-spacing: -0.026em;
-}
-.off-body p {
-  margin: 14px 0 0;
-  font-family: var(--f-serif);
-  line-height: 1.56;
-  text-wrap: pretty;
-}
-.off-lede {
-  font-size: clamp(17px, calc(15px + 0.45vw), 21px);
-  color: var(--ink-2);
-}
-.off-quiet {
-  font-size: 17px;
-  line-height: 1.6;
-  color: var(--ink-3);
-}
-.off-edu {
-  margin-top: 18px;
-  padding-top: 14px;
-  border-top: 1px solid var(--rule);
-  font-family: var(--f-mono);
-  font-size: 12px;
-  line-height: 1.7;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  color: var(--ink-3);
-}
-
-/* ---- Writing teasers ----------------------------------------------------- */
-
-.teasers {
-  margin-top: clamp(18px, 2.6vh, 26px);
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
-  gap: clamp(18px, 3vw, 34px);
-}
-.teaser {
-  display: block;
-  padding-top: 12px;
-  border-top: 1px solid var(--rule);
   transition:
-    border-color var(--dur-base) var(--ease-out),
-    transform var(--dur-base) var(--ease-out);
+    color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
 }
-.teaser:hover {
-  text-decoration: none;
-  border-top-color: var(--accent);
-  transform: translateY(-2px);
+.rev-row .t a:hover,
+.rev-row .t a:focus-visible {
+  color: var(--accent);
+  border-color: var(--accent);
 }
-.teaser-read {
-  display: block;
+.rev-row .rt {
   font-family: var(--f-mono);
   font-size: 11px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
   color: var(--ink-3);
+  margin-left: auto;
+  white-space: nowrap;
 }
-.teaser:first-child .teaser-read {
-  color: var(--accent-ink);
-}
-.teaser-title {
-  display: block;
-  margin-top: 8px;
-  font-weight: 700;
-  font-size: clamp(19px, calc(17px + 0.45vw), 24px);
-  line-height: 1.18;
-  letter-spacing: -0.018em;
-  text-wrap: balance;
-}
-.teaser:hover .teaser-title {
-  text-decoration: underline;
-  text-decoration-thickness: 1.5px;
-  text-underline-offset: 5px;
-  text-decoration-color: var(--accent);
-}
-.teaser-sub {
-  display: block;
-  margin-top: 8px;
-  font-family: var(--f-serif);
-  font-size: 16.5px;
-  line-height: 1.5;
-  color: var(--ink-2);
-  text-wrap: pretty;
-}
-
-/* One talk, set as a footnote to the writing rather than as a section of its
-   own — a heading over a single line would promise a list that isn't there. */
-.spoke {
-  margin: clamp(16px, 2.4vh, 24px) 0 0;
-  padding-top: clamp(12px, 1.6vh, 16px);
-  border-top: 1px solid var(--rule);
-  font-family: var(--f-serif);
-  font-size: 16.5px;
-  line-height: 1.55;
-  color: var(--ink-2);
-  text-wrap: pretty;
-}
-.spoke-label {
-  font-family: var(--f-mono);
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--ink-3);
-  margin-right: 8px;
-}
-.spoke-year {
-  font-family: var(--f-mono);
-  font-size: 13px;
-  color: var(--accent-ink);
-}
-
-/* ---- Say hello ----------------------------------------------------------- */
-
-.hello {
-  margin-top: clamp(56px, 10vh, 116px);
-  padding: clamp(22px, 4vw, 44px);
-  background: var(--ink);
-  color: var(--paper);
-}
-.hello h2 {
-  margin: 0;
-  font-weight: 700;
-  font-size: clamp(34px, calc(26px + 2.4vw), 72px);
-  line-height: 0.98;
-  letter-spacing: -0.032em;
-}
-.hello p {
-  margin: 16px 0 0;
-  max-width: 52ch;
-  font-family: var(--f-serif);
-  font-size: clamp(17px, calc(15px + 0.5vw), 21px);
-  line-height: 1.55;
-  opacity: 0.85;
-  text-wrap: pretty;
-}
-.hello-mail {
+.rev-all {
   display: inline-block;
-  margin-top: clamp(20px, 3vh, 30px);
-  font-weight: 600;
-  font-size: clamp(20px, calc(17px + 0.8vw), 32px);
-  letter-spacing: -0.02em;
-  color: var(--paper);
-  border-bottom: 3px solid var(--accent-flip);
-  padding-bottom: 2px;
-  transition: border-color var(--dur-base) var(--ease-out);
-}
-.hello-mail:hover {
-  text-decoration: none;
-  border-bottom-color: var(--paper);
-}
-.hello-links {
-  margin-top: clamp(24px, 4vh, 38px);
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 12px 22px;
-  font-family: var(--f-mono);
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-.hello-links a:hover {
-  text-decoration-color: var(--accent-flip);
-}
-.hello-links .quiet {
-  opacity: 0.6;
-}
-
-/* ---- Ink library --------------------------------------------------------- */
-
-.inklib {
-  margin-top: clamp(28px, 4vh, 44px);
-}
-.inklib-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 6px 20px;
-  font-family: var(--f-mono);
-  font-size: 10.5px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--ink-3);
-}
-.inklib-name {
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  text-transform: none;
-  color: var(--accent-ink);
-}
-.inklib-grid {
   margin-top: 10px;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(46%, 140px), 1fr));
-  gap: 8px;
-}
-.swatch {
-  position: relative;
-  border: 1px solid var(--ink);
-  height: 44px;
-  padding: 0;
-  cursor: pointer;
-  transition:
-    transform var(--dur-fast) var(--ease-out),
-    box-shadow var(--dur-base) var(--ease-out);
-}
-.swatch:hover {
-  transform: translateY(-3px);
-}
-.swatch:active {
-  transform: translateY(-1px) scale(0.99);
-}
-.swatch::after {
-  content: "";
-  position: absolute;
-  inset: 4px;
-  border: 1.5px solid var(--paper);
-  opacity: 0;
-  transition: opacity var(--dur-base) var(--ease-out);
-}
-.swatch[aria-pressed="true"]::after {
-  opacity: 1;
-}
-.swatch-names {
-  margin-top: 8px;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(46%, 140px), 1fr));
-  gap: 8px;
   font-family: var(--f-mono);
-  font-size: 10px;
-  letter-spacing: 0.06em;
-  color: var(--ink-3);
+  font-size: 12.5px;
+  color: var(--accent);
+  border-bottom: 1px solid transparent;
+  transition: border-color var(--dur-fast) var(--ease-out);
 }
-.swatch-names span[data-on="true"] {
-  color: var(--accent-ink);
+.rev-all:hover,
+.rev-all:focus-visible {
+  border-color: var(--accent);
+}
+
+/* ---- responsive ---------------------------------------------------------- */
+
+@media (max-width: 900px) {
+  .subject {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 36px;
+  }
+  .fig {
+    margin-left: 0;
+  }
+  .mechs {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 640px) {
+  .mechs2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .subject {
+    padding: 36px 0 32px;
+  }
+  .intro p {
+    font-size: 1.17rem;
+  }
+  .specimens {
+    gap: 12px;
+  }
+  .prow,
+  .phead {
+    grid-template-columns: 30px 1.35fr 1.25fr 44px;
+  }
+  .prow > *,
+  .phead > * {
+    padding: 0 6px;
+  }
+  .prow .nm a {
+    font-size: 12px;
+    overflow-wrap: anywhere;
+  }
+  .prow .sp {
+    font-size: 12.5px;
+  }
+  .rev-row {
+    flex-wrap: wrap;
+    gap: 6px 14px;
+  }
+  .rev-row .rt {
+    margin-left: 0;
+    flex-basis: 100%;
+  }
 }

@@ -61,34 +61,34 @@ export const identity: Identity = {
 
 export const roles: Role[] = [
   {
-    role: "Vice President — Technology",
+    role: "Vice President, Technology",
     org: "Tracxn",
     location: "Bengaluru",
     start: "Sep 2023",
     end: "Present",
     bullets: [
-      "Architect of the company's customer-facing AI assistant and the API documentation portal it lives in — an OpenAPI-driven docs pipeline, intent-based routing across multiple model providers, a tool and skills layer, server-side document export, versioned prompts behind an evaluation harness, and audit-grade logging. Shipped and hardened since, while running the broader engineering queue.",
-      "Architected the MCP server surface and shipped its first version — read-only connectors behind OAuth, so AI coding clients reach the API without a pasted key; now co-owned with the team.",
-      "Authored @microcharts/react outside the day job — 106 word-sized React chart types, zero dependencies, ~1–7 kB gzip each, accessible and server-component safe; design, code, docs and release, solo.",
-      "Cross-stack performance program — native browser image loading with DPR-aware URLs, compression on portal assets, render profiling, and a framework-level scroll / re-render / CSS pass.",
-      "PDF viewer rewrite in the internal component library — animation system, vertical-scroll mode, micro-interactions; consumed by every product surface that displays a document.",
+      "Architect of the company's customer-facing AI assistant and the API documentation portal it lives in: an OpenAPI-driven docs pipeline, intent-based routing across multiple model providers, a tool and skills layer, server-side document export, versioned prompts behind an evaluation harness, and audit-grade logging. Shipped and hardened since, while running the broader engineering queue.",
+      "Architected the MCP server surface and shipped its first version: read-only connectors behind OAuth, so AI coding clients reach the API without a pasted key; now co-owned with the team.",
+      "Authored @microcharts/react outside the day job. 106 word-sized React chart types, zero dependencies, ~1-7 kB gzip each, accessible and server-component safe; design, code, docs and release, solo.",
+      "Cross-stack performance program: native browser image loading with DPR-aware URLs, compression on portal assets, render profiling, and a framework-level scroll / re-render / CSS pass.",
+      "PDF viewer rewrite in the internal component library: animation system, vertical-scroll mode, micro-interactions; consumed by every product surface that displays a document.",
       "Hardened the server-side PDF report pipeline and authored Cursor / Claude Code rule packs formalising AI-assisted contribution for the team.",
     ],
   },
   {
-    role: "Senior Associate VP — Technology",
+    role: "Senior Associate VP, Technology",
     org: "Tracxn",
     location: "Bengaluru",
     start: "Sep 2022",
     end: "Sep 2023",
     bullets: [
-      "Technical ownership across multiple engineering teams — architecture review, hiring loops and design partnerships across the engineering queue.",
+      "Technical ownership across multiple engineering teams: architecture review, hiring loops and design partnerships across the engineering queue.",
       "Authored a custom AST codemod migrating a foundational button component across a large, long-lived frontend.",
       "Browser-extension build pipeline (Chrome + Firefox); Storybook and build-toolchain upgrades.",
     ],
   },
   {
-    role: "Associate VP — Technology",
+    role: "Associate VP, Technology",
     org: "Tracxn",
     location: "Bengaluru",
     start: "Sep 2020",
@@ -96,7 +96,7 @@ export const roles: Role[] = [
     bullets: [
       "Multi-team architect translating product strategy into engineering work, owning the review queue and the escalation path across engineering.",
       "Sustained the React Native mobile app across a major framework upgrade and Apple App Site Association integration without a dedicated mobile team.",
-      "Built and still operate sgb.vercel.app outside the day job — a Sovereign Gold Bond tracker for India's secondary market. A Puppeteer scraper on a scheduled AWS Lambda writes a single JSON file to S3; a Next.js front end derives fair value, effective interest rate and effective cash-flow rate per series. Live since 2021, iterated on for four years.",
+      "Built and still operate sgb.vercel.app outside the day job: a Sovereign Gold Bond tracker for India's secondary market. A Puppeteer scraper on a scheduled AWS Lambda writes a single JSON file to S3; a Next.js front end derives fair value, effective interest rate and effective cash-flow rate per series. Live since 2021, iterated on for four years.",
     ],
   },
   {
@@ -106,7 +106,7 @@ export const roles: Role[] = [
     start: "Sep 2016",
     end: "Sep 2020",
     bullets: [
-      "Created the internal React component library (Nov 2016) — primary maintainer for ten years and counting; consumed by every product surface.",
+      "Created the internal React component library (Nov 2016): primary maintainer for ten years and counting; consumed by every product surface.",
       "Stood up the first Node-based backend service, an image-processing pipeline. Drove Webpack / Babel / ESLint / Storybook standardisation across web frontends.",
       "Spoke at TinyConf 2 (Bangalore, 2019) on virtualised infinite scroll, drawing from the published react-delightful-scroller.",
     ],
@@ -118,7 +118,7 @@ export const roles: Role[] = [
     start: "Sep 2015",
     end: "Sep 2016",
     bullets: [
-      "Day-one commit on the original React + Reflux + Webpack frontend — landing page, dashboard, masonry feeds, sidebar, signup flow and theme system in a four-month sprint.",
+      "Day-one commit on the original React + Reflux + Webpack frontend: landing page, dashboard, masonry feeds, sidebar, signup flow and theme system in a four-month sprint.",
       "Architected and shipped the cross-platform iOS + Android mobile app on React Native + Redux as sole frontend engineer.",
     ],
   },
@@ -149,14 +149,14 @@ export const flagships: Flagship[] = [
     year: "2026",
     repo: "https://github.com/ganapativs/microcharts",
     blurb:
-      "106 word-sized React chart types. Zero runtime dependencies, ~1–7 kB gzip each, accessible by default, server-component safe.",
+      "106 word-sized React chart types. Zero runtime dependencies, ~1-7 kB gzip each, accessible by default, server-component safe.",
   },
   {
     name: "bttn.css",
     stars: 2052,
     year: "2016",
     repo: "https://github.com/ganapativs/bttn.css",
-    blurb: "A CSS button library — Product Hunt feature in 2016, still in people's projects today.",
+    blurb: "A CSS button library: Product Hunt feature in 2016, still in people's projects today.",
   },
   {
     name: "react-spectrum",
@@ -221,7 +221,7 @@ export const education: Education[] = [
     kind: "degree",
     title: "BE, Computer Science",
     org: "RNSIT, Bengaluru",
-    range: "2011 — 2014",
+    range: "2011: 2014",
     detail: "College football team.",
     href: "https://www.rnsit.ac.in",
   },
@@ -229,14 +229,14 @@ export const education: Education[] = [
     kind: "role",
     title: "Intern, Web Frontend",
     org: "Thinkappz",
-    range: "Jul 2013 — May 2014",
+    range: "Jul 2013: May 2014",
     detail: "Built the complete frontend for eezyconnect.com.",
   },
   {
     kind: "role",
     title: "UI/UX Engineer",
     org: "InvenZone",
-    range: "Jun 2014 — Sep 2015",
+    range: "Jun 2014: Sep 2015",
     detail:
       "Wireframed, designed and shipped UI/UX for invenzone.com (researcher social network) and the early arya.ai (applied-AI product).",
   },
@@ -323,7 +323,7 @@ export type Talk = {
 
 /**
  * Talks. Lives here rather than in either page because both the home page and
- * the résumé print it, and it was previously typed out by hand in the résumé —
+ * the résumé print it, and it was previously typed out by hand in the résumé : 
  * one more pair that could drift.
  */
 export const speaking: Talk[] = [

@@ -9,8 +9,8 @@ const SERIES: { name: string; data: number[] }[] = [
   { name: "pure chaos", data: [4, 9, 2, 8, 1, 7, 3] },
 ];
 
-// The sentence shown below the chart is read from the live DOM — the actual
-// aria-label the library generated for this exact data — so it cannot drift.
+// The sentence shown below the chart is read from the live DOM: the actual
+// aria-label the library generated for this exact data: so it cannot drift.
 export function A11yDemo() {
   const [i, setI] = useState(0);
   const [sentence, setSentence] = useState("");
@@ -25,7 +25,7 @@ export function A11yDemo() {
   return (
     <section
       className="mcx-a11y"
-      aria-label="Accessible-name demo — change the data, watch the generated sentence change"
+      aria-label="Accessible-name demo: change the data, watch the generated sentence change"
     >
       <div className="mcx-a11y-stage" ref={hostRef}>
         <Sparkline

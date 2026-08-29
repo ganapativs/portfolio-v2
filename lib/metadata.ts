@@ -17,18 +17,29 @@ export function pageMetadata({
   alternates?: Metadata["alternates"];
 }): Metadata {
   const ogTitle = `${title} · meetguns`;
+  const og = {
+    title: ogTitle,
+    description,
+    url: `${SITE_URL}${path}`,
+    siteName: "meetguns",
+    locale: "en_US",
+  };
   return {
     title,
     description,
     alternates: { canonical: path, ...alternates },
-    openGraph: {
-      title: ogTitle,
-      description,
-      url: `${SITE_URL}${path}`,
-      type: ogType,
-      siteName: "meetguns",
-      locale: "en_US",
-    },
+    openGraph:
+      ogType === "profile"
+        ? // og:type=profile carries its own name fields. Without them the card
+          // is a profile that does not say whose.
+          {
+            ...og,
+            type: "profile",
+            firstName: "Ganapati",
+            lastName: "V S",
+            username: "ganapativs",
+          }
+        : { ...og, type: ogType },
     twitter: {
       card: "summary_large_image",
       title: ogTitle,

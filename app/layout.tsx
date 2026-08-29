@@ -15,11 +15,11 @@ import { identity } from "@/lib/resume";
 import "@/styles/press.css";
 
 const SITE_DESC =
-  "Engineer and engineering leader in Bengaluru. Eleven years at Tracxn, from first-week engineer to VP — still writing code most weeks.";
+  "Full-stack engineer with a design mind, twelve years in, based in Bengaluru. Intern to VP of Technology at Tracxn, still shipping code.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: { default: "Ganapati V S — meetguns", template: "%s · meetguns" },
+  title: { default: "Ganapati V S · meetguns", template: "%s · meetguns" },
   description: SITE_DESC,
   applicationName: "meetguns",
   keywords: [
@@ -74,7 +74,7 @@ export const metadata: Metadata = {
   },
   appleWebApp: { capable: true, title: "meetguns", statusBarStyle: "default" },
   openGraph: {
-    title: "Ganapati V S — meetguns",
+    title: "Ganapati V S · meetguns",
     description: SITE_DESC,
     url: SITE_URL,
     siteName: "meetguns",
@@ -85,7 +85,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     creator: "@Ganapativs",
     site: "@Ganapativs",
-    title: "Ganapati V S — meetguns",
+    title: "Ganapati V S · meetguns",
     description: SITE_DESC,
   },
   // Carried over from meetguns.com v1 — keeps Search Console ownership intact
@@ -109,19 +109,23 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#e7eee4" },
-    { media: "(prefers-color-scheme: dark)", color: "#03180c" },
+    { media: "(prefers-color-scheme: light)", color: "#f5f3ec" },
+    { media: "(prefers-color-scheme: dark)", color: "#131417" },
   ],
 };
 
-// The whole palette lives in styles/press/tokens.css keyed on these three data
-// attributes, so preventing a flash is just a matter of stamping them before
-// first paint. The only values duplicated here are the two paper hexes, which
-// have to be inline because they paint the canvas before any stylesheet has
-// been parsed — everything else the CSS derives on its own.
-const noFlash = `(function(){try{var d=document.documentElement;var t=localStorage.getItem('mg_theme');if(t!=='light'&&t!=='dark'){t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}d.dataset.theme=t;d.style.colorScheme=t;d.style.backgroundColor=t==='dark'?'#03180c':'#e7eee4';var i=localStorage.getItem('mg_ink');if(!/^(bottle|brass|oxblood|dustblue|aubergine|umber)$/.test(i||''))i='bottle';d.dataset.ink=i;var m=localStorage.getItem('mg_mode');if(m!=='mono'&&m!=='plain')m='colorful';d.dataset.mode=m;}catch(e){}})();`;
+// The whole palette lives in styles/press/tokens.css keyed on two data
+// attributes, so preventing a flash is a matter of stamping them before first
+// paint. The only values duplicated here are the two ground hexes, which have
+// to be inline because they paint the canvas before any stylesheet has been
+// parsed — everything else the CSS derives on its own.
+//
+// The ink regex has to list every id in lib/ink.ts. A miss is silent: it falls
+// back to the default rather than throwing, so a renamed ink looks like a
+// forgetful browser rather than a bug.
+const noFlash = `(function(){try{var d=document.documentElement;var t=localStorage.getItem('mg_theme');if(t!=='light'&&t!=='dark'){t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}d.dataset.theme=t;d.style.colorScheme=t;d.style.backgroundColor=t==='dark'?'#131417':'#f5f3ec';var i=localStorage.getItem('mg_ink');if(!/^(amber|bottle|oxblood|dustblue|aubergine|slate)$/.test(i||''))i='amber';d.dataset.ink=i;}catch(e){}})();`;
 
-const consoleSig = `(function(){var a=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#1b6c46';console.log('%cmeetguns press · set by hand · vsg.inbox@gmail.com','font-family:Georgia,serif;font-style:italic;font-size:18px;color:'+a+';line-height:1.6;');})();`;
+const consoleSig = `(function(){var a=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#8f5c0c';console.log('%cmeetguns · built with care in Bengaluru · vsg.inbox@gmail.com','font-family:ui-monospace,monospace;font-size:13px;letter-spacing:.08em;color:'+a+';line-height:1.8;');})();`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -129,7 +133,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     // in styles/press/base.css. Without it Next warns, because a router
     // navigation would otherwise animate the jump back to the top of the next
     // page — the attribute is what lets it suppress that while leaving in-page
-    // anchor jumps (the dock's Work / Off-screen links) gliding as designed.
+    // anchor jumps (the ruler's section links) gliding as designed.
     <html
       lang="en"
       className={pressFontVars}
