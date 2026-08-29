@@ -109,16 +109,12 @@ export function SchematicHeader() {
           </Link>
 
           <span className="hd-ctls">
-            {/* Below 640px the CSS hides every swatch but the active one, and
-                pressing it reveals the rest in place. Above that the attribute
-                does nothing and all six are always shown. */}
-            <span
-              className="inks"
-              role="group"
-              aria-label="Ink"
-              data-open={trayOpen}
-              onClick={() => setTrayOpen((v) => !v)}
-            >
+            {/* Below 640px the CSS hides every swatch but the active one. The
+                one that stays visible is a real button, so pressing it is what
+                opens the tray: no handler on the group, and the keyboard gets
+                the behaviour for free. Above 640px the attribute does nothing
+                and all six are always shown. */}
+            <span className="inks" role="group" aria-label="Ink" data-open={trayOpen}>
               {INKS.map((i, n) => (
                 <InkSwatch
                   key={i.id}
@@ -127,6 +123,7 @@ export function SchematicHeader() {
                   n={n + 1}
                   on={ink === i.id}
                   pick={setInk}
+                  onPicked={() => setTrayOpen(ink === i.id)}
                 />
               ))}
             </span>
@@ -193,12 +190,16 @@ function InkSwatch({
   n,
   on,
   pick,
+  onPicked,
 }: {
   id: InkId;
   label: string;
   n: number;
   on: boolean;
   pick: (id: InkId, origin?: { x: number; y: number } | null, via?: "tray" | "key") => void;
+  /** Lets the header open its collapsed tray on the active swatch and close it
+   *  again on any other. */
+  onPicked: () => void;
 }) {
   const ref = useShortcut<HTMLButtonElement>({
     id: `ink.${id}`,
@@ -221,6 +222,7 @@ function InkSwatch({
       title={`${label} · ${n}`}
       onClick={(e) => {
         const r = e.currentTarget.getBoundingClientRect();
+        onPicked();
         pick(id, { x: r.left + r.width / 2, y: r.top + r.height / 2 });
       }}
     >
