@@ -10,8 +10,8 @@
 //      ground colour, so there is no palette to keep in sync between here and
 //      there.
 //   2. `--accent` is an @property-registered <color>, so an ink change is a
-//      real 340ms interpolation rather than a hard swap. On a pointer pick the
-//      iris covers it — see lib/vt.ts.
+//      real 340ms interpolation rather than a hard swap. A pointer pick has a
+//      glimm band travelling over the top of it — see lib/sweep.ts.
 
 export const INKS = [
   { id: "amber", label: "drafting amber", hex: "#8f5c0c", darkHex: "#d9962b", freq: 440 },

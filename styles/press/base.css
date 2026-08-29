@@ -38,7 +38,7 @@ body {
 ::-webkit-scrollbar-thumb {
   background: var(--rule);
   border: 2px solid var(--paper);
-  border-radius: 5px;
+  border-radius: var(--r-chip);
 }
 ::-webkit-scrollbar-track {
   background: transparent;
@@ -149,57 +149,22 @@ kbd {
 }
 
 /* -----------------------------------------------------------------------------
-   VIEW TRANSITIONS
+   ROUTE TRANSITIONS
 
-   One reveal, used for both palette changes: an iris that opens from the
-   control the reader pressed. Theme and ink both go through it (lib/vt.ts), and
-   while it runs the 340ms --accent tween is suppressed by .vt-lock in
-   tokens.css — otherwise the page would be interpolating underneath a snapshot
-   that is crossfading over the top of it, which reads as a stutter.
-
-   Route changes keep their own quieter crossfade.
+   Palette changes do not come through here. Theme and ink are both carried by
+   a glimm band (components/providers/SweepProvider.tsx), which paints over the
+   page rather than snapshotting it, so there is nothing for the View
+   Transitions API to do. What is left is the route swap.
    --------------------------------------------------------------------------- */
 
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation-duration: var(--dur-iris);
-  animation-timing-function: cubic-bezier(0.33, 1, 0.68, 1);
-  mix-blend-mode: normal;
-}
-
-@keyframes vt-radial-reveal {
-  from {
-    --vt-r-now: 0px;
-  }
-  to {
-    --vt-r-now: var(--vt-r, 100vmax);
-  }
-}
-/* The old frame holds perfectly still and the new one opens over it. Animating
-   both is what makes a wipe look like a dissolve. */
-:root.vt-recolor-radial::view-transition-old(root) {
-  animation: none;
-  opacity: 1;
-}
-:root.vt-recolor-radial::view-transition-new(root) {
-  clip-path: circle(var(--vt-r-now, 0px) at var(--vt-x, 50%) var(--vt-y, 50%));
-  animation: vt-radial-reveal var(--dur-iris) cubic-bezier(0.33, 1, 0.68, 1) both;
-  will-change: clip-path;
-}
-:root.vt-recolor-radial,
-:root.vt-recolor-radial body,
-:root.vt-recolor-radial body :where(*) {
-  transition: none !important;
-}
-
 ::view-transition-group(route) {
-  animation-duration: 360ms;
+  animation-duration: var(--dur-base);
 }
 ::view-transition-old(route) {
-  animation: route-fade 180ms ease-in both reverse;
+  animation: route-fade var(--dur-fast) var(--ease-out) both reverse;
 }
 ::view-transition-new(route) {
-  animation: route-fade 280ms ease-out 120ms both;
+  animation: route-fade var(--dur-base) var(--ease-out) var(--dur-fast) both;
 }
 @keyframes route-fade {
   from {

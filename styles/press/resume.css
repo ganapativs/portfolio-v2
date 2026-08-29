@@ -253,7 +253,7 @@
     --accent-soft: transparent;
   }
   /* `!important` is load-bearing. The no-flash script in app/layout.tsx sets
-     `style.backgroundColor` on <html> inline (#e7eee4 light, #03180c dark) so
+     `style.backgroundColor` on <html> inline (#f5f3ec light, #131417 dark) so
      the first paint isn't a white flash. An inline declaration outranks a normal
      rule from a stylesheet, so a plain `background: #fff` here lost — and the
      canvas, which is painted from <html>, kept the paper colour. Body's white

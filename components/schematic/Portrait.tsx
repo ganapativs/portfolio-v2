@@ -293,10 +293,7 @@ export function Portrait() {
       ripples = ripples.filter((rp) => rp.r < W * 1.5 && rp.a > 0.04);
       if (ripples.length) anyLive = true;
       // Everything at rest and the hand gone: stop, and hold the finished print.
-      if (!anyLive && !inside && performance.now() > recolorUntil) {
-        stopLoop();
-        drawStatic();
-      }
+      if (!anyLive && !inside && performance.now() > recolorUntil) stopLoop();
     };
 
     function startLoop() {
@@ -305,9 +302,16 @@ export function Portrait() {
         raf = requestAnimationFrame(loop);
       }
     }
+    // Stopping always repaints. The loop clears the canvas at the top of every
+    // frame and repaints it at the bottom, so anything that suspends it in
+    // between leaves the portrait blank: switching tabs, scrolling it out of
+    // view, or a reduced-motion preference arriving mid-flight. The finished
+    // print is the correct resting state in every one of those cases, so it is
+    // drawn here rather than at each call site.
     function stopLoop() {
       cancelAnimationFrame(raf);
       raf = 0;
+      if (parts.length) drawStatic();
     }
 
     const local = (e: PointerEvent) => {

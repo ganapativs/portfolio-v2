@@ -1,45 +1,31 @@
-/* ============================================================
+/* =============================================================================
    KEYBOARD SHORTCUTS — glyphs, hint layer, help dialog
-   ============================================================ */
 
-/* ---------- KeyGlyph (key cap) ---------- */
+   This was the last surface still wearing the retired design: a bevelled,
+   gradient-filled, drop-shadowed keycap. It was the only source of rgba() in
+   the repo, the only real box-shadow, and the only non-system radius. A key on
+   a drawing is drawn the way the page's own <kbd> is drawn (styles/press/
+   base.css): a 1px box with a double-weight bottom edge, which reads as a key
+   with a side to it without one blurred pixel.
+   ============================================================================ */
+
 .kglyph {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-mono);
-  font-feature-settings: "ss01", "kern";
+  font-family: var(--f-mono);
   letter-spacing: 0;
   line-height: 1;
-  font-weight: var(--fw-medium);
-  background: linear-gradient(
-    180deg,
-    color-mix(in oklab, var(--bg-surface) 92%, var(--khadi)),
-    color-mix(in oklab, var(--bg-sunken) 88%, var(--turmeric))
-  );
-  color: var(--fg-1);
-  border: 1px solid var(--border-2);
-  border-bottom-color: var(--border-3);
-  border-radius: 7px;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 248, 230, 0.55),
-    inset 0 -1.5px 0 rgba(60, 40, 25, 0.1),
-    var(--shadow-sm);
+  font-weight: 500;
+  background: var(--raise);
+  color: var(--ink);
+  border: 1px solid var(--rule-2);
+  /* The whole cap effect, in one declaration. */
+  border-bottom-width: 2px;
+  border-radius: var(--r-chip);
   user-select: none;
   white-space: nowrap;
   text-transform: none;
-}
-:root[data-theme="dark"] .kglyph {
-  background: linear-gradient(
-    180deg,
-    color-mix(in oklab, var(--bg-surface) 80%, var(--peat)),
-    color-mix(in oklab, var(--bg-sunken) 92%, var(--moonless))
-  );
-  color: var(--fg-1);
-  box-shadow:
-    inset 0 1px 0 rgba(244, 233, 213, 0.06),
-    inset 0 -1.5px 0 rgba(0, 0, 0, 0.5),
-    var(--shadow-sm);
 }
 
 .kglyph--sm {
@@ -88,57 +74,42 @@
   display: block;
 }
 
+/* The hints arrive with the Shift key and leave with it, so they are the one
+   thing on the site that is allowed an entrance: they do not exist until the
+   reader asks for them, and the layer they live in is `display: none` until
+   then. A short rise, staggered, and no overshoot. */
 .khint {
   position: fixed;
   transform: translate(-50%, -50%);
-  /* Default rest state */
   opacity: 0;
-  scale: 0.7;
-  animation: khint-in var(--dur-base) var(--ease-spring) both;
+  animation: khint-in var(--dur-fast) var(--ease-out) both;
   animation-delay: calc(var(--i, 0) * 18ms);
-  filter: drop-shadow(0 4px 10px rgba(60, 40, 25, 0.25));
 }
 
 @keyframes khint-in {
-  0% {
+  from {
     opacity: 0;
-    scale: 0.55;
-    translate: 0 -4px;
+    translate: 0 -3px;
   }
-  60% {
+  to {
     opacity: 1;
-    scale: 1.08;
-  }
-  100% {
-    opacity: 1;
-    scale: 1;
     translate: 0 0;
   }
 }
 
-/* Subtle accent ring on the floating glyph so it pops against any background */
+/* A floating hint has to be readable over whatever it lands on, so it is
+   ringed in the live ink and sits on the raised ground rather than on a
+   shadow. */
 .khint .kglyph {
-  border-color: color-mix(in oklab, var(--accent) 60%, var(--border-3));
-  box-shadow:
-    inset 0 1px 0 rgba(255, 248, 230, 0.55),
-    inset 0 -1.5px 0 rgba(60, 40, 25, 0.1),
-    0 0 0 1px color-mix(in oklab, var(--accent) 28%, transparent),
-    0 8px 18px rgba(60, 40, 25, 0.18);
-}
-:root[data-theme="dark"] .khint .kglyph {
-  border-color: color-mix(in oklab, var(--accent) 55%, var(--border-3));
-  box-shadow:
-    inset 0 1px 0 rgba(244, 233, 213, 0.08),
-    inset 0 -1.5px 0 rgba(0, 0, 0, 0.5),
-    0 0 0 1px color-mix(in oklab, var(--accent) 35%, transparent),
-    0 10px 22px rgba(0, 0, 0, 0.55);
+  border-color: var(--accent);
+  background: var(--raise);
+  color: var(--accent);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .khint {
     animation: none;
     opacity: 1;
-    scale: 1;
   }
 }
 
@@ -147,9 +118,9 @@
   position: fixed;
   inset: 0;
   z-index: 2000;
-  background: color-mix(in oklab, var(--moonless) 60%, transparent);
-  backdrop-filter: blur(6px) saturate(1.05);
-  -webkit-backdrop-filter: blur(6px) saturate(1.05);
+  /* No blur. A drawing does not have depth of field, and the sheet behind the
+     dialog should still read as a sheet. */
+  background: color-mix(in oklab, var(--paper) 78%, transparent);
   animation: khelp-fade var(--dur-base) var(--ease-out) both;
 }
 .khelp-backdrop[data-ending-style] {
@@ -183,13 +154,12 @@
   max-height: min(80vh, 720px);
   display: flex;
   flex-direction: column;
-  background: var(--bg-surface);
-  color: var(--fg-1);
-  border: 1px solid var(--border-2);
-  border-radius: var(--r-lg);
-  box-shadow: var(--shadow-xl);
+  background: var(--raise);
+  color: var(--ink);
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r-chip);
   overflow: hidden;
-  animation: khelp-pop var(--dur-base) var(--ease-spring) both;
+  animation: khelp-pop var(--dur-base) var(--ease-out) both;
 }
 .khelp-popup[data-ending-style] {
   animation: khelp-pop-out var(--dur-fast) var(--ease-out) both;
@@ -198,7 +168,7 @@
 @keyframes khelp-pop {
   from {
     opacity: 0;
-    transform: translate(-50%, -48%) scale(0.94);
+    transform: translate(-50%, -48%) scale(0.98);
   }
   to {
     opacity: 1;
@@ -225,7 +195,7 @@
 
 .khelp-header {
   padding: var(--s-5) var(--s-5) var(--s-3);
-  border-bottom: 1px solid var(--border-1);
+  border-bottom: 1px solid var(--rule);
   background: linear-gradient(
     180deg,
     color-mix(in oklab, var(--accent-soft) 80%, transparent),
@@ -233,7 +203,7 @@
   );
 }
 .khelp-title {
-  font-family: var(--font-display);
+  font-family: var(--f-sans);
   font-style: italic;
   font-weight: var(--fw-display);
   font-variation-settings:
@@ -243,13 +213,13 @@
   font-size: var(--t-h3);
   line-height: var(--lh-tight);
   margin: 0;
-  color: var(--fg-1);
+  color: var(--ink);
 }
 .khelp-sub {
   margin: 6px 0 0;
   font-size: var(--t-caption);
-  color: var(--fg-3);
-  font-family: var(--font-mono);
+  color: var(--ink-3);
+  font-family: var(--f-mono);
   letter-spacing: 0.01em;
 }
 
@@ -264,12 +234,12 @@
   margin-top: 2px;
 }
 .khelp-section-title {
-  font-family: var(--font-mono);
+  font-family: var(--f-mono);
   font-size: var(--t-overline);
   text-transform: uppercase;
   letter-spacing: var(--track-mega);
-  color: var(--fg-3);
-  font-weight: var(--fw-semibold);
+  color: var(--ink-3);
+  font-weight: 600;
   margin: 0 0 var(--s-2);
 }
 .khelp-list {
@@ -285,7 +255,7 @@
   align-items: center;
   gap: var(--s-3);
   padding: 8px 0;
-  border-bottom: 1px dashed var(--border-1);
+  border-bottom: 1px dashed var(--rule);
 }
 .khelp-row:last-child {
   border-bottom: 0;
@@ -297,18 +267,18 @@
 }
 .khelp-label {
   font-size: var(--t-small);
-  color: var(--fg-2);
+  color: var(--ink-2);
 }
 
 .khelp-footer {
   padding: var(--s-3) var(--s-5);
-  border-top: 1px solid var(--border-1);
-  background: var(--bg-sunken);
+  border-top: 1px solid var(--rule);
+  background: var(--sunk);
   display: flex;
   justify-content: space-between;
   align-items: center;
   font-size: var(--t-caption);
-  color: var(--fg-3);
+  color: var(--ink-3);
 }
 .khelp-footer .kglyph {
   margin: 0 2px;
@@ -319,10 +289,10 @@
   background: transparent;
   border: 0;
   padding: 4px;
-  border-radius: var(--r-xs);
+  border-radius: var(--r-chip);
   cursor: pointer;
-  color: var(--fg-2);
-  transition: transform var(--dur-fast) var(--ease-spring);
+  color: var(--ink-2);
+  transition: transform var(--dur-fast) var(--ease-out);
 }
 .khelp-close:hover,
 .khelp-close:focus-visible {

@@ -28,7 +28,7 @@ export function ZoomImage({
       const { default: mediumZoom } = await import("medium-zoom");
       if (cancelled || !ref.current) return;
       zoom = mediumZoom(ref.current, {
-        background: "color-mix(in oklab, var(--moonless) 85%, transparent)",
+        background: "color-mix(in oklab, var(--paper) 82%, transparent)",
         margin: 24,
       });
       // `open` fires on the zoom itself, so a keyboard-triggered zoom counts

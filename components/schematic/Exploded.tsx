@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useFX } from "@/components/providers/FXProvider";
+import { useCoarsePointer } from "./useCoarsePointer";
 import { useDrawOnFirstView } from "./useDrawOnFirstView";
 
 /**
@@ -80,6 +81,7 @@ const CX = 125;
 
 export function Exploded() {
   const [on, setOn] = useState(-1);
+  const coarse = useCoarsePointer();
   const fx = useFX();
   const clearTid = useRef(0);
   const svgRef = useDrawOnFirstView<SVGSVGElement>();
@@ -125,6 +127,7 @@ export function Exploded() {
                   style={{ ["--i" as string]: i }}
                   onPointerEnter={() => enter(i)}
                   onPointerLeave={leave}
+                  onClick={() => enter(i)}
                 >
                   <polygon
                     className="side"
@@ -184,6 +187,7 @@ export function Exploded() {
               onPointerLeave={leave}
               onFocus={() => enter(i)}
               onBlur={leave}
+              onClick={() => enter(i)}
             >
               {p.name}
             </button>
@@ -193,7 +197,11 @@ export function Exploded() {
 
       <div className="xp-cap" aria-live="polite">
         <b>{on < 0 ? "five layers" : PARTS[on].name}</b>
-        {on < 0 ? "Point at a layer to read what it does." : PARTS[on].note}
+        {on < 0
+          ? coarse
+            ? "Tap a layer to read what it does."
+            : "Point at a layer to read what it does."
+          : PARTS[on].note}
       </div>
     </>
   );

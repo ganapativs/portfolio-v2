@@ -12,7 +12,6 @@ import { Analytics } from "@/components/Analytics";
 import { JsonLd, personSchema, websiteSchema, SITE_URL } from "@/lib/jsonld";
 import { GA_ENABLED, gaStub } from "@/lib/analytics/ga-id";
 import { identity } from "@/lib/resume";
-// eslint-disable-next-line import/no-unassigned-import
 import "@/styles/press.css";
 
 const SITE_DESC =

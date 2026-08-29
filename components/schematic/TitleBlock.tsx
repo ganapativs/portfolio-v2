@@ -87,6 +87,13 @@ export function TitleBlock() {
 
   return (
     <footer id="contact" data-sec="contact" className="tb-wrap">
+      {/* The page's one request, at the point where a convinced reader is
+          deciding what to do. It used to be a 14px link inside a metadata cell,
+          which is the wrong weight for the only thing the site is asking for. */}
+      <a className="tb-say" href={`mailto:${identity.email}`} data-analytics="mail:closing">
+        <span className="tb-say-l">Say hello</span>
+        <span className="tb-say-v">{identity.email}</span>
+      </a>
       <div className="tblock">
         <div className="tb-cell">
           <span className="tb-l">Made by</span>
@@ -108,17 +115,9 @@ export function TitleBlock() {
         </div>
         <div className="tb-cell tb-contact">
           <span className="tb-contact-l">
-            <span className="tb-l">Contact</span>
-            <a
-              className="tb-mail"
-              href={`mailto:${identity.email}`}
-              data-analytics="mail:title-block"
-            >
-              say hello
-            </a>
-            <span className="tb-email">{identity.email}</span>
+            <span className="tb-l">Made in</span>
             <span className="tb-email">
-              · made in India <span aria-hidden="true">🇮🇳</span>
+              India <span aria-hidden="true">🇮🇳</span> · Bengaluru
             </span>
           </span>
           <Socials compact />

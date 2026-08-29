@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useFX } from "@/components/providers/FXProvider";
 import { CHART, STAGES, STAGE_NOTE } from "@/app/(press)/content";
+import { useCoarsePointer } from "./useCoarsePointer";
 import { identity } from "@/lib/resume";
 
 const SNS = "http://www.w3.org/2000/svg";
@@ -92,6 +93,7 @@ export function Pipeline() {
   const [insp, setInsp] = useState<{ tag: string; rows: [string, string][]; hex?: string } | null>(
     null,
   );
+  const coarse = useCoarsePointer();
   const fx = useFX();
   const fxRef = useRef(fx);
   fxRef.current = fx;
@@ -923,7 +925,12 @@ export function Pipeline() {
 
           <div className="pipe-side pipe-insp" ref={inspRef} aria-hidden="true">
             <span className="ps-h">computed</span>
-            {insp ? (
+            {coarse && !insp ? (
+              // A permanent "hover the card" on a device that cannot hover is
+              // a status that can never resolve. Say what the stage is for
+              // instead.
+              <div className="insp-idle">shipped. the button, the chart and the rows all work.</div>
+            ) : insp ? (
               <div className="insp-body">
                 <div className="insp-tag">{insp.tag}</div>
                 <div>

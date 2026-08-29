@@ -156,19 +156,6 @@
       transform: scaleY(0);
     }
   }
-  .rise {
-    animation: rise var(--dur-base) var(--ease-out) 240ms both;
-  }
-  @keyframes rise {
-    from {
-      opacity: 0;
-      transform: translateY(4px);
-    }
-    to {
-      opacity: 1;
-      transform: none;
-    }
-  }
 }
 @media (prefers-reduced-motion: reduce) {
   .fl {
@@ -294,7 +281,7 @@
 @media (prefers-reduced-motion: no-preference) {
   .hd-brand:hover .mark-bar,
   .hd-brand:focus-visible .mark-bar {
-    animation: bar-print 320ms var(--ease-out);
+    animation: bar-print var(--dur-ink) var(--ease-out);
   }
 }
 @keyframes bar-print {
@@ -370,7 +357,11 @@
   gap: 4px;
   margin-right: 2px;
 }
+/* 16px painted, 24px to the finger. WCAG 2.2 wants a 24x24 target and the
+   drawing wants a 16px chip; an invisible ::after settles it without moving a
+   single pixel of what is drawn. */
 .ink-sw {
+  position: relative;
   width: 16px;
   height: 16px;
   padding: 2.5px;
@@ -381,11 +372,16 @@
     border-color var(--dur-fast) var(--ease-out),
     transform var(--dur-fast) var(--ease-out);
 }
+.ink-sw::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+}
 .ink-sw i {
   flex: 1;
   display: block;
   background: currentColor;
-  border-radius: 1px;
+  border-radius: var(--r-chip);
 }
 .ink-sw:hover {
   border-color: var(--rule-2);
@@ -705,27 +701,46 @@
 .tb-contact-l .tb-l {
   margin-bottom: 0;
 }
-.tb-mail {
-  font-weight: 600;
-  color: var(--accent);
-  font-size: 14px;
-  border-bottom: 1px solid var(--accent);
-  padding: 1px 4px;
-  margin: -1px -4px;
-  border-radius: var(--r-chip);
+/* The ask sits on the ink, full width, immediately above the title block. It
+   is the only filled area on the sheet, which is what makes it the one thing
+   the reader cannot miss on the way out. */
+.tb-say {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px 20px;
+  flex-wrap: wrap;
+  border: 1.5px solid var(--accent);
+  background: var(--accent-soft);
+  padding: 16px 20px;
+  margin-bottom: 8px;
   transition:
     background var(--dur-fast) var(--ease-out),
-    color var(--dur-fast) var(--ease-out),
-    transform var(--dur-fast) var(--ease-out);
+    color var(--dur-fast) var(--ease-out);
 }
-.tb-mail:hover,
-.tb-mail:focus-visible {
+.tb-say:hover,
+.tb-say:focus-visible {
   background: var(--accent);
+}
+.tb-say-l {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.018em;
+  color: var(--accent);
+}
+.tb-say-v {
+  font-family: var(--f-mono);
+  font-size: 13px;
+  color: var(--ink-3);
+  overflow-wrap: anywhere;
+}
+.tb-say:hover .tb-say-l,
+.tb-say:hover .tb-say-v,
+.tb-say:focus-visible .tb-say-l,
+.tb-say:focus-visible .tb-say-v {
   color: var(--paper);
 }
-.tb-mail:active {
-  transform: translateY(1px);
-}
+
 .tb-email {
   font-family: var(--f-mono);
   font-size: 12px;
@@ -773,6 +788,23 @@
   .hd-nav {
     flex-wrap: wrap;
     gap: 12px;
+  }
+  /* Below 640px the ink tray collapses to the active swatch. Six chips are the
+     most chromatic thing in the header and they are a preference, not a
+     destination; on a phone they were taking a whole row above the fold and
+     out-ranking the two links that lead to the work. The other five are still
+     one tap away, and still on 1-6 for anyone with a keyboard. */
+  .inks {
+    position: relative;
+  }
+  .inks .ink-sw {
+    display: none;
+  }
+  .inks .ink-sw[aria-pressed="true"] {
+    display: inline-flex;
+  }
+  .inks[data-open="true"] .ink-sw {
+    display: inline-flex;
   }
   /* The title line loses the name and the year on a phone. All three fit only
      by being ellipsised, and half a name is worse than none. */

@@ -6,7 +6,7 @@ import Link from "next/link";
 
 export default function PostNotFound() {
   return (
-    <section className="doc-head" data-sec="404">
+    <section className="doc-head" id="not-found" data-sec="404">
       <span className="sec-label">Error 404 · revision not on file</span>
       <h1>That essay is not here.</h1>
       <p className="doc-lede">

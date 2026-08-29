@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Mark } from "./Mark";
 import { useFX } from "@/components/providers/FXProvider";
 import { useInk } from "@/components/providers/InkProvider";
@@ -21,6 +21,7 @@ function drawingTitle(pathname: string): string {
 }
 
 export function SchematicHeader() {
+  const [trayOpen, setTrayOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const fx = useFX();
@@ -48,8 +49,8 @@ export function SchematicHeader() {
     group: "Navigate",
     run: () => router.push("/resume"),
   });
-  // No origin: a keyboard press has no point on the page to open an iris from,
-  // so the paper crossfades instead of wiping. See lib/vt.ts.
+  // No origin: a keyboard press has no point on the page behind it, so the
+  // band sweeps top to bottom instead of left to right. See ThemeProvider.
   const themeRef = useShortcut<HTMLButtonElement>({
     id: "theme.toggle",
     keys: ["t"],
@@ -69,7 +70,7 @@ export function SchematicHeader() {
     href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(href + "/");
 
   return (
-    <header className="hd rise">
+    <header className="hd">
       <div className="hd-row">
         <Link
           href="/"
@@ -108,7 +109,16 @@ export function SchematicHeader() {
           </Link>
 
           <span className="hd-ctls">
-            <span className="inks" role="group" aria-label="Ink">
+            {/* Below 640px the CSS hides every swatch but the active one, and
+                pressing it reveals the rest in place. Above that the attribute
+                does nothing and all six are always shown. */}
+            <span
+              className="inks"
+              role="group"
+              aria-label="Ink"
+              data-open={trayOpen}
+              onClick={() => setTrayOpen((v) => !v)}
+            >
               {INKS.map((i, n) => (
                 <InkSwatch
                   key={i.id}
@@ -133,9 +143,9 @@ export function SchematicHeader() {
               aria-label="Switch the paper"
               title="Paper · t"
               onClick={(e) => {
-                // The iris opens from the middle of the control the reader
-                // pressed, not from the pointer, so a click and a keyboard
-                // activation of the same button look identical.
+                // The origin is the middle of the control rather than the
+                // pointer, so a click and a keyboard activation of the same
+                // button are told apart by intent, not by a few pixels.
                 const r = e.currentTarget.getBoundingClientRect();
                 fx?.clack();
                 window.setTimeout(() => fx?.chime(), 80);

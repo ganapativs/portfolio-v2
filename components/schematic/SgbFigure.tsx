@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useFX } from "@/components/providers/FXProvider";
+import { useCoarsePointer } from "./useCoarsePointer";
 import { useDrawOnFirstView } from "./useDrawOnFirstView";
 
 /**
@@ -36,6 +37,7 @@ const PARTS = [
 
 export function SgbFigure() {
   const [on, setOn] = useState<string | null>(null);
+  const coarse = useCoarsePointer();
   const fx = useFX();
   const svgRef = useDrawOnFirstView<SVGSVGElement>();
   const cur = PARTS.find((p) => p.id === on);
@@ -63,6 +65,7 @@ export function SgbFigure() {
           data-on={on === "series"}
           onPointerEnter={() => enter("series")}
           onPointerLeave={() => setOn(null)}
+          onClick={() => enter("series")}
         >
           {/* One transparent target over the whole field. Without it the only
               hoverable pixels are the 1px strokes themselves, and the pointer
@@ -95,6 +98,7 @@ export function SgbFigure() {
             data-on={on === "price"}
             onPointerEnter={() => enter("price")}
             onPointerLeave={() => setOn(null)}
+            onClick={() => enter("price")}
           >
             <rect className="sgb-hitbox" x="150" y="10" width="146" height="37" />
             <text className="sgb-t" x="162" y="28">
@@ -110,6 +114,7 @@ export function SgbFigure() {
             data-on={on === "rates"}
             onPointerEnter={() => enter("rates")}
             onPointerLeave={() => setOn(null)}
+            onClick={() => enter("rates")}
           >
             <rect className="sgb-hitbox" x="150" y="47" width="146" height="57" />
             <text className="sgb-t sgb-dim" x="162" y="62">
@@ -126,7 +131,11 @@ export function SgbFigure() {
 
       <div className="xp-cap" aria-live="polite">
         <b>{cur ? cur.label : "general arrangement"}</b>
-        {cur ? cur.note : "Point at a part of the interface to read what it is."}
+        {cur
+          ? cur.note
+          : coarse
+            ? "Tap a part of the interface to read what it is."
+            : "Point at a part of the interface to read what it is."}
       </div>
     </>
   );

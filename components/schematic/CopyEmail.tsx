@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useFX } from "@/components/providers/FXProvider";
 import { useShortcut } from "@/components/shortcuts/useShortcut";
+import { useCoarsePointer } from "./useCoarsePointer";
 import { track } from "@/lib/analytics";
 import { identity } from "@/lib/resume";
 
@@ -15,6 +16,7 @@ import { identity } from "@/lib/resume";
  */
 export function CopyEmail() {
   const [copied, setCopied] = useState(false);
+  const coarse = useCoarsePointer();
   const fx = useFX();
   const tid = useRef(0);
 
@@ -60,6 +62,10 @@ export function CopyEmail() {
     <button type="button" className="chip" ref={ref} data-copied={copied} onClick={copy}>
       {copied ? (
         <span>copied · {identity.email}</span>
+      ) : coarse ? (
+        // No keyboard on the other side of the glass, and on a phone this is
+        // the only contact affordance above the footer.
+        <span>tap to copy my email</span>
       ) : (
         <span>
           press <kbd>E</kbd> to copy my email

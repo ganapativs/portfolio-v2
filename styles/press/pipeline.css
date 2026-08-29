@@ -681,7 +681,7 @@
   display: inline-block;
   width: 8px;
   height: 8px;
-  border-radius: 1px;
+  border-radius: var(--r-chip);
   border: 1px solid var(--rule);
   vertical-align: -1px;
   margin-right: 5px;
@@ -713,7 +713,7 @@
 .tok .sw {
   width: 10px;
   height: 10px;
-  border-radius: 1px;
+  border-radius: var(--r-chip);
   border: 1px solid var(--rule);
   flex: none;
 }
@@ -821,7 +821,9 @@
   top: 30px;
   transform: translateX(-50%);
   font-family: var(--f-mono);
-  font-size: 9.5px;
+  /* Big enough to read as the five positions of a control rather than as a
+     caption under a picture. */
+  font-size: 11px;
   letter-spacing: 0.05em;
   color: var(--ink-3);
   white-space: nowrap;
@@ -940,7 +942,7 @@
     overflow: visible;
   }
   .scrub-lbl {
-    font-size: 8.5px;
+    font-size: 9px;
     letter-spacing: 0;
   }
 }

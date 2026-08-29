@@ -43,8 +43,14 @@ export default function HomePage() {
           Short sentences, one idea each, first person, present tense. A person
           reading this has about eight seconds and has read a hundred of these. */}
       <section className="subject" id="subject" data-sec="subject">
-        <div className="intro rise">
-          <p>I am a full-stack engineer with a design mind. Twelve years in, based in Bengaluru.</p>
+        <div className="intro">
+          {/* The claim, at size, before anything else. This page had no h1 and
+              nothing above 22px: a reader got atmosphere for three seconds and
+              then had to go looking for the point. */}
+          <h1>I build the interfaces people work in.</h1>
+          <p className="intro-lede">
+            Full-stack engineer with a design mind. Twelve years in, based in Bengaluru.
+          </p>
           <p>
             I started at Tracxn as an intern. I am <strong>VP of Technology</strong> there now. I
             still write code every week.
@@ -53,6 +59,9 @@ export default function HomePage() {
             Right now that code is a customer-facing <span className="amber">AI assistant</span>{" "}
             over private-market data, and <span className="amber">106 word-sized chart types</span>{" "}
             I built on my own time.
+          </p>
+          <p className="intro-ask">
+            Open to talking about architecture, hiring loops and open source.
           </p>
           <CopyEmail />
           <Socials />

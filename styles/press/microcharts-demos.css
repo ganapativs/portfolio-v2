@@ -24,7 +24,7 @@
   color: var(--fg-2);
   background: var(--bg-surface);
   border: 1px solid var(--border-1);
-  border-radius: var(--r-pill);
+  border-radius: var(--r-chip);
   padding: 4px 12px;
   cursor: pointer;
   transition:
@@ -75,7 +75,7 @@
   padding: var(--s-4) var(--s-3);
   background: var(--bg-surface);
   border: 1px solid var(--border-1);
-  border-radius: var(--r-lg);
+  border-radius: var(--r-chip);
   transition:
     border-color var(--dur-fast) var(--ease-out),
     transform var(--dur-fast) var(--ease-out),
@@ -105,7 +105,6 @@
 .mcx-tile:hover {
   border-color: color-mix(in oklab, var(--accent) 45%, var(--border-1));
   transform: translateY(-2px);
-  box-shadow: var(--shadow-sm);
 }
 .mcx-tile-chart {
   display: flex;
@@ -136,7 +135,7 @@
     "opsz" 60,
     "SOFT" 80,
     "WONK" 1;
-  transition: font-variation-settings var(--dur-base) var(--ease-spring);
+  transition: font-variation-settings var(--dur-base) var(--ease-out);
 }
 .mcx-tile--more:hover .mcx-tile-more-figure {
   font-variation-settings:
@@ -168,7 +167,7 @@
   padding: var(--s-5) var(--s-6);
   background: var(--bg-surface);
   border: 1px solid var(--border-1);
-  border-radius: var(--r-xl);
+  border-radius: var(--r-chip);
 }
 .mcx-kpi-label {
   font-family: var(--font-mono);
@@ -204,7 +203,7 @@
   padding: var(--s-6);
   background: var(--bg-surface);
   border: 1px solid var(--border-1);
-  border-radius: var(--r-xl);
+  border-radius: var(--r-chip);
 }
 .mcx-a11y-stage {
   display: flex;
@@ -251,7 +250,7 @@
 .mcx-stream {
   margin: var(--s-6) 0;
   border: 1px solid var(--border-1);
-  border-radius: var(--r-xl);
+  border-radius: var(--r-chip);
   background: var(--bg-surface);
   overflow: hidden;
 }
@@ -316,7 +315,7 @@
   height: 1.05em;
   vertical-align: text-bottom;
   background: var(--accent);
-  border-radius: 1px;
+  border-radius: var(--r-chip);
   margin-left: 2px;
   animation: mcx-caret-blink 0.9s steps(2, start) infinite;
 }
@@ -334,7 +333,7 @@
 .mcx-console {
   margin: var(--s-6) 0;
   border: 1px solid var(--border-1);
-  border-radius: var(--r-xl);
+  border-radius: var(--r-chip);
   background: var(--bg-surface);
   overflow: hidden;
 }
@@ -425,7 +424,7 @@
 .mcx-ops {
   margin: var(--s-6) 0;
   border: 1px solid var(--border-1);
-  border-radius: var(--r-xl);
+  border-radius: var(--r-chip);
   background: var(--bg-surface);
   overflow: hidden;
 }
@@ -497,7 +496,7 @@
   border: none;
   padding: 2px 0;
   cursor: pointer;
-  border-radius: var(--r-xs);
+  border-radius: var(--r-chip);
 }
 .mcx-ops-svc:hover span {
   color: var(--accent);
@@ -577,10 +576,13 @@
 .mcx-stream,
 .mcx-a11y,
 .mcx-chip {
-  /* Square the corners off. The press radius set is 0 / 2 / 6 / 50%, and a
-     28px pill in the middle of an essay reads as a different website. */
-  --r-lg: var(--r-block);
-  --r-xl: var(--r-block);
+  /* Square the corners off. The drawing has three radii — 0 for geometry, 2px
+     for a touched control, 50% for a point — and a 28px pill in the middle of
+     an essay reads as a different website. These are the library's own token
+     names, overridden locally rather than in tokens.css so the override sits
+     next to the thing it overrides. */
+  --r-lg: var(--r-chip);
+  --r-xl: var(--r-chip);
   --r-pill: var(--r-chip);
 }
 /* The demos use the whole plate, not the reading measure. They are laid out for

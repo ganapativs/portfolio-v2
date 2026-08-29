@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFX } from "@/components/providers/FXProvider";
 import { ERAS, MATERIALS } from "@/app/(press)/content";
 
@@ -22,7 +22,18 @@ const pct = (y: number) => 1.5 + ((y - Y0) / YSPAN) * 97;
  */
 export function Career() {
   const [on, setOn] = useState(ERAS.length - 1);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const fx = useFX();
+
+  // The axis is 720px wide and the panel is narrower than that on a phone, so
+  // it opens scrolled to the left: a reader on a small screen saw a career that
+  // stopped in 2018. Start at the right-hand end instead, which is now, and
+  // which is also the era the caption is already showing.
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollLeft = el.scrollWidth - el.clientWidth;
+  }, []);
   const set = (i: number) => {
     if (i === on) return;
     setOn(i);
@@ -32,7 +43,7 @@ export function Career() {
 
   return (
     <>
-      <div className="tl-scroll">
+      <div className="tl-scroll" ref={scrollRef}>
         <div className="tl">
           <div className="tl-axis" />
           {Array.from({ length: 14 }, (_, i) => Y0 + i).map((y) => (

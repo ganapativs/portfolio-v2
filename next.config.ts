@@ -114,7 +114,7 @@ const nextConfig: NextConfig = {
   // permanently to the sections that replaced them rather than 404ing.
   async redirects() {
     return [
-      { source: "/about", destination: "/#about", permanent: true },
+      { source: "/about", destination: "/#subject", permanent: true },
       { source: "/work", destination: "/#work", permanent: true },
     ];
   },

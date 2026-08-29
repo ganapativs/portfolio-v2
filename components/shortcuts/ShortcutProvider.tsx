@@ -21,7 +21,9 @@ export type Shortcut = {
   scope?: ShortcutScope;
   hint?: string;
   elementRef?: React.RefObject<HTMLElement | null>;
-  /** When true, use the registered shortcut's own onRun and skip the global tick chime (e.g. accent picker plays its own pentatonic note). */
+  /** Skip the registry's generic tick and let the shortcut sound itself. The
+   *  ink tray uses it: each of the six inks has its own pitch, and the generic
+   *  tick would land on top of the note. */
   silent?: boolean;
   run: () => void;
 };

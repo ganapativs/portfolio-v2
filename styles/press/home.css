@@ -15,6 +15,22 @@
   align-items: center;
   padding: 52px 0 44px;
 }
+/* The one piece of display type on the sheet. The scale runs to 58px and the
+   home page used to stop at 22, which made the drawing beautiful and mute. */
+.intro h1 {
+  margin: 0 0 0.5em;
+  font-size: clamp(30px, calc(23px + 1.5vw), 42px);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.024em;
+  text-wrap: balance;
+  max-width: 15ch;
+}
+.intro-lede {
+  color: var(--ink-2);
+}
+/* The ask. One line, at the end of the introduction, saying what response the
+   page wants. Everything above it is evidence; this is the request. */
 .intro p {
   font-size: 1.32rem;
   line-height: 1.5;
@@ -26,6 +42,20 @@
 .intro strong,
 .intro .amber {
   font-weight: 600;
+}
+/* The ask. One line at the end of the introduction, saying what response the
+   page wants. Everything above it is evidence; this is the request. Declared
+   after `.intro p` so it wins on order rather than on `!important`. */
+.intro p.intro-ask {
+  font-family: var(--f-mono);
+  font-size: 12.5px;
+  line-height: 1.6;
+  letter-spacing: 0.01em;
+  color: var(--ink-3);
+  margin: 4px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--rule-3);
+  max-width: 34em;
 }
 .intro .chip {
   margin-top: 10px;

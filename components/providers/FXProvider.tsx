@@ -49,16 +49,20 @@ type Ctx = {
 const FXContext = createContext<Ctx | null>(null);
 
 export function FXProvider({ children }: { children: React.ReactNode }) {
-  // Starts on, then reads the stored preference in an effect rather than in the
-  // initialiser. The server has no localStorage, so a reader who muted the site
-  // last visit would otherwise get a server render that says "on" and a first
-  // client render that says "off" — a hydration mismatch on the toggle's own
-  // aria-pressed. One frame of the wrong icon is cheaper than that, and nothing
-  // can make a sound in that frame anyway.
-  const [soundOn, setSoundOn] = useState(true);
+  // Off until asked for. A site that ticks when you move the pointer, on the
+  // first visit, in an open-plan office or on a shared screen, has made a
+  // decision on the reader's behalf that it has no standing to make. `m` and
+  // the header toggle turn it on, and the ? sheet lists the key.
+  //
+  // The stored preference is read in an effect rather than in the initialiser
+  // because the server has no localStorage: initialising from it would mean a
+  // server render and a first client render that disagree, which is a
+  // hydration mismatch on the toggle's own aria-pressed. Nothing can make a
+  // sound in that one frame anyway.
+  const [soundOn, setSoundOn] = useState(false);
   useEffect(() => {
     try {
-      if (localStorage.getItem("mg_sound") === "0") setSoundOn(false);
+      if (localStorage.getItem("mg_sound") === "1") setSoundOn(true);
     } catch {}
   }, []);
   const [reduceMotion, setReduceMotion] = useState(false);

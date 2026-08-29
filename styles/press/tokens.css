@@ -20,9 +20,10 @@
 
      Motion   --dur-fast 140ms for hover and focus, --dur-base 260ms for
               everything the reader caused, --dur-ink 340ms for the coordinated
-              ink tween, --dur-iris 500ms for the theme/ink reveal. Nothing else
-              is slower, except direct manipulation, which has no duration at
-              all because the hand sets it.
+              ink tween. Nothing here is slower. The palette sweep is longer
+              than any of them, and it is not a token: it belongs to glimm and
+              is configured in components/providers/SweepProvider.tsx. Direct
+              manipulation has no duration at all, because the hand sets it.
 
    Structure
      1  registered properties        5  patterns and materials
@@ -40,14 +41,6 @@
   syntax: "<color>";
   inherits: true;
   initial-value: #8f5c0c;
-}
-
-/* Iris radius for the theme/ink reveal — see lib/vt.ts for why this is a typed
-   length rather than an interpolated clip-path. */
-@property --vt-r-now {
-  syntax: "<length>";
-  initial-value: 0px;
-  inherits: true;
 }
 
 /* 2 — SURFACES ---------------------------------------------------------------
@@ -175,9 +168,9 @@
   --accent-line: color-mix(in oklab, var(--accent) 45%, transparent);
 
   /* The coordinated ink tween. One transition on the token itself, so every
-     consumer moves together. On a pointer pick the iris covers it instead —
-     base.css kills every transition while the reveal runs, so the two never
-     animate over the top of one another. */
+     consumer moves together. A pointer pick has the glimm band over the top of
+     it, so the tween is what the reader sees underneath the band rather than
+     something competing with it. See components/providers/SweepProvider.tsx. */
   transition: --accent var(--dur-ink) var(--ease-out);
 }
 
@@ -214,7 +207,8 @@
   --s-9: 96px;
   --s-10: 144px;
 
-  /* Radius — three values, each with a job. See the header note. */
+  /* Radius — three values and no more. `--r-rule` is the default everything
+     already has, so it is here to be named rather than to be set. */
   --r-rule: 0;
   --r-chip: 2px;
   --r-point: 50%;
@@ -225,7 +219,6 @@
   --dur-fast: 140ms;
   --dur-base: 260ms;
   --dur-ink: 340ms;
-  --dur-iris: 500ms;
 
   /* Measures. --w-sheet is the drawing's own width; --w-essay is a reading
      measure and is narrower because prose has a different job than a drawing. */
@@ -258,14 +251,16 @@
    four stylesheets, those names are mapped onto the drawing's values here, so
    those components inherit the ink, the ground and the type unchanged.
 
-   These are live, not leftovers: every alias below is referenced by
-   components/shortcuts/shortcuts.css, styles/press/microcharts-demos.css or
-   styles/press/essay.css. Deleting one breaks a real rule. */
+   Every alias below is referenced by styles/press/microcharts-demos.css or
+   styles/press/essay.css, and the list is kept honest: an earlier version of
+   this block carried four aliases nothing referenced and three
+   (--ease-spring, --dur-slow, --shadow-*) that smuggled in values the design's
+   own header notes say it does not have. If an alias stops being used, delete
+   it rather than leaving it here under a comment claiming it is load-bearing. */
 
 :root {
   --accent-ink: var(--accent);
   --wash: var(--accent-soft);
-  --f-serif: var(--f-sans);
 
   --bg-surface: var(--raise);
   --bg-sunken: var(--sunk);
@@ -283,11 +278,6 @@
   --fw-medium: 500;
   --fw-semibold: 600;
   --lh-tight: 1.2;
-  --r-xs: var(--r-chip);
-  --r-block: var(--r-chip);
-  --r-lg: var(--r-chip);
-  --r-xl: var(--r-chip);
-  --r-pill: 999px;
   --ring: 0 0 0 3px color-mix(in oklab, var(--accent) 35%, transparent);
   --t-micro: 10.5px;
   --t-overline: 10.5px;
@@ -298,17 +288,7 @@
   --t-h4: 24px;
   --t-h3: 30px;
   --t-h2: 37px;
-  --t-9: 73px;
   --track-mega: 0.14em;
-  --ease-quart: cubic-bezier(0.25, 1, 0.5, 1);
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --dur-slow: 520ms;
-  --shadow-sm: none;
-  --shadow-xl: none;
-  --khadi: var(--raise);
-  --turmeric: var(--sunk);
-  --peat: var(--ink-2);
-  --moonless: var(--ink);
 }
 
 /* ---- @microcharts/react ----------------------------------------------------

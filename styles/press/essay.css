@@ -217,7 +217,7 @@
      that is already a share card is usually wider. */
   aspect-ratio: var(--cover-ar, 16 / 9);
   overflow: hidden;
-  border-radius: var(--r-block);
+  border-radius: var(--r-chip);
   background: var(--sunk);
 }
 .essay-cover img {
@@ -362,7 +362,7 @@
 .prose :is(img, video, iframe) {
   max-width: 100%;
   height: auto;
-  border-radius: var(--r-block);
+  border-radius: var(--r-chip);
 }
 [data-theme="dark"] .prose img {
   box-shadow: 0 0 0 1px var(--rule);
@@ -446,7 +446,7 @@
   margin: clamp(28px, 4vh, 36px) 0;
   background: var(--sunk);
   border: 1px solid var(--rule);
-  border-radius: var(--r-block);
+  border-radius: var(--r-chip);
   overflow: hidden;
   max-width: 68ch;
 }
@@ -494,7 +494,7 @@
 }
 .prose .codeblock pre::-webkit-scrollbar-thumb {
   background: var(--rule-2);
-  border-radius: 999px;
+  border-radius: var(--r-chip);
 }
 .prose .codeblock-copy {
   position: absolute;
