@@ -27,8 +27,12 @@ export default function Error({
           <button type="button" onClick={() => unstable_retry()}>
             draw it again
           </button>
-          <Link href="/">home</Link>
-          <Link href="/blog">writing</Link>
+          <Link href="/" data-analytics="nav:error.home">
+            home
+          </Link>
+          <Link href="/blog" data-analytics="nav:error.writing">
+            writing
+          </Link>
         </div>
       </main>
     </Sheet>

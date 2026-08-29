@@ -168,7 +168,8 @@ export function SchematicHeader() {
 
       <div className="hd-rule">
         <span className="hd-title">
-          {drawingTitle(pathname)} · {identity.name} · 2026
+          {drawingTitle(pathname)}
+          <span className="hd-title-full"> · {identity.name} · 2026</span>
         </span>
         <NorthArrow />
       </div>

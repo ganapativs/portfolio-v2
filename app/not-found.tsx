@@ -20,9 +20,15 @@ export default function NotFound() {
           one of these.
         </p>
         <div className="doc-links">
-          <Link href="/">home</Link>
-          <Link href="/blog">writing</Link>
-          <Link href="/resume">résumé</Link>
+          <Link href="/" data-analytics="nav:404.home">
+            home
+          </Link>
+          <Link href="/blog" data-analytics="nav:404.writing">
+            writing
+          </Link>
+          <Link href="/resume" data-analytics="nav:404.resume">
+            résumé
+          </Link>
         </div>
       </main>
     </Sheet>

@@ -53,13 +53,19 @@ export default async function ResumePage() {
           </div>
           <div className="cv-contact">
             <div>
-              <a href={`mailto:${identity.email}`}>{identity.email}</a>
+              <a href={`mailto:${identity.email}`} data-analytics="mail:resume">
+                {identity.email}
+              </a>
             </div>
             <div>
-              <a href={SITE_URL}>meetguns.com</a>
+              <a href={SITE_URL} data-analytics="cta:resume.site">
+                meetguns.com
+              </a>
             </div>
             <div>
-              <a href="https://github.com/ganapativs">github.com/ganapativs</a>
+              <a href="https://github.com/ganapativs" data-analytics="cta:resume.github">
+                github.com/ganapativs
+              </a>
             </div>
           </div>
         </header>
@@ -115,7 +121,9 @@ export default async function ResumePage() {
                 return (
                   <div key={f.name} className="cv-item">
                     <div className="cv-item-name">
-                      <a href={f.repo}>{f.name}</a>
+                      <a href={f.repo} data-analytics={`cta:resume.oss.${f.name}`}>
+                        {f.name}
+                      </a>
                       {n >= STAR_FLOOR ? ` · ${n.toLocaleString("en-US")}★` : ""}
                     </div>
                     <div className="cv-item-note">{f.blurb}</div>
@@ -124,7 +132,12 @@ export default async function ResumePage() {
               })}
               <div className="cv-item">
                 <div className="cv-item-name">
-                  <a href="https://github.com/ganapativs?tab=repositories">and the rest</a>
+                  <a
+                    href="https://github.com/ganapativs?tab=repositories"
+                    data-analytics="cta:resume.all-repos"
+                  >
+                    and the rest
+                  </a>
                 </div>
                 <div className="cv-item-note">
                   55 public repos, 15 npm packages, {stars.total.toLocaleString("en-US")} stars

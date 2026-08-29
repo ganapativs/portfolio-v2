@@ -169,15 +169,20 @@
    ground and its own frame. Reading a thousand words through a drifting grid is
    the kind of thing that looks good in a screenshot and is miserable to do. */
 .essay {
-  max-width: calc(var(--w-essay) + 96px);
+  max-width: 940px;
   margin: 44px auto 0;
-  padding: clamp(28px, 4vw, 48px);
+  padding: clamp(24px, 4vw, 52px);
   background: var(--raise);
   border: 1px solid var(--rule);
 }
-.essay > * {
+/* Prose caps at the reading measure. Everything that is not prose, which is the
+   cover and the library demos, gets the whole plate. */
+.essay > *,
+.prose > * {
   max-width: var(--w-essay);
-  margin-inline: auto;
+}
+.essay > .essay-cover {
+  max-width: 100%;
 }
 .essay-title {
   margin: 0;
@@ -219,15 +224,7 @@
   display: block;
   object-fit: cover;
 }
-/* Breakout past the measure on roomy screens — the cover is the one element
-   allowed to be wider than the text column. */
-@media (min-width: 1000px) {
-  .essay-cover {
-    width: min(960px, calc(100vw - 2 * var(--gutter)));
-    margin-left: 50%;
-    transform: translateX(-50%);
-  }
-}
+
 /* The standfirst. Set off by a rule in the ink rather than by italics: there
    is one Latin face on this sheet and it has no italic cut, so a synthesised
    oblique would be the only faked thing in the type system. */

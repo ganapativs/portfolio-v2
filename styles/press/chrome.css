@@ -630,16 +630,6 @@
 .soc:active {
   transform: scale(0.92);
 }
-/* LinkedIn has no mark in the icon set the others come from, and inventing one
-   would be the only drawn thing on the page that is not real. It gets its
-   handle instead, which says more anyway. */
-.soc-pill {
-  width: auto;
-  padding: 0 8px;
-  font-family: var(--f-mono);
-  font-size: 11px;
-  letter-spacing: 0.02em;
-}
 
 /* ---- footer · the title block -------------------------------------------- */
 
@@ -783,6 +773,11 @@
   .hd-nav {
     flex-wrap: wrap;
     gap: 12px;
+  }
+  /* The title line loses the name and the year on a phone. All three fit only
+     by being ellipsised, and half a name is worse than none. */
+  .hd-title-full {
+    display: none;
   }
   .tb-cell {
     padding: 10px 12px;

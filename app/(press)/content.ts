@@ -13,7 +13,9 @@ import { flagships, skills } from "@/lib/resume";
 
 const stars = (name: string) => flagships.find((f) => f.name === name)?.stars ?? 0;
 
-export const BTTN_STARS = stars("bttn.css");
+// Read from lib/resume rather than typed here, so the parts list and the CV
+// cannot disagree about how many stars bttn.css has.
+const BTTN_STARS = stars("bttn.css");
 
 /* ---- fig. 5 · the career, dimensioned ----------------------------------- */
 

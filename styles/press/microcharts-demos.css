@@ -583,13 +583,14 @@
   --r-xl: var(--r-block);
   --r-pill: var(--r-chip);
 }
+/* The demos use the whole plate, not the reading measure. They are laid out for
+   a wider column than 68ch and drop a tile from every row inside one.
+
+   They used to break out past the plate with `margin-left: 50%` and a fixed
+   880px width, which was correct when the essay sat directly on the page. Now
+   that it sits on its own plate, that overflowed the plate's edges by 60px on
+   each side. Filling the plate is the same intent without the arithmetic. */
 .prose > :is(.mcx-wall, .mcx-kpi, .mcx-ops, .mcx-console, .mcx-stream, .mcx-a11y) {
-  max-width: none;
-}
-@media (min-width: 1000px) {
-  .prose > :is(.mcx-wall, .mcx-kpi, .mcx-ops, .mcx-console, .mcx-stream, .mcx-a11y) {
-    width: min(880px, calc(100vw - 2 * var(--gutter)));
-    margin-left: 50%;
-    transform: translateX(-50%);
-  }
+  max-width: 100%;
+  width: 100%;
 }

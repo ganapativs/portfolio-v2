@@ -218,8 +218,8 @@
    isometric as the slab. vector-effect keeps it a 1px line at any scale, so it
    reads as printed on the surface rather than as an icon dropped over it. */
 .xp .slab .glyph path {
-  stroke: var(--ink-3);
-  stroke-width: 1;
+  stroke: var(--ink-2);
+  stroke-width: 1.15;
   fill: none;
   vector-effect: non-scaling-stroke;
   transition: stroke var(--dur-fast) var(--ease-out);

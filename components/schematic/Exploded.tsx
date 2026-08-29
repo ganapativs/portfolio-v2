@@ -21,26 +21,22 @@ const PARTS: { name: string; note: string; glyph: string[] }[] = [
   {
     name: "OpenAPI → docs",
     note: "The API documentation portal writes itself from the OpenAPI spec, and the assistant lives inside it. One source, two readers: a person and a model.",
-    // A page with a brace pair on it. Braces are what a spec looks like, and a
-    // page is what comes out, so the symbol is the sentence.
-    glyph: [
-      "M-11 -13 H5 L11 -7 V13 H-11 Z",
-      "M5 -13 V-7 H11",
-      "M-5 -3 Q-8 -3 -8 0 Q-8 3 -5 3",
-      "M4 -3 Q7 -3 7 0 Q7 3 4 3",
-      "M-1 0 H1",
-    ],
+    // A page with a folded corner and ruled lines. The brace pair that was
+    // here first was more literally "a spec", and foreshortened into the slab
+    // the two braces closed up into something that read as a smile.
+    glyph: ["M-10 -12 H4 L10 -6 V12 H-10 Z", "M4 -12 V-6 H10", "M-6 -2 H6", "M-6 2 H6", "M-6 6 H0"],
   },
   {
     name: "model router",
     note: "One question in, one model out. The router reads what is being asked and sends it to the model that should answer it, so nothing costs more than it needs to.",
-    // A multiplexer: one line in, a decision node, three lines out.
+    // A multiplexer: one line in, a decision node, three lines out. The fan is
+    // kept narrow because the projection widens it.
     glyph: [
-      "M-14 0 H-5",
-      "M-5 0 A3 3 0 1 0 1 0 A3 3 0 1 0 -5 0",
-      "M1 0 H5 L14 -9",
-      "M5 0 H14",
-      "M1 0 H5 L14 9",
+      "M-14 0 H-4",
+      "M-4 0 A3 3 0 1 0 2 0 A3 3 0 1 0 -4 0",
+      "M2 0 H6 L14 -6",
+      "M6 0 H14",
+      "M2 0 H6 L14 6",
     ],
   },
   {
@@ -49,10 +45,11 @@ const PARTS: { name: string; note: string; glyph: string[] }[] = [
     // An integrated circuit: a body with pins. A skill is a part you can pull
     // out and test on its own, which is the whole point of the layer.
     glyph: [
-      "M-9 -8 H9 V8 H-9 Z",
-      "M-9 -4 H-14 M-9 0 H-14 M-9 4 H-14",
-      "M9 -4 H14 M9 0 H14 M9 4 H14",
-      "M-4 -3 H4 M-4 1 H1",
+      "M-8 -7 H8 V7 H-8 Z",
+      "M-8 -3.5 H-13 M-8 0 H-13 M-8 3.5 H-13",
+      "M8 -3.5 H13 M8 0 H13 M8 3.5 H13",
+      "M-4 -2 H4",
+      "M-4 2 H1",
     ],
   },
   {
