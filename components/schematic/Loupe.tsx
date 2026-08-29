@@ -206,12 +206,7 @@ export function Loupe() {
               // This is the claim the panel is making, so it is made rather
               // than illustrated.
               <span className="w spark" data-lit={cur === i}>
-                <Sparkline
-                  data={SPARK}
-                  width={58}
-                  height={14}
-                  summary="a sparkline, set inline"
-                />
+                <Sparkline data={SPARK} width={58} height={14} summary="a sparkline, set inline" />
               </span>
             ) : (
               <span className="w" data-lit={cur === i}>

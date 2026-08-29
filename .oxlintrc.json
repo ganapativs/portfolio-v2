@@ -19,7 +19,11 @@
     // a scrubber that draws its own rail, detents and plumb line. An <input
     // type="range"> can do none of those, and the rule has no per-line escape
     // that survives being written above a JSX attribute.
-    "jsx-a11y/prefer-tag-over-role": "off"
+    "jsx-a11y/prefer-tag-over-role": "off",
+    // Stylesheet imports have nothing to bind. `@microcharts/react/styles.css`
+    // ships the library's tokens and is imported for its side effect, which is
+    // the documented way to use it.
+    "import/no-unassigned-import": "off"
   },
   "ignorePatterns": [
     ".next/**",

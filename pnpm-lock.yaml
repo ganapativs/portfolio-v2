@@ -26,6 +26,9 @@ importers:
       '@types/mdx':
         specifier: ^2.0.14
         version: 2.0.14
+      glimm:
+        specifier: ^0.3.0
+        version: 0.3.0(next@16.2.12(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react@19.2.8)
       medium-zoom:
         specifier: ^1.1.0
         version: 1.1.0
@@ -1201,6 +1204,18 @@ packages:
 
   github-slugger@2.0.0:
     resolution: {integrity: sha512-IaOQ9puYtjrkq7Y0Ygl9KDZnrf/aiUJYUpVf89y8kyaxbRG7Y1SrX/jaumrv81vc61+kiMempujsM3Yw7w5qcw==}
+
+  glimm@0.3.0:
+    resolution: {integrity: sha512-Maw5WJnUsgyfsHl7Vp95wa8G1uaFhUOSoQzAVPX1DxdHxmWNBa9VtDRNPplH1A+bIazn956ZP/wQvH4ZSxKN9Q==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      next: '>=14'
+      react: '>=18'
+    peerDependenciesMeta:
+      next:
+        optional: true
+      react:
+        optional: true
 
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
@@ -2596,6 +2611,11 @@ snapshots:
       resolve-pkg-maps: 1.0.0
 
   github-slugger@2.0.0: {}
+
+  glimm@0.3.0(next@16.2.12(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react@19.2.8):
+    optionalDependencies:
+      next: 16.2.12(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      react: 19.2.8
 
   graceful-fs@4.2.11: {}
 

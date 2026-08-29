@@ -7,7 +7,7 @@ export const contentType = OG_CONTENT_TYPE;
 export default async function Image() {
   return renderOG({
     eyebrow: "no. 01 · the masthead",
-    title: "Eleven years, one company. Still writing code.",
+    title: "Twelve years of shipping. Still writing code.",
     accent: "amber",
   });
 }

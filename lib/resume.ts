@@ -323,7 +323,7 @@ export type Talk = {
 
 /**
  * Talks. Lives here rather than in either page because both the home page and
- * the résumé print it, and it was previously typed out by hand in the résumé : 
+ * the résumé print it, and it was previously typed out by hand in the résumé :
  * one more pair that could drift.
  */
 export const speaking: Talk[] = [

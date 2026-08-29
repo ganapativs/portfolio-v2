@@ -117,7 +117,9 @@ export function TitleBlock() {
               say hello
             </a>
             <span className="tb-email">{identity.email}</span>
-            <span className="tb-email">· made in India</span>
+            <span className="tb-email">
+              · made in India <span aria-hidden="true">🇮🇳</span>
+            </span>
           </span>
           <Socials compact />
         </div>

@@ -17,7 +17,7 @@ export const metadata = pageMetadata({
   title: "Résumé",
   path: "/resume",
   description:
-    "Résumé of Ganapati V S. VP, Technology at Tracxn. Eleven years, four promotions. The AI assistant and docs portal, microcharts, and a decade of open source.",
+    "Résumé of Ganapati V S. VP, Technology at Tracxn. Twelve years, four promotions. The AI assistant and docs portal, microcharts, and a decade of open source.",
   ogType: "profile",
 });
 

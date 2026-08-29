@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { pressFontVars } from "@/lib/fonts";
+import { SweepProvider } from "@/components/providers/SweepProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { FXProvider } from "@/components/providers/FXProvider";
 import { InkProvider } from "@/components/providers/InkProvider";
@@ -25,7 +26,9 @@ export const metadata: Metadata = {
   keywords: [
     "Ganapati V S",
     "meetguns",
-    "engineering leader",
+    "full-stack engineer",
+    "design engineer",
+    "design systems",
     "Bengaluru",
     "React",
     "Next.js",
@@ -155,17 +158,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           ))}
       </head>
       <body>
-        <ThemeProvider>
-          <FXProvider>
-            <ShortcutProvider>
-              <InkProvider>
-                {children}
-                <HintLayer />
-                <ShortcutHelp />
-              </InkProvider>
-            </ShortcutProvider>
-          </FXProvider>
-        </ThemeProvider>
+        {/* SweepProvider is outermost of the four because both of the
+            providers below it hand their state change to the sweep to carry. */}
+        <SweepProvider>
+          <ThemeProvider>
+            <FXProvider>
+              <ShortcutProvider>
+                <InkProvider>
+                  {children}
+                  <HintLayer />
+                  <ShortcutHelp />
+                </InkProvider>
+              </ShortcutProvider>
+            </FXProvider>
+          </ThemeProvider>
+        </SweepProvider>
         <WebVitals />
         <Analytics />
       </body>

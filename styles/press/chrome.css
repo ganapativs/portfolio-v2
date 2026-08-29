@@ -473,6 +473,16 @@
   background: var(--raise);
   padding: 22px 24px 20px;
   position: relative;
+  /* Its own stacking context, so the two mesh layers below can be ordered
+     against the panel's content without leaking into the page's z-order. */
+  isolation: isolate;
+}
+/* The mesh is a material the panel is made of, so it sits under everything
+   printed on it. Without this the pseudo-elements paint over the content —
+   they are positioned and the content is not, so they win on paint order. */
+.panel > * {
+  position: relative;
+  z-index: 1;
 }
 /* Hover material: a fine hex mesh, revealed only under the cursor through a
    radial mask. The panel is paper until a hand is near it, then it is a
@@ -482,6 +492,7 @@
   content: "";
   position: absolute;
   inset: 0;
+  z-index: 0;
   pointer-events: none;
   background: var(--hex-url);
   opacity: 0;
@@ -641,16 +652,16 @@
 /* A real drawing's title block: the cells are the grid, and the 1px gap between
    them is the rule. One border, one background, no per-cell strokes.
 
-   `auto-fit` with a minimum, not a fixed column count. The cells hold values of
-   wildly different lengths — a name, a running clock, "1:1" — and any fixed
-   track list either clips the long ones or strands the short ones. This way the
-   block reflows from six across to two without a single breakpoint, and there
-   is no width at which a value is cut off. */
+   Four equal tracks, dropping to two, and never `auto-fit`. auto-fit lays down
+   as many tracks as will fit and then leaves the spare ones empty, which put a
+   blank slab on the end of the row at some widths. Four cells across four
+   tracks fills the block exactly at every size, and the values wrap inside
+   their cell rather than being cut off. */
 .tblock {
   border: 1.5px solid var(--rule-2);
   background: var(--rule-3);
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(clamp(132px, 15vw, 168px), 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1px;
 }
 .tb-cell {
@@ -745,6 +756,9 @@
 @media (max-width: 720px) {
   .tb-wrap {
     padding-top: 40px;
+  }
+  .tblock {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 @media (max-width: 640px) {

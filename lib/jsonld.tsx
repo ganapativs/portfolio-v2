@@ -224,15 +224,18 @@ export function employmentSchema() {
     url: identity.worksFor.url,
     sameAs: identity.worksFor.url,
     ...(identity.orgTagline ? { description: identity.orgTagline } : {}),
-    employee: tracxn.map((r) => ({
-      "@type": "EmployeeRole",
-      roleName: r.role,
-      startDate: isoMonth(r.start),
+    employee: tracxn.map((r) => {
+      const held: JsonLdObject = {
+        "@type": "EmployeeRole",
+        roleName: r.role,
+        startDate: isoMonth(r.start),
+        employee: PERSON_REF,
+      };
       // The current role has no end date, and an invented one would date the
       // whole record wrong the moment it is read.
-      ...(r.end.toLowerCase() === "present" ? {} : { endDate: isoMonth(r.end) }),
-      employee: PERSON_REF,
-    })),
+      if (r.end.toLowerCase() !== "present") held.endDate = isoMonth(r.end);
+      return held;
+    }),
   };
 }
 

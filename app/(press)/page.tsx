@@ -7,6 +7,7 @@ import { Loupe } from "@/components/schematic/Loupe";
 import { PartsList } from "@/components/schematic/PartsList";
 import { Pipeline } from "@/components/schematic/Pipeline";
 import { Portrait } from "@/components/schematic/Portrait";
+import { SgbFigure } from "@/components/schematic/SgbFigure";
 import { Socials } from "@/components/schematic/Socials";
 import { Specimens } from "@/components/schematic/Specimens";
 import { SpectrumDemo } from "@/components/schematic/SpectrumDemo";
@@ -126,6 +127,7 @@ export default function HomePage() {
             </a>
           </p>
           <p className="p-body">{SGB.body}</p>
+          <SgbFigure />
         </article>
 
         <article className="panel">

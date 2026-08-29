@@ -5,10 +5,9 @@ import { identity } from "@/lib/resume";
  * generic icon set, because a wrong GitHub cat is more obviously wrong than no
  * icon at all.
  *
- * LinkedIn is the exception and is deliberate: the set these come from has no
- * LinkedIn mark, and drawing one would put the only invented glyph on a page
- * whose whole argument is that everything on it is real. It gets a text pill
- * with the actual handle, which is more useful anyway.
+ * LinkedIn included: the standard boxed "in" mark, at the same 24-unit grid as
+ * the rest, so the row is five marks of one weight rather than four marks and a
+ * word.
  */
 const PATHS: Record<string, { d: string; size: number }> = {
   github: {
@@ -27,6 +26,10 @@ const PATHS: Record<string, { d: string; size: number }> = {
     size: 15,
     d: "M1.763 0C.786 0 0 .786 0 1.763v20.474C0 23.214.786 24 1.763 24h20.474c.977 0 1.763-.786 1.763-1.763V1.763C24 .786 23.214 0 22.237 0zM5.13 5.323l13.837.019-.009 13.836h-3.464l.01-10.382h-3.456L12.04 19.17H5.113z",
   },
+  linkedin: {
+    size: 14,
+    d: "M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z",
+  },
 };
 
 const LABEL: Record<string, string> = {
@@ -42,15 +45,18 @@ const LABEL: Record<string, string> = {
 // added here where the page, not the CV, is doing the talking.
 const DRIBBBLE = "https://dribbble.com/ganapativs";
 
+const by = (kind: string) => identity.social.find((s) => s.kind === kind);
+
 export function Socials({ compact = false }: { compact?: boolean }) {
-  const linked = identity.social.find((s) => s.kind === "linkedin");
   const order: { kind: string; href: string }[] = [
-    ...identity.social
-      .filter((s) => s.kind === "github" || s.kind === "twitter")
-      .map((s) => ({ kind: s.kind, href: s.href })),
+    { kind: "github", href: by("github")?.href ?? "" },
+    { kind: "linkedin", href: by("linkedin")?.href ?? "" },
+    { kind: "twitter", href: by("twitter")?.href ?? "" },
+    // Dribbble is a portfolio rather than a professional reference, so it is
+    // not on the résumé's list and it drops out of the compact row.
     ...(compact ? [] : [{ kind: "dribbble", href: DRIBBBLE }]),
-    ...identity.social.filter((s) => s.kind === "npm").map((s) => ({ kind: s.kind, href: s.href })),
-  ];
+    { kind: "npm", href: by("npm")?.href ?? "" },
+  ].filter((s) => s.href);
 
   return (
     <div className="socials">
@@ -79,17 +85,6 @@ export function Socials({ compact = false }: { compact?: boolean }) {
           </a>
         );
       })}
-      {linked && (
-        <a
-          className="soc soc-pill"
-          href={linked.href}
-          rel="me noopener"
-          target="_blank"
-          data-analytics="cta:social.LinkedIn"
-        >
-          {compact ? "in" : "in/ganapativs"}
-        </a>
-      )}
     </div>
   );
 }

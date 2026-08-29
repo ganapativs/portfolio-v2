@@ -421,7 +421,10 @@ export function Pipeline() {
           if (touched.current) return;
           muted.current = true;
           const t0 = performance.now();
-          const D = 2400;
+          // Slow enough to be read rather than noticed. At 2.4s the five stages
+          // went by faster than a reader could work out that they were stages,
+          // which defeated the point of showing them unasked.
+          const D = 3800;
           const step = (now: number) => {
             const p = Math.min((now - t0) / D, 1);
             const e = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;

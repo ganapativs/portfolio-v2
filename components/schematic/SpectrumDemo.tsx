@@ -57,7 +57,10 @@ export function SpectrumDemo() {
             wordHeight={9}
             wordRadius={2}
             lineDistance={9}
-            linesPerParagraph={5}
+            linesPerParagraph={4}
+            // The library puts a 24px margin under the paragraph by default,
+            // which read as an empty band at the foot of the plate.
+            paragraphDistance={0}
           />
         )}
       </div>

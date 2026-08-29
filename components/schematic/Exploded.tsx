@@ -11,65 +11,67 @@ import { useDrawOnFirstView } from "./useDrawOnFirstView";
  * it, lifts it 4px and names it below; the leader lines tie the label column to
  * the geometry.
  *
- * Each glyph is drawn to say what that layer actually does, not to decorate it:
- * a spec sheet with a brace, a fan-out from one input to three models, a socket
- * board with one empty socket, a gauge whose needle sits in the pass band, and
- * a plug going into a keyed port. They are projected into the same isometric as
- * the slab they sit on, with a non-scaling 1px stroke, so each reads as printed
- * on the surface rather than dropped over it.
+ * Each glyph is a technical symbol for what that layer does, not decoration: a
+ * spec page carrying a brace pair, a multiplexer fanning one input to three
+ * models, an integrated circuit with pins, runs measured against a threshold
+ * with a pass tick, and a plug entering a socket. Drawn in a 1px non-scaling
+ * stroke so they read as printed on the slab.
  */
 const PARTS: { name: string; note: string; glyph: string[] }[] = [
   {
     name: "OpenAPI → docs",
-    note: "The API documentation portal writes itself from the OpenAPI spec, and the assistant lives inside it. One source, two readers: people and the model.",
-    // A spec sheet with a folded corner, ruled lines, and a brace pulling one
-    // line out into a second sheet: a spec generating a document.
+    note: "The API documentation portal writes itself from the OpenAPI spec, and the assistant lives inside it. One source, two readers: a person and a model.",
+    // A page with a brace pair on it. Braces are what a spec looks like, and a
+    // page is what comes out, so the symbol is the sentence.
     glyph: [
-      "M-9 -9 H1 L5 -5 V7 H-9 Z",
-      "M1 -9 V-5 H5",
-      "M-6 -2 H2 M-6 1 H2 M-6 4 H-1",
-      "M7 -4 Q9 -1 7 1 Q9 3 7 6",
+      "M-11 -13 H5 L11 -7 V13 H-11 Z",
+      "M5 -13 V-7 H11",
+      "M-5 -3 Q-8 -3 -8 0 Q-8 3 -5 3",
+      "M4 -3 Q7 -3 7 0 Q7 3 4 3",
+      "M-1 0 H1",
     ],
   },
   {
     name: "model router",
     note: "One question in, one model out. The router reads what is being asked and sends it to the model that should answer it, so nothing costs more than it needs to.",
-    // One line in, a node, three lines out at different angles.
+    // A multiplexer: one line in, a decision node, three lines out.
     glyph: [
-      "M-11 0 H-3",
-      "M-3 0 A2.4 2.4 0 1 0 1.8 0 A2.4 2.4 0 1 0 -3 0",
-      "M2 -1.6 L10 -7 M2 0 H10 M2 1.6 L10 7",
+      "M-14 0 H-5",
+      "M-5 0 A3 3 0 1 0 1 0 A3 3 0 1 0 -5 0",
+      "M1 0 H5 L14 -9",
+      "M5 0 H14",
+      "M1 0 H5 L14 9",
     ],
   },
   {
     name: "tools + skills",
-    note: "The layer that goes and gets things: it reads Tracxn records on the assistant's behalf, and each skill is a separate, testable unit rather than one large prompt.",
-    // A socket board: three filled sockets and one empty, being added to.
+    note: "The layer that goes and gets things. It reads Tracxn records on the assistant's behalf, and every skill is a separate testable unit rather than one enormous prompt.",
+    // An integrated circuit: a body with pins. A skill is a part you can pull
+    // out and test on its own, which is the whole point of the layer.
     glyph: [
-      "M-10 -8 H10 V8 H-10 Z",
-      "M-7 -5 H-3 V-1 H-7 Z",
-      "M-1 -5 H3 V-1 H-1 Z",
-      "M-7 1 H-3 V5 H-7 Z",
-      "M3 3 H7 M5 1 V5",
+      "M-9 -8 H9 V8 H-9 Z",
+      "M-9 -4 H-14 M-9 0 H-14 M-9 4 H-14",
+      "M9 -4 H14 M9 0 H14 M9 4 H14",
+      "M-4 -3 H4 M-4 1 H1",
     ],
   },
   {
     name: "eval harness",
     note: "Every prompt is versioned, and a version only ships when the evals pass. The logs are complete enough to answer, later, why a given answer came out the way it did.",
-    // A dial with a marked pass band and the needle inside it.
+    // Runs measured against a threshold, and a tick for the gate. Three clear
+    // it, one does not, which is what an eval suite actually looks like.
     glyph: [
-      "M-9 4 A9 9 0 0 1 9 4",
-      "M-6.4 -2.4 L-4.9 -1 M0 -5.4 V-3.4 M6.4 -2.4 L4.9 -1",
-      "M2.2 -4.6 A7 7 0 0 1 6.6 -0.6",
-      "M0 4 L4.4 -1.6",
-      "M1.4 4 A1.4 1.4 0 1 0 -1.4 4 A1.4 1.4 0 1 0 1.4 4",
+      "M-14 6 H14",
+      "M-14 -3 H6",
+      "M-11 6 V-1 M-6 6 V-6 M-1 6 V2 M4 6 V-5",
+      "M8 -6 L11 -3 L15 -10",
     ],
   },
   {
     name: "MCP server",
     note: "Read-only connectors behind OAuth, added after launch, so a coding client can reach the API without anyone pasting a key. The team co-owns it now.",
-    // A plug with two pins entering a keyed port.
-    glyph: ["M-6 -1 H6 V6 H-6 Z", "M-3 -1 V-8 M3 -1 V-8", "M0 6 V10", "M-9 10 H9"],
+    // A plug entering a socket.
+    glyph: ["M-14 -6 H-2 V6 H-14 Z", "M-2 -3 H3 M-2 3 H3", "M3 -7 H10 V7 H3 Z", "M10 0 H14"],
   },
 ];
 
@@ -139,9 +141,23 @@ export function Exploded() {
                   />
                   <polygon points={top} pathLength="1" />
                   <polygon className="hatch" points={top} />
+                  {/* Projected onto the slab's own plane, so each symbol lies
+                      on the face rather than being pasted over it.
+
+                      The matrix is the slab's geometry, not a guess: the top
+                      face runs 95 across and 27 down, so its two axes are
+                      (95, 27) and (-95, 27) normalised, which is (1, .284) and
+                      (-1, .284). Scaled 2.2x because a symbol foreshortened
+                      into that plane loses most of its apparent height.
+
+                      The symbols themselves had to be redrawn for it. The first
+                      set was too finely detailed to survive the shear and the
+                      strokes collapsed into each other; these are five strokes
+                      each, spaced wide enough that the projection cannot close
+                      them up. */}
                   <g
                     className="glyph"
-                    transform={`translate(${CX} ${y + 27}) matrix(1.8 .5 -1.8 .5 0 0)`}
+                    transform={`translate(${CX} ${y + 27}) matrix(2.2 .625 -2.2 .625 0 0)`}
                   >
                     {p.glyph.map((d) => (
                       <path key={d} d={d} pathLength="1" />

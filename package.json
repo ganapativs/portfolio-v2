@@ -34,6 +34,7 @@
     "@microcharts/react": "^0.11.0",
     "@next/mdx": "^16.2.12",
     "@types/mdx": "^2.0.14",
+    "glimm": "^0.3.0",
     "medium-zoom": "^1.1.0",
     "next": "16.2.12",
     "react": "19.2.8",

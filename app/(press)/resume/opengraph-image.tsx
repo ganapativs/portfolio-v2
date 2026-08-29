@@ -7,7 +7,7 @@ export const contentType = OG_CONTENT_TYPE;
 export default async function Image() {
   return renderOG({
     eyebrow: "résumé",
-    title: "Engineer turned VP. Eleven years, one place. Printable.",
+    title: "Intern to VP of Technology. Twelve years. Printable.",
     accent: "dustblue",
   });
 }

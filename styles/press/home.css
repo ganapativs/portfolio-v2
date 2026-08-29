@@ -128,6 +128,19 @@
   }
 }
 
+/* Annotations on a drawing are furniture, not copy. Dragging across a figure
+   should not select "12 yrs experience" and "56 x 56 halftone" along with the
+   sentence beside it, and selection colour does not reliably reach SVG glyphs
+   anyway. Every real string in these figures also exists as an accessible name
+   or a caption, so nothing is lost to a screen reader or to the clipboard. */
+.fig svg,
+.xp svg,
+.sgbfig,
+.specimens svg {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
 /* ---- the figure grids ---------------------------------------------------- */
 
 .mechs {
@@ -457,25 +470,36 @@
 .specimens {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px;
+  gap: 18px 12px;
   margin-top: 18px;
   padding-top: 16px;
   border-top: 1px solid var(--rule-3);
 }
+@media (max-width: 640px) {
+  .specimens {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
 .spec {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  align-items: center;
+  gap: 7px;
   min-width: 0;
 }
-/* A fixed sample box. The eight components have genuinely different intrinsic
-   sizes — a donut is 20px square, a bullet is a 72px rule — so the tray gives
-   each the same plate to sit on and lets them find their own size inside it,
-   rather than stretching any of them to match. */
+/* One plate, the same for all eight. The components have genuinely different
+   intrinsic sizes — a donut is 30px square, a bullet is a wide rule — so each
+   finds its own size centred inside a fixed box rather than being stretched to
+   match its neighbours, and the labels under them land on one line.
+
+   Fixed height, not min-height: the tray draws a different eight on mount, and
+   a box that measured its contents would jump as they swapped. */
 .spec-chart {
   display: flex;
   align-items: center;
-  min-height: 26px;
+  justify-content: center;
+  width: 100%;
+  height: 38px;
   overflow: hidden;
   color: var(--accent);
 }
@@ -483,21 +507,137 @@
   max-width: 100%;
 }
 .spec .lbl {
+  max-width: 100%;
   font-family: var(--f-mono);
   font-size: 9.5px;
   color: var(--ink-3);
   letter-spacing: 0.04em;
+  text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.specs-note {
+.specs-foot {
   grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 2px;
+}
+.specs-note {
   font-family: var(--f-mono);
   font-size: 9.5px;
   color: var(--ink-3);
   letter-spacing: 0.04em;
-  margin-top: 2px;
+}
+
+/* ---- fig. 3 · sgb, in general arrangement -------------------------------- */
+
+.sgbfig {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 14px;
+  overflow: visible;
+}
+.sgb-tile {
+  fill: none;
+  stroke: var(--rule-2);
+  stroke-width: 1;
+  transition: stroke var(--dur-fast) var(--ease-out);
+}
+.sgb-grid[data-on="true"] .sgb-tile {
+  stroke: var(--accent);
+}
+/* The one tile the detail was taken from, marked heavier than its neighbours,
+   the way a drawing rings the region it enlarges. */
+.sgb-pick {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.5;
+}
+.sgb-ldr {
+  fill: none;
+  stroke: var(--rule-2);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+.sgb-frame {
+  fill: none;
+  stroke: var(--rule-2);
+  stroke-width: 1;
+}
+.sgb-rule {
+  stroke: var(--rule);
+  stroke-width: 1;
+}
+.sgb-t {
+  font-family: var(--f-mono);
+  font-size: 8px;
+  fill: var(--ink);
+}
+.sgb-dim {
+  fill: var(--ink-3);
+  font-size: 7px;
+}
+.sgb-bar {
+  fill: var(--accent);
+  stroke: none;
+  transition: opacity var(--dur-fast) var(--ease-out);
+  opacity: 0.55;
+}
+/* A transparent target over each region, so the whole area answers the pointer
+   rather than only the 1px strokes inside it. `pointer-events` is explicit
+   because a `fill: transparent` shape is still hit-tested but a sibling rule
+   setting `fill: none` on the same element would not be. */
+.sgb-hitbox {
+  fill: transparent;
+  stroke: none;
+  pointer-events: all;
+}
+.sgb-hit {
+  cursor: pointer;
+}
+/* Only the hitboxes take the pointer. Letting the 1px strokes take it too meant
+   the pointer left the group every time it crossed the gap between two tiles. */
+.sgbfig .sgb-tile,
+.sgbfig .sgb-frame,
+.sgbfig .sgb-rule,
+.sgbfig .sgb-ldr,
+.sgbfig .sgb-pick,
+.sgbfig .sgb-bar,
+.sgbfig .sgb-t {
+  pointer-events: none;
+}
+.sgb-hit[data-on="true"] .sgb-t {
+  fill: var(--accent);
+}
+.sgb-hit[data-on="true"] .sgb-bar {
+  opacity: 1;
+}
+.sgbfig.willdraw .sgb-tile,
+.sgbfig.willdraw .sgb-ldr,
+.sgbfig.willdraw .sgb-pick,
+.sgbfig.willdraw .sgb-frame,
+.sgbfig.willdraw .sgb-rule {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+.sgbfig.willdraw[data-drawn="true"] .sgb-tile,
+.sgbfig.willdraw[data-drawn="true"] .sgb-ldr,
+.sgbfig.willdraw[data-drawn="true"] .sgb-pick,
+.sgbfig.willdraw[data-drawn="true"] .sgb-frame,
+.sgbfig.willdraw[data-drawn="true"] .sgb-rule {
+  transition: stroke-dashoffset 420ms var(--ease-out);
+  stroke-dashoffset: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sgbfig.willdraw :is(.sgb-tile, .sgb-ldr, .sgb-pick, .sgb-rule, .sgb-frame) {
+    stroke-dasharray: none;
+    stroke-dashoffset: 0;
+  }
 }
 
 /* ---- fig. 4 · react-spectrum, running ------------------------------------ */
@@ -509,8 +649,8 @@
    (it picks its widths at random, so it cannot be server-rendered) and a box
    that grew when it arrived would shift everything under it. */
 .spectrum-stage {
-  min-height: 90px;
-  padding: 14px 16px;
+  min-height: 74px;
+  padding: 14px 16px 5px;
   border: 1px solid var(--rule-3);
   background: var(--sunk);
   overflow: hidden;

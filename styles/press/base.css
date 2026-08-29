@@ -65,9 +65,18 @@ button {
   outline-offset: 3px;
   border-radius: var(--r-chip);
 }
+/* A selection is a mark on the sheet, so it prints as one: the live ink, with
+   the ground showing through the type. Both pairs clear AA in both themes.
+
+   `fill` is here because of SVG. Inside an <svg> the glyphs are painted with
+   `fill`, not `color`, so a selection that only set `color` left drawn text
+   sitting on an amber slab in whatever colour it already was. Firefox is the
+   only engine that honours it, which is why the drawings opt out of selection
+   entirely below. */
 ::selection {
   background: var(--accent);
   color: var(--paper);
+  fill: var(--paper);
 }
 img,
 svg {

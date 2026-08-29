@@ -1,16 +1,35 @@
 "use client";
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { DEFAULT_INK, INKS, STORAGE_KEYS, isInkId, type InkId } from "@/lib/ink";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import {
+  DEFAULT_INK,
+  INK_HEX,
+  INK_HEX_DARK,
+  INKS,
+  STORAGE_KEYS,
+  isInkId,
+  type InkId,
+} from "@/lib/ink";
 import { useFX } from "@/components/providers/FXProvider";
-import { withViewTransition, type RecolorOrigin } from "@/lib/vt";
+import { useGlimm } from "glimm/react";
+import { accentPair } from "glimm";
+import { sweepApply } from "@/lib/sweep";
 import { track } from "@/lib/analytics";
 
 /** Which surface the pick came from. Today there is one: the header tray. */
 export type InkVia = "tray" | "key";
+type Origin = { x: number; y: number } | null;
 
 type Ctx = {
   ink: InkId;
-  setInk: (id: InkId, origin?: RecolorOrigin, via?: InkVia) => void;
+  setInk: (id: InkId, origin?: Origin, via?: InkVia) => void;
   cycleInk: (dir?: 1 | -1) => void;
   inks: typeof INKS;
 };
@@ -34,39 +53,53 @@ function readInk(): InkId {
 export function InkProvider({ children }: { children: React.ReactNode }) {
   const [ink, setInkState] = useState<InkId>(DEFAULT_INK);
   const [hydrated, setHydrated] = useState(false);
+  // The ink that is currently painted, so the sweep band can be a real
+  // transition from the old ink to the new one rather than a flat wash of the
+  // destination. Held in a ref: the effect below needs the previous value at
+  // the moment the new one lands.
+  const painted = useRef<InkId>(DEFAULT_INK);
   // The origin of the pick that produced the ink now in state, held next to it
-  // so the sync effect below knows whether to open an iris or let the tokens
-  // tween. Kept in state rather than a ref: two picks of the same swatch in a
-  // row are the same `ink` value, and a ref would leave the second one holding
-  // the first one's origin.
-  const [origin, setOrigin] = useState<RecolorOrigin>(null);
+  // so the sync effect knows whether a pointer or a key did it. In state rather
+  // than a ref because two picks of the same swatch are the same `ink` value,
+  // and a ref would leave the second one holding the first one's origin.
+  const [origin, setOrigin] = useState<Origin>(null);
+  const { sweep } = useGlimm();
 
   useEffect(() => {
-    setInkState(readInk());
+    const initial = readInk();
+    painted.current = initial;
+    setInkState(initial);
     setHydrated(true);
   }, []);
 
-  // Two ways an ink arrives, and they are deliberately different.
+  // Both palette changes on this site are carried by the same glimm band, so an
+  // ink pick and a paper flip read as the same kind of event. The band is
+  // painted from the ink being replaced to the ink replacing it, which makes
+  // the sweep itself the interpolation rather than something laid over one.
   //
-  // Picked with a pointer: the iris opens from the swatch, exactly as the theme
-  // toggle does. The reader pressed a specific place on the page, so the change
-  // comes from that place. lib/vt.ts kills the token transition for the length
-  // of the reveal, so the ink is already the new one behind the wipe.
-  //
-  // Picked from the keyboard (1-6): no iris, because there is no point on the
-  // page to open one from. The registered --accent property interpolates over
-  // 340ms instead and the whole drawing re-inks in place.
+  // A keyboard pick sweeps top to bottom instead of left to right. There is no
+  // point on the page behind a number key, and saying so with the axis is
+  // better than a wipe that pretends to start somewhere.
   useEffect(() => {
     if (!hydrated) return;
+    const from: InkId = painted.current;
+    painted.current = ink;
     const write = () => {
       document.documentElement.dataset.ink = ink;
     };
-    if (origin) withViewTransition(write, origin);
-    else write();
+    if (from === ink) write();
+    else {
+      const dark = document.documentElement.dataset.theme === "dark";
+      const hex = dark ? INK_HEX_DARK : INK_HEX;
+      sweepApply(sweep, write, {
+        palette: accentPair(hex[from], hex[ink]),
+        direction: origin ? "ltr" : "ttb",
+      });
+    }
     try {
       localStorage.setItem(STORAGE_KEYS.ink, ink);
     } catch {}
-  }, [ink, origin, hydrated]);
+  }, [ink, origin, hydrated, sweep]);
 
   const fx = useFX();
 
@@ -74,7 +107,7 @@ export function InkProvider({ children }: { children: React.ReactNode }) {
   // setState has to be pure — React is free to call it more than once, and
   // during a render — so a beep in there fires at unpredictable times.
   const setInk = useCallback(
-    (id: InkId, from: RecolorOrigin = null, via: InkVia = "tray") => {
+    (id: InkId, from: Origin = null, via: InkVia = "tray") => {
       if (id !== ink) {
         // Six inks, six pitches, rising with the tray order. Playing the picker
         // left to right plays a scale, which is the point.
