@@ -139,10 +139,15 @@ app/
 components/
   schematic/         The design. Sheet, Header, Ruler, DitherField, TitleBlock, PageFX, Mark,
                      Portrait, Exploded, Loupe, Specimens, SpectrumDemo, SgbFigure, Career,
-                     PartsList, Pipeline, CopyEmail, Socials, EssayShell, PrintCV,
-                     useDrawOnFirstView
+                     PartsList, Pipeline, CopyEmail, Socials, EssayShell, PrintCV, and three
+                     hooks: useDrawOnFirstView, useCoarsePointer, useReducedMotion
+                     (which also exports `approach`, the frame-rate-independent lerp every
+                     eased follow on the site uses — see "Motion" below)
   providers/         SweepProvider, ThemeProvider, FXProvider, InkProvider
-  shortcuts/         ShortcutProvider, HintLayer, ShortcutHelp, KeyGlyph, useShortcut, shortcuts.css
+  shortcuts/         ShortcutProvider, HintLayer, KeyGlyph, useShortcut, shortcuts.css, and
+                     ShortcutHelp — a gate whose only job is to next/dynamic the real sheet
+                     in ShortcutHelpSheet.tsx. @base-ui/react/dialog is 25 kB gzipped, which
+                     was 14% of every page's JS for a panel most readers never open.
   mdx/               CanIUse, CodeBlock, Iframe, ZoomImage (+ mdx/microcharts/ demos)
   Analytics, WebVitals
 mdx-components.tsx   Required by @next/mdx — maps pre→CodeBlock, img→ZoomImage, external links
@@ -678,6 +683,31 @@ The home page carries the project and employment schemas because it absorbed
 `/about` and `/work`. `ItemList` earns its place: "55 public repos" is a number
 in a sentence, whereas the list names four repositories in a form an answer
 engine can cite.
+
+## Bundle shape, and one framework leak
+
+Three of the home page's figures are behind `next/dynamic` in
+`app/(press)/page.tsx`: the specimen tray (25 static chart builds so a shuffle
+can pick eight), the pipeline, and the loupe. `ssr` stays ON for all three.
+Specimens renders a fixed first eight on the server before it reshuffles, the
+pipeline's server markup IS its no-flash guarantee (the sketch state in the
+markup equals the state the JS initialises to), and the loupe's sentence is
+content.
+
+The reason they are split is a Next 16 behaviour worth knowing about. The
+`next/link` client module is recorded in each route's
+`page_client-reference-manifest.js` against the HOME page's chunk group, so
+every route that renders a `<Link>` — which is every route, via the header —
+emits the home page's script tags. Measured before the split: `/resume`
+downloaded and executed 60 kB gzipped of home-page chunks and rendered none of
+them, and a blog post containing zero charts shipped the whole chart library.
+Splitting the figures does not fix the leak; it makes the leak cheap. If you add
+a heavy client component to the home page, put it behind `next/dynamic` too, or
+every other route pays for it.
+
+Measured first-load JS, gzip, excluding the `noModule` polyfill nothing at the
+browserslist floor fetches: `/` 216 kB, `/blog` 159 kB, `/resume` 218 kB, a
+blog post 223 kB.
 
 ## What NOT to do
 

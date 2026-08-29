@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { approach, useReducedMotion } from "./useReducedMotion";
 
 /**
@@ -12,7 +12,9 @@ import { approach, useReducedMotion } from "./useReducedMotion";
  * 5% ink on paper, 6% light on graphite.
  *
  * Everything here is a cost decision:
- *   - fine pointers only. There is no cursor on a phone to light anything.
+ *   - fine pointers only, and the canvas is not rendered at all otherwise: it
+ *     is fixed to the viewport at a clamped DPR of 2, so it costs ~20MB of
+ *     backing store whether or not a single frame is ever drawn.
  *   - DPR clamped to 2. A 3× field is four times the fill for no visible gain.
  *   - the loop stops itself the moment the blob has caught up with the pointer
  *     and stopped fading, so a still hand costs nothing.
@@ -21,6 +23,19 @@ import { approach, useReducedMotion } from "./useReducedMotion";
 export function DitherField() {
   const ref = useRef<HTMLCanvasElement>(null);
   const reduced = useReducedMotion();
+  // There is no cursor on a phone to light anything, and the canvas is a real
+  // cost even when the loop never runs: fixed to the viewport at a clamped DPR
+  // of 2, it is 2880x1800 on a laptop, which is about 20MB of backing store
+  // allocated on every route. Rendered only where it can do something.
+  const [fine, setFine] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(pointer: fine)");
+    setFine(mq.matches);
+    const onChange = (e: MediaQueryListEvent) => setFine(e.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
 
   useEffect(() => {
     const cv = ref.current;
@@ -38,7 +53,6 @@ export function DitherField() {
     ].map((r) => r.map((v) => (v + 0.5) / 16));
     const CELL = 4;
     const DOT = 2;
-    const fine = window.matchMedia("(pointer: fine)");
 
     let W = 0;
     let H = 0;
@@ -133,7 +147,6 @@ export function DitherField() {
     };
 
     const onMove = (e: PointerEvent) => {
-      if (!fine.matches) return;
       px = e.clientX;
       py = e.clientY;
       wake();
@@ -175,7 +188,8 @@ export function DitherField() {
       document.removeEventListener("visibilitychange", onVis);
       window.removeEventListener("resize", onResize);
     };
-  }, [reduced]);
+  }, [reduced, fine]);
 
+  if (!fine) return null;
   return <canvas ref={ref} className="dither" aria-hidden="true" />;
 }

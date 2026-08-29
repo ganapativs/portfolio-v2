@@ -464,14 +464,21 @@ export function Portrait() {
     <figure className="fig" data-drawn={drawn ? "true" : undefined}>
       {/* eslint-disable-next-line @next/next/no-img-element -- the canvas samples
           this element directly, so it has to be the raw file rather than a
-          generated srcset the sampler cannot predict. 21 kB, one request. */}
+          generated srcset the sampler cannot predict. 21 kB, one request.
+
+          280x280 is the file's real intrinsic size, and it is under-resolved
+          for the 258 CSS-px box it fills on a 2x display. It is soft for the
+          moment before the halftone draws, and for a crawler or a reader with
+          no JavaScript, who never see anything else. Re-exporting the source
+          at 560 would fix it; the halftone samples down to 56x56 either way,
+          so nothing else on the page would change. */}
       <img
         ref={imgRef}
         className="fig-photo"
         src="/portrait/ganapativs.webp"
         alt="Ganapati V S"
-        width={512}
-        height={512}
+        width={280}
+        height={280}
         decoding="async"
       />
       <canvas ref={cvRef} role="img" aria-label="Halftone portrait of Ganapati V S" />

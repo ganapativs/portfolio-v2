@@ -1,16 +1,35 @@
 import type { Metadata } from "next";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Career } from "@/components/schematic/Career";
 import { CopyEmail } from "@/components/schematic/CopyEmail";
 import { Exploded } from "@/components/schematic/Exploded";
-import { Loupe } from "@/components/schematic/Loupe";
 import { PartsList } from "@/components/schematic/PartsList";
-import { Pipeline } from "@/components/schematic/Pipeline";
 import { Portrait } from "@/components/schematic/Portrait";
 import { SgbFigure } from "@/components/schematic/SgbFigure";
 import { Socials } from "@/components/schematic/Socials";
-import { Specimens } from "@/components/schematic/Specimens";
 import { SpectrumDemo } from "@/components/schematic/SpectrumDemo";
+
+/**
+ * The three heavy figures load as their own chunks.
+ *
+ * Between them the specimen tray (25 static chart builds so a shuffle can pick
+ * eight), the pipeline and the loupe were 60 kB gzipped in this route's chunk
+ * group. Next records `next/link`'s client module against that group, so every
+ * other route that renders a Link pulled the whole thing in: /resume was
+ * downloading and executing all of it and rendering none of it, and a blog post
+ * with no charts in it was shipping the entire chart library.
+ *
+ * `ssr` stays on for all three. Specimens renders a fixed first eight on the
+ * server before it reshuffles, the pipeline's server markup IS its no-flash
+ * guarantee (the sketch state in the markup equals the state the JS
+ * initialises to), and the loupe's sentence is content.
+ */
+const Loupe = dynamic(() => import("@/components/schematic/Loupe").then((m) => m.Loupe));
+const Pipeline = dynamic(() => import("@/components/schematic/Pipeline").then((m) => m.Pipeline));
+const Specimens = dynamic(() =>
+  import("@/components/schematic/Specimens").then((m) => m.Specimens),
+);
 import { published } from "@/lib/posts";
 import { speaking } from "@/lib/resume";
 import {

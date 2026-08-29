@@ -401,6 +401,10 @@ export function Pipeline() {
       window.removeEventListener("resize", onResize);
       cancelAnimationFrame(raf.current);
       cancelAnimationFrame(auto.current);
+      // The pen handles' spring home is the third loop in this component and
+      // was the one not cancelled here: it survived unmount for up to 320ms,
+      // calling renderCurve() against detached refs.
+      cancelAnimationFrame(bendRaf.current);
       window.clearTimeout(pulseTid.current);
     };
   }, [build, render, renderCurve]);

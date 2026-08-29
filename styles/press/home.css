@@ -699,11 +699,17 @@
 .spectrum {
   margin-top: 14px;
 }
-/* The height is reserved, not measured. The library draws on the client only
-   (it picks its widths at random, so it cannot be server-rendered) and a box
-   that grew when it arrived would shift everything under it. */
+/* The height is reserved, not measured. The library draws on the client only —
+   it picks its widths at random, so it cannot be server-rendered — and a box
+   that grew when it arrived would shift everything under it.
+
+   147px is the measured height of what it actually draws: four lines at
+   `wordHeight` 9 plus `lineDistance` 9, the 14/5 padding and a 1px border. The
+   reserve used to be 74, which is half, and the box doubled at hydration. It
+   scored no CLS only because it sits below the fold, which is luck rather than
+   design. If `linesPerParagraph` changes, this changes with it. */
 .spectrum-stage {
-  min-height: 74px;
+  min-height: 147px;
   padding: 14px 16px 5px;
   border: 1px solid var(--rule-3);
   background: var(--sunk);

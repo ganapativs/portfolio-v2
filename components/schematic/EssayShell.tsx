@@ -77,7 +77,8 @@ export function EssayShell({ post, children }: { post: Post; children: React.Rea
             priority
             fetchPriority="high"
             quality={70}
-            sizes="(min-width: 800px) 760px, 100vw"
+            // 834px, not 760: the cover deliberately bleeds wider than the prose measure.
+            sizes="(min-width: 940px) 834px, 100vw"
           />
         </div>
       )}
