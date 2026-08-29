@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef } from "react";
+import { approach, useReducedMotion } from "./useReducedMotion";
 
 /**
  * The light under the hand.
@@ -19,11 +20,11 @@ import { useEffect, useRef } from "react";
  */
 export function DitherField() {
   const ref = useRef<HTMLCanvasElement>(null);
+  const reduced = useReducedMotion();
 
   useEffect(() => {
     const cv = ref.current;
     if (!cv) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const c = cv.getContext("2d");
     if (!c) return;
 
@@ -50,6 +51,7 @@ export function DitherField() {
     let cy = -9999;
     let a = 0;
     let raf = 0;
+    let last = 0;
 
     const draw = () => {
       c.clearRect(0, 0, W, H);
@@ -90,26 +92,44 @@ export function DitherField() {
       draw();
     };
 
-    const frame = () => {
+    const frame = (now: number) => {
       raf = requestAnimationFrame(frame);
+      // Reduced motion arriving mid-session: clear and stop, rather than
+      // carrying on because the preference was false when this mounted.
+      if (reduced.current) {
+        a = 0;
+        draw();
+        cancelAnimationFrame(raf);
+        raf = 0;
+        last = 0;
+        return;
+      }
+      // Clamped: a backgrounded tab hands back a multi-second delta.
+      const dt = Math.min(now - (last || now - 16.667), 50);
+      last = now;
       if (cx < -999) {
         cx = px;
         cy = py;
       }
-      cx += (px - cx) * 0.1;
-      cy += (py - cy) * 0.1;
+      // Time-scaled. The gap between the light's speed and the pointer's is
+      // the whole feel of it, and an unscaled per-frame decay halves that gap
+      // on a 120Hz display.
+      const k = approach(0.1, dt);
+      cx += (px - cx) * k;
+      cy += (py - cy) * k;
       const t = px > -999 ? 1 : 0;
-      a += (t - a) * 0.08;
+      a += (t - a) * approach(0.08, dt);
       draw();
       if (Math.abs(px - cx) < 0.5 && Math.abs(py - cy) < 0.5 && Math.abs(t - a) < 0.01) {
         a = t;
         if (t === 0) draw();
         cancelAnimationFrame(raf);
         raf = 0;
+        last = 0;
       }
     };
     const wake = () => {
-      if (!raf && !document.hidden) raf = requestAnimationFrame(frame);
+      if (!raf && !document.hidden && !reduced.current) raf = requestAnimationFrame(frame);
     };
 
     const onMove = (e: PointerEvent) => {
@@ -155,7 +175,7 @@ export function DitherField() {
       document.removeEventListener("visibilitychange", onVis);
       window.removeEventListener("resize", onResize);
     };
-  }, []);
+  }, [reduced]);
 
   return <canvas ref={ref} className="dither" aria-hidden="true" />;
 }

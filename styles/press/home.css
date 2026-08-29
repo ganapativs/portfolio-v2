@@ -217,7 +217,7 @@
 }
 .xp .slab {
   cursor: pointer;
-  transition: transform var(--dur-base) var(--ease-out);
+  transition: transform var(--dur-fast) var(--ease-out);
 }
 .xp .slab polygon {
   fill: var(--raise);
@@ -232,7 +232,7 @@
   fill: url(#hatchP);
   stroke: none;
   opacity: 0;
-  transition: opacity var(--dur-base) var(--ease-out);
+  transition: opacity var(--dur-fast) var(--ease-out);
 }
 .xp .slab[data-on="true"] {
   transform: translateY(-4px);
@@ -436,6 +436,25 @@
   transition:
     transform var(--dur-base) var(--ease-out),
     width var(--dur-base) var(--ease-out);
+}
+/* The contents cross-fade against the lens's travel: out at once, back at
+   130ms, which is half the lens's journey. The box used to re-render
+   instantly, so the enlarged word was already the new word before the lens had
+   left the old one, which is backwards for a callout whose whole grammar is
+   "this box shows THAT place". */
+.lp-detail > * {
+  animation: lp-swap var(--dur-base) var(--ease-out);
+}
+@keyframes lp-swap {
+  0% {
+    opacity: 0;
+  }
+  45% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 .lp-detail {
   margin-top: 18px;
@@ -722,7 +741,7 @@
   z-index: -1;
   transform: scaleX(0);
   transform-origin: left;
-  transition: transform var(--dur-base) var(--ease-out);
+  transition: transform var(--dur-fast) var(--ease-out);
 }
 .bttn-demo:hover,
 .bttn-demo:focus-visible {
@@ -836,6 +855,10 @@
   top: 140px;
   height: 10px;
   border-bottom: 1px solid var(--rule-2);
+  /* The rule and its two witness lines are one gesture, so they move together.
+     Without this the rule flipped to the ink instantly while the end caps grew
+     over a quarter second, which read as two different things happening. */
+  transition: border-color var(--dur-fast) var(--ease-out);
 }
 .tl-brk::before,
 .tl-brk::after {
@@ -845,7 +868,9 @@
   width: 1px;
   height: 10px;
   background: var(--rule-2);
-  transition: transform var(--dur-base) var(--ease-out);
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out);
   transform-origin: bottom;
 }
 .tl-brk::before {

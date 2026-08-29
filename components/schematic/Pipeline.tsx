@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useFX } from "@/components/providers/FXProvider";
 import { CHART, STAGES, STAGE_NOTE } from "@/app/(press)/content";
 import { useCoarsePointer } from "./useCoarsePointer";
+import { useReducedMotion } from "./useReducedMotion";
 import { identity } from "@/lib/resume";
 
 const SNS = "http://www.w3.org/2000/svg";
@@ -94,6 +95,7 @@ export function Pipeline() {
     null,
   );
   const coarse = useCoarsePointer();
+  const reduced = useReducedMotion();
   const fx = useFX();
   const fxRef = useRef(fx);
   fxRef.current = fx;
@@ -191,7 +193,7 @@ export function Pipeline() {
   const springTo = useCallback(
     (d: number) => {
       cancelAnimationFrame(raf.current);
-      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      if (reduced.current) {
         t.current = d;
         render();
         return;
@@ -210,7 +212,9 @@ export function Pipeline() {
       };
       raf.current = requestAnimationFrame(step);
     },
-    [render],
+    // `reduced` is a ref from useReducedMotion and is stable for the life of
+    // the component; it is listed so the rule does not have to be silenced.
+    [render, reduced],
   );
 
   const grab = useCallback(() => {
@@ -226,8 +230,7 @@ export function Pipeline() {
       const r = innerRef.current?.getBoundingClientRect();
       if (!r) return;
       const raw = cl((clientX - r.left) / r.width, 0, 1) * 4;
-      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches)
-        t.current = Math.round(raw);
+      if (reduced.current) t.current = Math.round(raw);
       else {
         // A soft magnet near each detent: the head is still following the hand
         // exactly, but it leans toward the stage it is nearly on.
@@ -237,7 +240,7 @@ export function Pipeline() {
       }
       render();
     },
-    [render],
+    [render, reduced],
   );
 
   // ---- measured annotations -----------------------------------------------
@@ -408,7 +411,7 @@ export function Pipeline() {
   useEffect(() => {
     const fig = figRef.current;
     if (!fig) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    if (reduced.current) {
       t.current = 4;
       render();
       return;
@@ -427,7 +430,19 @@ export function Pipeline() {
           // went by faster than a reader could work out that they were stages,
           // which defeated the point of showing them unasked.
           const D = 3800;
+          // The pass is a demonstration, so it is worth nothing if nobody is
+          // watching it. It gives up the moment the tab is hidden or the
+          // preference changes, and settles on the finished card rather than
+          // freezing mid-build: a reader who scrolled past at speed comes back
+          // to something shipped, not to a half-drawn wireframe.
+          const abandon = () => {
+            auto.current = 0;
+            muted.current = false;
+            t.current = 4;
+            render();
+          };
           const step = (now: number) => {
+            if (document.hidden || reduced.current || touched.current) return abandon();
             const p = Math.min((now - t0) / D, 1);
             const e = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
             t.current = e * 4;
@@ -445,7 +460,7 @@ export function Pipeline() {
     );
     io.observe(fig);
     return () => io.disconnect();
-  }, [render]);
+  }, [render, reduced]);
 
   // ---- markup stage: dom tree ⇆ element highlight --------------------------
   const hiNode = useCallback((n: string | null) => {
@@ -527,10 +542,14 @@ export function Pipeline() {
     return [((clientX - r.left) / r.width) * 272, ((clientY - r.top) / r.height) * 64];
   };
   const springCurve = () => {
-    if (bendRaf.current) return;
+    // Restart rather than ignore. A second double-click while the handles were
+    // already springing used to be swallowed, which is the one place on the
+    // page that discarded input.
+    cancelAnimationFrame(bendRaf.current);
+    bendRaf.current = 0;
     const f1 = cur.current.c1.slice();
     const f2 = cur.current.c2.slice();
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    if (reduced.current) {
       cur.current = { c1: DEF.c1.slice(), c2: DEF.c2.slice() };
       renderCurve();
       return;
@@ -976,10 +995,22 @@ export function Pipeline() {
           try {
             e.currentTarget.setPointerCapture(e.pointerId);
           } catch {}
-          dragging.current = true;
-          e.currentTarget.dataset.dragging = "true";
           fx?.press();
-          moveTo(e.clientX);
+          // Two different gestures. A press that lands on the plumb line is a
+          // drag and tracks the hand from the first frame. A press anywhere
+          // else on the track is a jump, and a jump that crossed four stages in
+          // zero frames was the one moment the whole conceit collapsed: every
+          // weight window snapped at once and nothing read as a mechanism.
+          const head = headRef.current?.getBoundingClientRect();
+          const onHead = head && Math.abs(e.clientX - (head.left + head.width / 2)) < 14;
+          if (onHead) {
+            dragging.current = true;
+            e.currentTarget.dataset.dragging = "true";
+            moveTo(e.clientX);
+          } else {
+            const r = innerRef.current?.getBoundingClientRect();
+            if (r) springTo(Math.round(cl((e.clientX - r.left) / r.width, 0, 1) * 4));
+          }
           e.preventDefault();
         }}
         onPointerMove={(e) => {
@@ -1002,8 +1033,14 @@ export function Pipeline() {
         <div className="scrub-in" ref={innerRef}>
           <span className="scrub-rail" aria-hidden="true" />
           <span className="scrub-fill" ref={fillRef} aria-hidden="true" />
-          {[0, 25, 50, 75, 100].map((p) => (
-            <span key={p} className="scrub-det" style={{ left: `${p}%` }} aria-hidden="true" />
+          {[0, 25, 50, 75, 100].map((p, i) => (
+            <span
+              key={p}
+              className="scrub-det"
+              style={{ left: `${p}%` }}
+              data-on={stage === i}
+              aria-hidden="true"
+            />
           ))}
           {STAGES.map((s, i) => (
             <span

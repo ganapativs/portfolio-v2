@@ -10,6 +10,7 @@ import { useShortcut } from "@/components/shortcuts/useShortcut";
 import { INKS, type InkId } from "@/lib/ink";
 import { track } from "@/lib/analytics";
 import { identity } from "@/lib/resume";
+import { approach, useReducedMotion } from "./useReducedMotion";
 
 /** The drawing's title, per sheet. A drawing says what it is of. */
 function drawingTitle(pathname: string): string {
@@ -278,43 +279,53 @@ function SoundToggle({ btnRef }: { btnRef: React.RefObject<HTMLButtonElement | n
 function NorthArrow() {
   const hostRef = useRef<SVGSVGElement>(null);
   const needleRef = useRef<SVGGElement>(null);
+  const reduced = useReducedMotion();
 
   useEffect(() => {
     const el = hostRef.current;
     const g = needleRef.current;
     if (!el || !g) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     if (!window.matchMedia("(pointer: fine)").matches) return;
 
     let ang = 0;
     let target = 0;
     let raf = 0;
-    const frame = () => {
+    let last = 0;
+    const frame = (now: number) => {
       raf = requestAnimationFrame(frame);
+      if (reduced.current) {
+        cancelAnimationFrame(raf);
+        raf = 0;
+        last = 0;
+        return;
+      }
+      const dt = Math.min(now - (last || now - 16.667), 50);
+      last = now;
       let d = target - ang;
       // Take the short way round, so a pointer crossing due north does not send
       // the needle the long way about.
       while (d > Math.PI) d -= 6.2832;
       while (d < -Math.PI) d += 6.2832;
-      ang += d * 0.15;
+      ang += d * approach(0.15, dt);
       g.style.transform = `rotate(${ang}rad)`;
       if (Math.abs(d) < 0.003) {
         ang = target;
         cancelAnimationFrame(raf);
         raf = 0;
+        last = 0;
       }
     };
     const onMove = (e: PointerEvent) => {
       const r = el.getBoundingClientRect();
       target = Math.atan2(e.clientX - (r.left + 9), -(e.clientY - (r.top + 9)));
-      if (!raf && !document.hidden) raf = requestAnimationFrame(frame);
+      if (!raf && !document.hidden && !reduced.current) raf = requestAnimationFrame(frame);
     };
     window.addEventListener("pointermove", onMove, { passive: true });
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("pointermove", onMove);
     };
-  }, []);
+  }, [reduced]);
 
   return (
     <svg

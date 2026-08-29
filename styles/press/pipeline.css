@@ -815,6 +815,16 @@
   height: 9px;
   background: var(--rule-2);
   margin-left: -0.5px;
+  transform-origin: center;
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+/* The detent the head is sitting on. It is the part of the control that marks
+   the position, and it was the only part that never acknowledged being at it. */
+.scrub-det[data-on="true"] {
+  background: var(--accent);
+  transform: scaleY(1.45);
 }
 .scrub-lbl {
   position: absolute;

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import { PARTS } from "@/app/(press)/content";
 
 /**
@@ -52,60 +52,16 @@ export function PartsList() {
               p.name
             )}
           </span>
-          <span className="sp">{p.stars ? <StarCount to={p.stars} label={p.spec} /> : p.spec}</span>
+          {/* The star count used to tick up from 150 below on first view. It
+              was a scroll-triggered animation with no way to interrupt it, and
+              it made a real number look uncertain for half a second on the one
+              page whose whole argument is that its numbers are checkable. */}
+          <span className="sp">
+            {p.spec.replace("{stars}", (p.stars ?? 0).toLocaleString("en-US"))}
+          </span>
           <span className="yr">{p.year}</span>
         </div>
       ))}
     </div>
-  );
-}
-
-/**
- * The one number on the page that arrives rather than being there.
- *
- * It counts the last 150 up over half a second, once, the first time it is
- * scrolled to. That is not decoration: the count is live-ish data on a page
- * whose argument is that everything on it is real, and a number that lands
- * rather than sits says "this was fetched". It renders at its true value on
- * the server and under reduced motion, so nothing depends on the animation.
- */
-function StarCount({ to, label }: { to: number; label: string }) {
-  const ref = useRef<HTMLSpanElement>(null);
-  const [n, setN] = useState(to);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    let raf = 0;
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry.isIntersecting) return;
-        io.disconnect();
-        const from = to - 150;
-        const t0 = performance.now();
-        const step = () => {
-          const p = Math.min(1, (performance.now() - t0) / 500);
-          setN(Math.round(from + (to - from) * (1 - Math.pow(1 - p, 3))));
-          if (p < 1) raf = requestAnimationFrame(step);
-        };
-        step();
-      },
-      { threshold: 0.6 },
-    );
-    io.observe(el);
-    return () => {
-      io.disconnect();
-      cancelAnimationFrame(raf);
-    };
-  }, [to]);
-
-  const [head, tail] = label.split("{stars}");
-  return (
-    <span ref={ref}>
-      {head}
-      {n.toLocaleString("en-US")}
-      {tail}
-    </span>
   );
 }

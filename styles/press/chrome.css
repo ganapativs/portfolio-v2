@@ -277,7 +277,9 @@
   transform-origin: left center;
 }
 /* The bar under the G is the one part that carries the ink, so hovering the
-   mark re-inks it: a 320ms wipe left to right, one pass of the pen. */
+   mark re-inks it: one pass of the pen, left to right. It runs at --dur-ink
+   rather than --dur-fast because it is an ink event, and the ink moves at the
+   same speed here as it does everywhere else. */
 @media (prefers-reduced-motion: no-preference) {
   .hd-brand:hover .mark-bar,
   .hd-brand:focus-visible .mark-bar {
@@ -492,7 +494,7 @@
   pointer-events: none;
   background: var(--hex-url);
   opacity: 0;
-  transition: opacity var(--dur-base) var(--ease-out);
+  transition: opacity var(--dur-fast) var(--ease-out);
 }
 .panel:hover::before,
 .panel:focus-within::before {

@@ -2,6 +2,33 @@
 import { GlimmProvider } from "glimm/react";
 
 /**
+ * cubic-bezier(.22, 1, .36, 1), the one curve the rest of the site eases on,
+ * solved for y at a given x by bisection. Twelve iterations is well past the
+ * precision a 380ms sweep can show.
+ *
+ * glimm takes an easing function as well as a name, and its named set does not
+ * contain this curve. A second easing vocabulary for one element is how a
+ * design system starts to come apart, so the curve is solved here instead.
+ */
+const bezX = (t: number) =>
+  3 * t * (1 - t) * (1 - t) * 0.22 + 3 * t * t * (1 - t) * 0.36 + t * t * t;
+const bezY = (t: number) => 3 * t * (1 - t) * (1 - t) + 3 * t * t * (1 - t) + t * t * t;
+
+function houseEase(x: number) {
+  let lo = 0;
+  let hi = 1;
+  let t = x;
+  for (let i = 0; i < 12; i++) {
+    const e = bezX(t) - x;
+    if (Math.abs(e) < 1e-4) break;
+    if (e > 0) hi = t;
+    else lo = t;
+    t = (lo + hi) / 2;
+  }
+  return bezY(t);
+}
+
+/**
  * The sweep that carries a palette change.
  *
  * glimm draws one WebGL band across the viewport and hands you a midpoint to
@@ -36,10 +63,13 @@ import { GlimmProvider } from "glimm/react";
 export function SweepProvider({ children }: { children: React.ReactNode }) {
   return (
     <GlimmProvider
-      sweepMs={520}
-      outroMs={280}
-      midpoint={0.45}
-      easing="easeOutQuart"
+      sweepMs={380}
+      outroMs={200}
+      // The palette swaps at 0.35 of 380ms, so the ink has moved 133ms after
+      // the press. It used to be 234ms of a control that had visibly done
+      // nothing, which is a long time on the most-pressed control on the page.
+      midpoint={0.35}
+      easing={houseEase}
       direction="ltr"
       bandTight={22}
       waveAmount={0}

@@ -2,6 +2,7 @@
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useFX } from "@/components/providers/FXProvider";
+import { approach, useReducedMotion } from "./useReducedMotion";
 
 type Sec = { id: string; label: string; top: number };
 
@@ -25,6 +26,7 @@ export function Ruler() {
   const fx = useFX();
   const [secs, setSecs] = useState<Sec[]>([]);
   const [active, setActive] = useState<string | null>(null);
+  const reduced = useReducedMotion();
   const rulerRef = useRef<HTMLElement>(null);
   const travRef = useRef<HTMLSpanElement>(null);
   const progRef = useRef<HTMLSpanElement>(null);
@@ -60,9 +62,9 @@ export function Ruler() {
   useEffect(() => {
     const ruler = rulerRef.current;
     if (!ruler) return;
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let y = 0;
     let raf = 0;
+    let last = 0;
 
     const target = () => {
       const max = document.documentElement.scrollHeight - window.innerHeight;
@@ -73,15 +75,24 @@ export function Ruler() {
       if (travRef.current) travRef.current.style.transform = `translate3d(0,${ty}px,0)`;
       if (progRef.current) progRef.current.style.transform = `scaleX(${p})`;
     };
-    const frame = () => {
+    const frame = (now: number) => {
       raf = requestAnimationFrame(frame);
+      // Clamped, because a tab that was backgrounded hands back a delta of
+      // several seconds and the traveller would teleport.
+      const dt = Math.min(now - (last || now - 16.667), 50);
+      last = now;
       const t = target();
-      y += (t.y - y) * 0.12;
+      // The lag is the point: a traveller that tracked the scroll exactly would
+      // read as a progress bar. Time-scaled so that lag is 130ms on a 60Hz
+      // panel and 130ms on a 120Hz one.
+      if (reduced.current) y = t.y;
+      else y += (t.y - y) * approach(0.12, dt);
       paint(t.p, y);
       if (Math.abs(t.y - y) < 0.4) {
         y = t.y;
         cancelAnimationFrame(raf);
         raf = 0;
+        last = 0;
       }
     };
     const wake = () => {
@@ -91,7 +102,7 @@ export function Ruler() {
       const t = target();
       paint(t.p, t.y);
     };
-    const onScroll = reduced ? direct : wake;
+    const onScroll = wake;
     const onVis = () => {
       if (document.hidden) {
         cancelAnimationFrame(raf);
@@ -106,7 +117,7 @@ export function Ruler() {
       window.removeEventListener("scroll", onScroll);
       document.removeEventListener("visibilitychange", onVis);
     };
-  }, [pathname]);
+  }, [pathname, reduced]);
 
   // Which label is lit. A section counts as current once its top has passed the
   // upper third of the viewport, which is where a reader's eye actually is.
@@ -131,8 +142,7 @@ export function Ruler() {
     const el = document.getElementById(id);
     if (!el) return;
     fx?.tick();
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    el.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
+    el.scrollIntoView({ behavior: reduced.current ? "auto" : "smooth", block: "start" });
   };
 
   return (

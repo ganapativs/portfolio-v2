@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useFX } from "@/components/providers/FXProvider";
+import { useReducedMotion } from "./useReducedMotion";
 
 const COLS = 56;
 const ROWS = 56;
@@ -34,6 +35,7 @@ export function Portrait() {
   const cvRef = useRef<HTMLCanvasElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
   const [drawn, setDrawn] = useState(false);
+  const reduced = useReducedMotion();
   const fx = useFX();
   // The pluck on a poke has to reach the rAF loop without re-running the whole
   // effect every time the FX context re-renders.
@@ -48,10 +50,22 @@ export function Portrait() {
     if (!c) return;
 
     const root = document.documentElement;
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const DPR = Math.min(window.devicePixelRatio || 1, 2);
 
-    type P = { x: number; y: number; ax: number; ay: number; lum: number; d0: number };
+    // vx/vy is what makes the field a surface rather than a set of dots that
+    // move. Position-only easing cannot overshoot or ring, so a poke read as
+    // "the dots got pushed aside" rather than as a struck sheet, which is what
+    // the figure's own caption promises.
+    type P = {
+      x: number;
+      y: number;
+      vx: number;
+      vy: number;
+      ax: number;
+      ay: number;
+      lum: number;
+      d0: number;
+    };
     let W = 260;
     let cell = 0;
     let parts: P[] = [];
@@ -68,11 +82,15 @@ export function Portrait() {
     let alive = true;
     let t0 = performance.now();
     let lastT = 0;
+    let lastNow = 0;
     let recolorUntil = 0;
     let recolorTid = 0;
     const mouse = { x: -9e3, y: -9e3 };
     let ripples: { x: number; y: number; r: number; a: number }[] = [];
     let colors = { ink: "#000", accent: "#8f5c0c", dark: false };
+    // Tuned to overshoot a little and settle in about two cycles, at 60Hz.
+    const K = 0.16;
+    const DAMP = 0.34;
 
     const readColors = () => {
       const cs = getComputedStyle(root);
@@ -208,14 +226,14 @@ export function Portrait() {
           const cx = x * cell + cell / 2;
           const cy = y * cell + cell / 2;
           let d0 = 0;
-          if (!bloomed && !reduced) {
+          if (!bloomed && !reduced.current) {
             d0 = 1e9;
             for (const sd of seeds) {
               d0 = Math.min(d0, sd.start + Math.hypot(cx - sd.x, cy - sd.y) / SPREAD);
             }
             d0 += Math.random() * 0.12;
           }
-          next.push({ x: cx, y: cy, ax: cx, ay: cy, lum: lum[y * COLS + x], d0 });
+          next.push({ x: cx, y: cy, vx: 0, vy: 0, ax: cx, ay: cy, lum: lum[y * COLS + x], d0 });
         }
       }
       parts = next;
@@ -232,15 +250,30 @@ export function Portrait() {
     const loop = (now: number) => {
       if (!alive) return;
       raf = requestAnimationFrame(loop);
+      // Reduced motion turned on mid-session: settle to the finished print.
+      if (reduced.current) {
+        stopLoop();
+        return;
+      }
       const t = (now - t0) / 1000;
+      // Clamped, because a backgrounded tab hands back a multi-second delta and
+      // the spring would explode. `f` is the frame count at 60Hz that this
+      // frame represents, so every constant below stays the one it was tuned
+      // with while the physics runs at the same speed on any refresh rate.
+      const f = Math.min(Math.max((now - (lastNow || now - 16.667)) / 16.667, 0.2), 3);
+      lastNow = now;
       lastT = t;
       // getComputedStyle every frame is far too costly, but every other frame
       // for the length of an ink tween is imperceptible and keeps the dots
       // travelling with the rest of the page instead of snapping at the end.
       if (now < recolorUntil && Math.round(t * 120) % 2 === 0) readColors();
       c.clearRect(0, 0, W, W);
-      const R = 80;
+      // Both scale with the cell, so the same gesture is the same gesture at
+      // any layout width. They used to be absolute pixels, which made the shove
+      // proportionally much harder on a narrow screen.
+      const R = cell * 17;
       const R2 = R * R;
+      const PUSH = cell * 5.2;
       const inside = mouse.x > -999;
       let anyLive = false;
       for (const p of parts) {
@@ -263,32 +296,47 @@ export function Portrait() {
         let ty = p.ay;
         if (inside && d2 < R2) {
           const dd = Math.sqrt(d2) || 1;
-          const f = ((R - dd) / R) * 24;
-          tx = p.ax + (dx / dd) * f;
-          ty = p.ay + (dy / dd) * f;
+          const push = ((R - dd) / R) * PUSH;
+          tx = p.ax + (dx / dd) * push;
+          ty = p.ay + (dy / dd) * push;
         }
         for (const rp of ripples) {
           const rx = p.ax - rp.x;
           const ry = p.ay - rp.y;
           const rd = Math.sqrt(rx * rx + ry * ry) || 1;
           const band = Math.abs(rd - rp.r);
-          if (band < 26) {
-            const pw = (1 - band / 26) * rp.a * 12;
+          if (band < cell * 5.5) {
+            const pw = (1 - band / (cell * 5.5)) * rp.a * cell * 2.6;
             tx += (rx / rd) * pw;
             ty += (ry / rd) * pw;
           }
         }
-        p.x += (tx - p.x) * 0.14;
-        p.y += (ty - p.y) * 0.14;
-        if (Math.abs(p.x - p.ax) > 0.25 || Math.abs(p.y - p.ay) > 0.25) anyLive = true;
+        // A critically-ish damped spring rather than an exponential approach.
+        // Two extra floats per dot buys overshoot and ring, which is the whole
+        // difference between a bulge travelling across the field and the field
+        // having been struck.
+        p.vx += ((tx - p.x) * K - p.vx * DAMP) * f;
+        p.vy += ((ty - p.y) * K - p.vy * DAMP) * f;
+        p.x += p.vx * f;
+        p.y += p.vy * f;
+        if (
+          Math.abs(p.x - p.ax) > 0.25 ||
+          Math.abs(p.y - p.ay) > 0.25 ||
+          Math.abs(p.vx) > 0.02 ||
+          Math.abs(p.vy) > 0.02
+        ) {
+          anyLive = true;
+        }
         c.fillStyle = colorOf(p);
         c.beginPath();
         c.arc(p.x, p.y, base, 0, 6.2832);
         c.fill();
       }
       for (const rp of ripples) {
-        rp.r += 6;
-        rp.a *= 0.96;
+        // px/s and a half-life in seconds, not per-frame, so a poke travels and
+        // dies at the same rate on a 60Hz panel and a 120Hz one.
+        rp.r += cell * 1.3 * f;
+        rp.a *= Math.pow(0.96, f);
       }
       ripples = ripples.filter((rp) => rp.r < W * 1.5 && rp.a > 0.04);
       if (ripples.length) anyLive = true;
@@ -297,8 +345,9 @@ export function Portrait() {
     };
 
     function startLoop() {
-      if (!raf && alive && visible && !reduced && !document.hidden && parts.length) {
+      if (!raf && alive && visible && !reduced.current && !document.hidden && parts.length) {
         t0 = performance.now() - lastT * 1000;
+        lastNow = 0;
         raf = requestAnimationFrame(loop);
       }
     }
@@ -326,7 +375,7 @@ export function Portrait() {
       startLoop();
     };
     const onEnter = (e: PointerEvent) => {
-      if (greeted || reduced) return;
+      if (greeted || reduced.current) return;
       greeted = true;
       const p = local(e);
       ripples.push({ x: p.x, y: p.y, r: 0, a: 0.5 });
@@ -338,7 +387,7 @@ export function Portrait() {
       startLoop();
     };
     const onDown = (e: PointerEvent) => {
-      if (reduced) return;
+      if (reduced.current) return;
       const p = local(e);
       ripples.push({ x: p.x, y: p.y, r: 0, a: 1 });
       fxRef.current?.pluck(470);
@@ -355,7 +404,7 @@ export function Portrait() {
     const obs = new MutationObserver(() => {
       readColors();
       recolorUntil = performance.now() + 420;
-      if (reduced || !raf) drawStatic();
+      if (reduced.current || !raf) drawStatic();
       startLoop();
       window.clearTimeout(recolorTid);
       recolorTid = window.setTimeout(() => {
@@ -409,7 +458,7 @@ export function Portrait() {
       cv.removeEventListener("pointerleave", onLeave);
       cv.removeEventListener("pointerdown", onDown);
     };
-  }, []);
+  }, [reduced]);
 
   return (
     <figure className="fig" data-drawn={drawn ? "true" : undefined}>

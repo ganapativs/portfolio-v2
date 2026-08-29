@@ -9,9 +9,20 @@
      the sheet frame ruling itself in, once, in the first 400ms of the page
      a figure drawing its own lines the first time it comes into view
      the pipeline playing one pass through its stages the first time it is seen
+     the halftone portrait blooming in from two or three seeds, once, on load
 
-   Every one of those happens once per load and never again, and every one is
-   interruptible by touching the thing it is happening to.
+   Those four happen once per load and never again. Three of them are pure CSS
+   and cannot be interrupted, which is the honest position: they are 400-500ms
+   of a line being drawn, and there is nothing to interrupt them with. The
+   pipeline's pass is the exception that can be, and is: touching the scrubber
+   cancels it, and it abandons itself if the tab is hidden.
+
+   And one duration that is not a token at all: the palette sweep. A glimm band
+   crossing the whole sheet is 380ms plus a 200ms fade, which is longer than
+   anything else here by a factor of two. It is a full-sheet reveal rather than
+   a control responding, it happens only when the reader changes the paper or
+   the ink, and its timing lives in components/providers/SweepProvider.tsx
+   because it belongs to the library that draws it.
    ============================================================================ */
 
 @media (prefers-reduced-motion: reduce) {

@@ -83,7 +83,17 @@
 }
 /* Entrance stagger — armed until the grid scrolls into view (data-in). */
 @media (prefers-reduced-motion: no-preference) {
+  /* The scroll reveal these tiles shipped with is the one thing the motion law
+   forbids outright, so it is neutralised here rather than in the component:
+   the tiles are simply present. Overriding it in this stylesheet keeps the
+   component identical to the one in the sibling repo it came from. */
+  .mcx-wall-grid .mcx-tile,
   .mcx-wall-grid:not([data-in]) .mcx-tile {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+  .mcx-wall-grid:not([data-in]) .mcx-tile:where(.__never) {
     opacity: 0;
     transform: translateY(10px);
   }
@@ -317,7 +327,9 @@
   background: var(--accent);
   border-radius: var(--r-chip);
   margin-left: 2px;
-  animation: mcx-caret-blink 0.9s steps(2, start) infinite;
+  /* No blink. An unbounded loop is motion nobody asked for, and the caret
+     reads perfectly well as a caret standing still. */
+  animation: none;
 }
 @keyframes mcx-caret-blink {
   to {
