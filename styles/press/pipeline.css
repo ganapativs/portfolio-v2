@@ -637,6 +637,9 @@
   opacity: var(--o-live);
   transform: translateX(calc((1 - var(--o-live)) * 8px));
 }
+/* `cap-in` is declared once, in home.css, beside the caption slots. The note
+   and the computed readout use it for the same reason: they are the text that
+   changes while the reader is looking straight at it. */
 .insp-idle {
   font-family: var(--f-mono);
   font-size: 10px;

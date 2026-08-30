@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useFX } from "@/components/providers/FXProvider";
 import { ERAS, MATERIALS } from "@/app/(press)/content";
+import { Caption } from "./Caption";
 
 const Y0 = 2013;
 const YSPAN = 14;
@@ -87,12 +88,9 @@ export function Career() {
         </div>
       </div>
 
-      <div className="tl-cap" aria-live="polite">
-        <div className="cap-in" key={cur.range}>
-          <b>{cur.range}</b>
-          {cur.body}
-        </div>
-      </div>
+      <Caption className="tl-cap" itemKey={cur.range} label={cur.range}>
+        {cur.body}
+      </Caption>
 
       <p className="materials">materials in current use · {MATERIALS.join(" · ")}</p>
     </>

@@ -704,8 +704,19 @@ different ground, and the band says so.
   The projection in `Exploded.tsx` turns a horizontal into a line sloping
   down-right and a vertical into one sloping down-left. Rectangles and axis-
   parallel runs read as figures lying on the surface; free angles and curves
-  close up into mush. Two sets of symbols were lost to this before the rule was
-  written down.
+  close up into mush. Three sets of symbols were lost before the rest of the
+  rule was found: **the face has to be round enough to draw on** (190 x 80,
+  about 2.4:1 — at the 3.5:1 it started with, a square came out as a
+  46-degree rhombus and nothing survived), **four strokes is the ceiling**, and
+  **one solid fill** is the only mark that reliably singles something out after
+  the shear. Prototype glyph sets against the face before committing: a symbol
+  that reads flat tells you nothing about how it reads on the slab.
+- **Text that changes under the pointer goes through
+  `components/schematic/Caption.tsx`.** It measures both heights and animates
+  between them, because `interpolate-size: allow-keywords` is Chrome 129 and
+  Safari 26 and this site's floor is Safari 16.4. The caption slots under fig.
+  1, fig. 3 and fig. 5 all use it; the pipeline's stage note and its computed
+  readout take the `cap-in` fade alone, being single lines in a fixed box.
 - **The portrait renders a real `next/image` on the server and hides it only
   once the halftone canvas has actually drawn.** Keep it that way — a bare
   canvas has no `alt` and nothing for a crawler.

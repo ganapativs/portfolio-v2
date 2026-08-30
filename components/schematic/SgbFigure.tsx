@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useFX } from "@/components/providers/FXProvider";
+import { Caption } from "./Caption";
 import { useCoarsePointer } from "./useCoarsePointer";
 import { useDrawOnFirstView } from "./useDrawOnFirstView";
 
@@ -131,16 +132,17 @@ export function SgbFigure() {
         </g>
       </svg>
 
-      <div className="xp-cap" aria-live="polite">
-        <div className="cap-in" key={on ?? "none"}>
-          <b>{cur ? cur.label : "general arrangement"}</b>
-          {cur
-            ? cur.note
-            : coarse
-              ? "Tap a part of the interface to read what it is."
-              : "Point at a part of the interface to read what it is."}
-        </div>
-      </div>
+      <Caption
+        className="xp-cap"
+        itemKey={on ?? "none"}
+        label={cur ? cur.label : "general arrangement"}
+      >
+        {cur
+          ? cur.note
+          : coarse
+            ? "Tap a part of the interface to read what it is."
+            : "Point at a part of the interface to read what it is."}
+      </Caption>
     </>
   );
 }

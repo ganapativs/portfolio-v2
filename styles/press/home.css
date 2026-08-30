@@ -244,9 +244,9 @@
   margin-block: auto;
 }
 .xp svg {
-  width: 58%;
+  width: 62%;
   min-width: 0;
-  flex: 0 0 58%;
+  flex: 0 0 62%;
   height: auto;
   overflow: visible;
 }
@@ -294,8 +294,19 @@
   vector-effect: non-scaling-stroke;
   transition: stroke var(--dur-fast) var(--ease-out);
 }
+/* One filled mark per set, at most, and only where something has to be singled
+   out: the model the router actually picked. A solid survives the shear when
+   nothing else does. */
+.xp .slab .glyph path.solid {
+  fill: var(--ink-2);
+  stroke: none;
+  transition: fill var(--dur-fast) var(--ease-out);
+}
 .xp .slab[data-on="true"] .glyph path {
   stroke: var(--accent);
+}
+.xp .slab[data-on="true"] .glyph path.solid {
+  fill: var(--accent);
 }
 .xp-labels {
   position: relative;
@@ -339,13 +350,16 @@
 .xp-cap,
 .tl-cap {
   min-height: 44px;
-  height: auto;
   margin-top: 14px;
   padding-top: 10px;
   border-top: 1px solid var(--rule-3);
   font-size: 13.5px;
   color: var(--ink-3);
   line-height: 1.5;
+  /* The height is written in pixels by components/schematic/Caption.tsx, which
+     measures both ends. `overflow: hidden` is what keeps the longer caption
+     from spilling past the shorter box while the two are being interpolated. */
+  overflow: hidden;
   transition: height var(--dur-base) var(--ease-out);
 }
 .cap-in {

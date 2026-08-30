@@ -479,6 +479,23 @@ export function Pipeline() {
     }
   }, []);
 
+  /**
+   * Four sides down to the shortest form that still says the same thing, with
+   * the unit kept.
+   *
+   * This panel's whole claim is that it is reading the real computed style, so a
+   * row that says "0 0 0 0" is not a shorter way of writing the truth, it is a
+   * different value: 0 is a number, 0px is a length. It printed four bare
+   * numbers, and the size row printed two, and the panel quietly stopped being a
+   * readout and became a caption about one.
+   */
+  function shorthand(t: string, r: string, b: string, l: string): string {
+    if (t === r && r === b && b === l) return t;
+    if (t === b && r === l) return `${t} ${r}`;
+    if (r === l) return `${t} ${r} ${b}`;
+    return `${t} ${r} ${b} ${l}`;
+  }
+
   // ---- shipped stage: live computed reads ---------------------------------
   const inspEl = useRef<HTMLElement | null>(null);
   const hexCv = useRef<HTMLCanvasElement | null>(null);
@@ -519,13 +536,8 @@ export function Pipeline() {
           "font",
           `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily.split(",")[0].replace(/["']/g, "")}`,
         ],
-        ["size", `${Math.round(r.width)}×${Math.round(r.height)}`],
-        [
-          "padding",
-          [cs.paddingTop, cs.paddingRight, cs.paddingBottom, cs.paddingLeft]
-            .map((v) => parseFloat(v))
-            .join(" "),
-        ],
+        ["size", `${Math.round(r.width)} × ${Math.round(r.height)} px`],
+        ["padding", shorthand(cs.paddingTop, cs.paddingRight, cs.paddingBottom, cs.paddingLeft)],
         ["display", cs.display],
       ],
     });
@@ -670,7 +682,12 @@ export function Pipeline() {
     <div className="pipefig" ref={figRef} data-stage="0">
       <div className="pipe-top">
         <span className="pipe-figlbl">fig. 6 · the pipeline</span>
-        <span className="pipe-note">{STAGE_NOTE[stage]}</span>
+        {/* Keyed on the stage so it replays `cap-in`: the note is a different
+              sentence at every position, and swapped in place it reads as a
+              flicker rather than as a caption changing. */}
+        <span className="pipe-note cap-in" key={stage}>
+          {STAGE_NOTE[stage]}
+        </span>
       </div>
 
       <div className="pipe-stage" ref={stageRef}>
@@ -954,7 +971,7 @@ export function Pipeline() {
               // instead.
               <div className="insp-idle">shipped. the button, the chart and the rows all work.</div>
             ) : insp ? (
-              <div className="insp-body">
+              <div className="insp-body cap-in" key={insp.tag}>
                 <div className="insp-tag">{insp.tag}</div>
                 <div>
                   {insp.rows.map(([k, v]) => (
