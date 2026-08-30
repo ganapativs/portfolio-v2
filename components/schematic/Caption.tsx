@@ -4,11 +4,16 @@ import { useLayoutEffect, useRef } from "react";
 /**
  * A caption slot that changes what it says without flickering.
  *
- * Every figure on the sheet names the part under the pointer in a slot beneath
- * it, and those notes are different lengths: two lines for one part, four for
- * the next. Swapped in place, the slot snaps from one height to the other and
- * everything under it jumps. A reader moving along five slabs reads that as the
- * page twitching, not as a caption changing.
+ * A figure that names the part under the pointer in a slot beneath it has
+ * notes of different lengths, two lines for one part and four for the next.
+ * Swapped in place, the slot snaps from one height to the other and everything
+ * under it jumps. A reader moving along the parts reads that as the page
+ * twitching, not as a caption changing.
+ *
+ * Where the copy is yours to write, the better answer is to write the strings
+ * to the same length and let the slot be a fixed box: figs. 1 and 3 do that,
+ * see `.xp-note`. This is for the slot whose entries are dates and ranges that
+ * cannot be evened out, which is fig. 5.
  *
  * So the slot animates its own height, and the text inside crossfades.
  *
@@ -36,7 +41,7 @@ export function Caption({
   label,
   children,
 }: {
-  /** `xp-cap` on the figures, `tl-cap` on the career timeline. */
+  /** `tl-cap` on the career timeline, the only slot left that resizes. */
   className: string;
   /**
    * The slot is not a live region. It changes on hover, and a figure with five

@@ -993,7 +993,27 @@ export function Pipeline() {
                 </div>
               </div>
             ) : (
-              <div className="insp-idle">hover the card to read how it is built</div>
+              /* The schedule, ruled and unfilled.
+                 
+                 This was one sentence floating in a panel the height of a
+                 343px card, and the plate read as half empty until a pointer
+                 landed. A drawing does not leave that space blank: it rules the
+                 schedule and leaves the values to be filled in, which is what
+                 this is. The five field names are the five the readout fills,
+                 in the order it fills them, so the panel is the same shape
+                 before and after and nothing jumps when the values arrive. It
+                 states nothing it does not know. */
+              <div className="insp-idle">
+                <div className="insp-blank" aria-hidden="true">
+                  {["font", "size", "padding", "display", "color"].map((k) => (
+                    <div className="ir" key={k}>
+                      <s>{k}</s>
+                      <span className="ir-empty" />
+                    </div>
+                  ))}
+                </div>
+                <p className="insp-cue">point at a part of the card</p>
+              </div>
             )}
           </div>
         </div>

@@ -60,7 +60,16 @@
   position: relative;
   background: var(--sunk);
   border: 1px solid var(--rule-3);
-  min-height: clamp(340px, 36vw, 424px);
+  /* Flat, not a clamp on the viewport. The card is 343px and the vector and
+     token stages hang dimension anchors, a width dimension and the token wires
+     outside it, which needs 424. `clamp(340px, 36vw, 424px)` only reaches 424
+     at a 1178px viewport, so everything from the 768px layout switch up to
+     1178 was drawing those callouts into a stage 40px too short and `overflow:
+     hidden` was cutting them off, bottom and top. The stage is a sheet the
+     drawing sits on; it does not get smaller because the window did. The
+     max-width: 768px block below resets this to 0, where the side panel
+     reflows to a row and the whole arrangement is different. */
+  min-height: 424px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -209,6 +218,21 @@
   background: var(--rule);
   border-radius: var(--r-chip);
   opacity: calc((1 - var(--o-wire)) * (1 - var(--o-ink)));
+}
+/* Both highlights need a stacking position, and this is the whole bug.
+   
+   `.pipe-card > .skin` is the card's surface: absolutely positioned, opaque,
+   `z-index: auto`. Painting order puts a positioned descendant above the
+   backgrounds of its non-positioned in-flow siblings, so the skin covers the
+   background and the outline of any highlight target that is `position: static`
+   while leaving the ones that are `relative` alone. Six of the eight
+   `[data-node]` targets happen to be relative and lit up correctly; `.ui-stats`
+   and `.ui-list` are static, and hovering the two of them did nothing at all.
+   It reads as the highlight being broken for those rows specifically, which is
+   exactly what it was. Relative here is a no-op on the six that already are. */
+.ui-hi,
+.insp-hi {
+  position: relative;
 }
 .ui-hi {
   outline: 1px solid var(--accent);
@@ -484,6 +508,16 @@
 .pipefig[data-stage="4"] .ui-row:hover {
   background: var(--accent-soft);
 }
+/* The type lives here rather than on `.fill`, and that is not cosmetic.
+   
+   The shipped stage reads this element's computed style back to the reader as
+   "COMPUTED · a.primary". With the label's type declared on the `.fill` overlay
+   instead, the anchor computed to the inherited body face and the panel
+   reported `400 16px Hanken Grotesk` and `#E8E9E4` under a button that is
+   plainly 12px, 600, and set in the paper colour on an accent fill. Three of
+   its five rows were wrong about the thing being pointed at, in the one figure
+   whose entire claim is that the readout is live and true. `.fill` inherits
+   all four, so nothing moves. */
 .ui-btn {
   position: relative;
   display: block;
@@ -492,6 +526,10 @@
   margin-top: 12px;
   border-radius: var(--r-chip);
   pointer-events: none;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--paper);
 }
 .pipefig[data-stage="4"] .ui-btn {
   pointer-events: auto;
@@ -519,10 +557,6 @@
   background: var(--accent);
   border-radius: var(--r-chip);
   opacity: var(--o-ink);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  color: var(--paper);
   transition:
     filter var(--dur-fast) var(--ease-out),
     transform var(--dur-fast) var(--ease-out);
@@ -646,6 +680,25 @@
   color: var(--ink-3);
   line-height: 1.7;
   max-width: 22ch;
+}
+/* The unfilled schedule. Same `.ir` rows as the readout, so the panel holds the
+   same height and rhythm empty as it does full and nothing shifts when the
+   values arrive. The rule is dashed because that is what an unfilled field on a
+   drawing looks like. */
+.insp-blank .ir s {
+  color: var(--rule-2);
+}
+.ir-empty {
+  flex: 1;
+  min-width: 0;
+  align-self: center;
+  border-bottom: 1px dashed var(--rule-3);
+}
+.insp-cue {
+  margin: 12px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--rule-3);
+  color: var(--ink-3);
 }
 .insp-body {
   display: flex;

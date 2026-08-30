@@ -2,7 +2,6 @@
 import type { KeyboardEvent } from "react";
 import { useState } from "react";
 import { useFX } from "@/components/providers/FXProvider";
-import { Caption } from "./Caption";
 import { useCoarsePointer } from "./useCoarsePointer";
 import { useDrawOnFirstView } from "./useDrawOnFirstView";
 
@@ -23,32 +22,39 @@ const PARTS = [
   {
     id: "series",
     label: "65 series",
-    note: "Every live series on one page. The scraper reads them on a schedule and writes one JSON file.",
+    note: "Every live series on one page. A scraper reads the exchanges on a schedule and writes one JSON file to S3, which is the whole of the backend.",
   },
   {
     id: "price",
     label: "live price",
-    note: "The traded price on NSE and BSE, against the IBJA gold price for the day.",
+    note: "The traded price on NSE and BSE, set against the IBJA gold price published for that day. Both are read fresh, because a stale quote ranks the wrong series.",
   },
   {
     id: "rates",
     label: "what you earn",
-    note: "The two derived rates: effective interest rate, and effective cash flow rate. These are the numbers the coupon printed on the face value does not tell you, and the whole reason the tracker exists.",
+    note: "Two derived rates, the effective interest rate and the effective cash flow rate. The coupon on the face value tells you neither, which is why this exists.",
   },
 ] as const;
 
-export function SgbFigure({ fig }: { fig: string }) {
-  const [on, setOn] = useState<string | null>(null);
+export function SgbFigure({ fig, body }: { fig: string; body: string }) {
+  // `dir` rides with `on` because it is read during render. The three parts are
+  // in drawing order, so moving along them carries the note the same way.
+  const [{ on, dir }, setSel] = useState<{ on: string | null; dir: number }>({
+    on: null,
+    dir: 1,
+  });
   const coarse = useCoarsePointer();
   const fx = useFX();
   const { ref: svgRef, replay } = useDrawOnFirstView<SVGSVGElement>();
   const cur = PARTS.find((p) => p.id === on);
 
+  const idx = (id: string | null) => PARTS.findIndex((p) => p.id === id);
   const enter = (id: string) => {
     if (id === on) return;
-    setOn(id);
+    setSel({ on: id, dir: idx(id) > idx(on) ? 1 : -1 });
     fx?.tick();
   };
+  const leave = () => setSel({ on: null, dir: -1 });
 
   /**
    * Each named part of the drawing is a real control.
@@ -67,9 +73,9 @@ export function SgbFigure({ fig }: { fig: string }) {
     "aria-describedby": "xp-cap-sgb",
     "data-on": on === id,
     onPointerEnter: () => enter(id),
-    onPointerLeave: () => setOn(null),
+    onPointerLeave: leave,
     onFocus: () => enter(id),
-    onBlur: () => setOn(null),
+    onBlur: leave,
     onClick: () => enter(id),
     onKeyDown: (e: KeyboardEvent) => {
       if (e.key === "Enter" || e.key === " ") {
@@ -78,6 +84,10 @@ export function SgbFigure({ fig }: { fig: string }) {
       }
     },
   });
+
+  const rest = coarse
+    ? "general arrangement · tap a part"
+    : "general arrangement · point at a part";
 
   return (
     <>
@@ -90,7 +100,7 @@ export function SgbFigure({ fig }: { fig: string }) {
         className="sgbfig willdraw"
         viewBox="0 0 300 112"
         role="img"
-        aria-label="A drawing of the sgb interface: a grid of bond series, with one series card enlarged and its parts named"
+        aria-label="A drawing of the sgb interface, a grid of bond series with one series card enlarged and its parts named"
       >
         {/* The population: 65 tiles, drawn as the field the detail is taken
             from. Eight across, so the last row is deliberately short — 65 is
@@ -148,18 +158,32 @@ export function SgbFigure({ fig }: { fig: string }) {
         </g>
       </svg>
 
-      <Caption
-        className="xp-cap"
-        id="xp-cap-sgb"
-        itemKey={on ?? "none"}
-        label={cur ? cur.label : "general arrangement"}
-      >
-        {cur
-          ? cur.note
-          : coarse
-            ? "Tap a part of the interface to read what it is."
-            : "Point at a part of the interface to read what it is."}
-      </Caption>
+      {/* One note slot that never resizes, the same arrangement as fig. 1 and
+          for the same reason. This plate used to carry its copy in a paragraph
+          above the drawing and a Caption below it, and the Caption measured and
+          animated its height on every part: hovering the grid grew the block,
+          hovering the rates grew it further, and because both plates in this
+          row are grid items of one track, the react-spectrum plate beside it
+          rose and fell along with it. The copy moved into the slot as its
+          resting state, and every string the slot can hold is rendered into the
+          same grid cell so it reserves the tallest of them at any width. See
+          the longer note in Exploded.tsx. */}
+      <div className="p-body xp-note" id="xp-cap-sgb">
+        <div
+          className="cap-in"
+          key={on ?? "none"}
+          style={{ "--cap-dir": dir } as React.CSSProperties}
+        >
+          <b>{cur ? cur.label : rest}</b>
+          {cur ? cur.note : body}
+        </div>
+        {[{ b: rest, n: body }, ...PARTS.map((p) => ({ b: p.label, n: p.note }))].map((x) => (
+          <div className="xp-ghost" key={x.b} aria-hidden="true">
+            <b>{x.b}</b>
+            {x.n}
+          </div>
+        ))}
+      </div>
     </>
   );
 }

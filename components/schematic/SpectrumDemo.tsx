@@ -9,7 +9,7 @@
 // `exports` map, so pointing at it directly is legal and is the only fix that
 // does not involve patching the package.
 import Spectrum from "react-spectrum/dist/react-spectrum.es.js";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFX } from "@/components/providers/FXProvider";
 
 /**
@@ -28,21 +28,46 @@ import { useFX } from "@/components/providers/FXProvider";
  *
  *   Re-rolling it is the demo. `seed` is not passed to the library; it only
  *   forces a remount, which is what makes it draw again.
+ *
+ * `width` is measured rather than declared, and that is what stops the plate
+ * growing. The library packs `linesPerParagraph` rows to the width it is given
+ * and emits them as inline blocks; give it a width wider than its container and
+ * the browser wraps each row again, by a different amount on every roll. It was
+ * a hard-coded 420 against a box that is 365px on a wide screen and 183px on a
+ * narrow one, so the stage came out anywhere between 147 and 237px depending on
+ * what it drew, and the sgb plate beside it moved along with it. Handed its own
+ * width, nothing wraps, the row count is exactly `linesPerParagraph`, and the
+ * height is (wordHeight + lineDistance) x rows at every viewport.
  */
 export function SpectrumDemo() {
   const [seed, setSeed] = useState(0);
-  const [mounted, setMounted] = useState(false);
+  // The stage's own content width, and the mount gate in one. It is only ever
+  // written from a ResizeObserver, so the server and the first client render
+  // both draw nothing, which is what keeps the random layout out of hydration.
+  const [width, setWidth] = useState(0);
+  const stage = useRef<HTMLDivElement>(null);
   const fx = useFX();
 
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    const el = stage.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([entry]) => {
+      // contentRect excludes the stage's padding, which is exactly the room the
+      // paragraph has. Rounded down, because a fractional width the library
+      // fills to the pixel is a width the browser then wraps.
+      setWidth(Math.floor(entry.contentRect.width));
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   return (
     <div className="spectrum">
-      <div className="spectrum-stage" aria-hidden="true">
-        {mounted && (
+      <div className="spectrum-stage" aria-hidden="true" ref={stage}>
+        {width > 0 && (
           <Spectrum
-            key={seed}
-            width={420}
+            key={`${seed}:${width}`}
+            width={width}
             // The drawing's own ink at two densities, plus two rule tones. The
             // library takes any CSS colour, so the placeholder is printed in
             // whichever ink the reader picked.
@@ -57,7 +82,11 @@ export function SpectrumDemo() {
             wordHeight={9}
             wordRadius={2}
             lineDistance={9}
-            linesPerParagraph={4}
+            // Seven rows at 9 + 9 is 126px, which with the 14/5 padding and the
+            // 1px border is the 147px the stage already reserved. It was four,
+            // and four only looked like a paragraph because each row was
+            // wrapping into two. See the note above.
+            linesPerParagraph={7}
             // The library puts a 24px margin under the paragraph by default,
             // which read as an empty band at the foot of the plate.
             paragraphDistance={0}

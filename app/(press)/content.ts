@@ -45,7 +45,7 @@ export const ERAS: readonly Era[] = [
     short: "engineer",
     length: "1 yr",
     range: "2015 - 2016 · Software Engineer",
-    body: "First commit on day one: landing page, dashboard, feeds, signup. Then the mobile app on React Native, when it was new enough to be a risk.",
+    body: "I shipped on my first day. Landing page, dashboard, feeds, signup. Then the mobile app on React Native, when it was new enough to be a risk.",
   },
   {
     from: 2016,
@@ -226,7 +226,7 @@ export const CHART: readonly { x: number; y: number; story: string; promotion?: 
 export const ASSISTANT = {
   href: "https://w.tracxn.com/tracxn-ai-assistant",
   meta: "2026 · at Tracxn · shipping",
-  body: "Tracxn is a private-market data platform. It holds companies, investors, funding rounds and cap tables: millions of records, across more than fifty countries. The assistant answers questions over all of it. It also works out which parts of it a question needs.",
+  body: "Tracxn is a private-market data platform. Millions of companies, investors, funding rounds and cap tables, across fifty countries. The assistant answers over all of it.",
 } as const;
 
 export const MICROCHARTS = {
@@ -243,7 +243,7 @@ export const MICROCHARTS = {
 export const SGB = {
   href: "https://sgb.vercel.app",
   meta: "2021 · still live",
-  body: "A tracker for India's Sovereign Gold Bonds. It puts every live series on one page and ranks them by what a buyer really earns at today's price, not by the coupon printed on the face value. A scraper runs on a schedule and writes one JSON file to S3. Five years of small changes later, it is still up and still mine.",
+  body: "A tracker for India's Sovereign Gold Bonds. Every live series on one page, ranked by what a buyer actually earns at today's price. Five years up, still mine.",
 } as const;
 
 /**

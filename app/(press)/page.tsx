@@ -78,9 +78,9 @@ export default async function HomePage() {
               software engineer, and three earlier drafts of this page got that
               wrong in four places at once. */}
           <p>
-            I joined Tracxn in 2015 as a software engineer and I am{" "}
-            <strong>VP of Technology</strong> there now. The job is mostly the team these days,
-            though most weeks still have some code in them.
+            I joined Tracxn in 2015 as a software engineer. I am <strong>VP of Technology</strong>{" "}
+            now. Most of the job is the team, the hiring and what we build next. I still write a lot
+            of code.
           </p>
           <p>
             Right now that code is a customer-facing <span className="accent">AI assistant</span>{" "}
@@ -106,10 +106,13 @@ export default async function HomePage() {
       <section className="mechs" id="mechanisms" data-sec="figures">
         <article className="panel">
           <h2>The assistant</h2>
-          <p className="meta">{ASSISTANT.meta}</p>
-          <Exploded fig="fig. 1 · exploded view" />
-          <p className="p-body">
-            {ASSISTANT.body}{" "}
+          {/* The link sits in the meta line, the way every other plate on this
+              sheet carries its links. It used to trail the body paragraph, and
+              the body is now the figure's own note slot: a link inside a block
+              that swaps on hover leaves and re-enters the tab order under the
+              reader, which is how you lose a link to the keyboard. */}
+          <p className="meta">
+            {ASSISTANT.meta} ·{" "}
             <a
               href={ASSISTANT.href}
               target="_blank"
@@ -119,6 +122,7 @@ export default async function HomePage() {
               w.tracxn.com
             </a>
           </p>
+          <Exploded fig="fig. 1 · exploded view" body={ASSISTANT.body} />
         </article>
 
         <article className="panel">
@@ -165,8 +169,7 @@ export default async function HomePage() {
               sgb.vercel.app
             </a>
           </p>
-          <p className="p-body">{SGB.body}</p>
-          <SgbFigure fig="fig. 3 · running series" />
+          <SgbFigure fig="fig. 3 · running series" body={SGB.body} />
         </article>
 
         <article className="panel">
@@ -202,7 +205,7 @@ export default async function HomePage() {
         <div className="panel">
           <span className="p-fig">fig. 5 · dimension record</span>
           <h2>The career, dimensioned</h2>
-          <p className="meta">2013 to now · at Tracxn since day one in 2015</p>
+          <p className="meta">2013 to now · at Tracxn since 2015</p>
           <Career />
         </div>
 

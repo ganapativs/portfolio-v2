@@ -1,7 +1,7 @@
 "use client";
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import "@microcharts/react/styles.css";
-import { Sparkline } from "@microcharts/react/sparkline/interactive";
+import { Sparkline } from "@microcharts/react/sparkline";
 import { CHART } from "@/app/(press)/content";
 import { useFX } from "@/components/providers/FXProvider";
 
@@ -43,11 +43,57 @@ const WORDS: (string | null)[] = [
   "default.",
 ];
 
+/* The lens starts on the chart, not on a word.
+
+   It was `useState(5)`, which is "like": the plate's claim is that the thing in
+   the sentence is the real component, so the detail box should be showing the
+   component when the reader arrives, not an adverb next to it. Derived from the
+   array rather than typed, so it survives the next copy edit. */
+const CHART_WORD = WORDS.indexOf(null);
+
+/* The enlarged chart's box, and where its line actually starts and ends.
+
+   The dimension under it has to measure the thing it is under, and it did not:
+   it ran 20 to 260 of a 280 box while the curve ran 2 to 278, so the arrows
+   pointed at eighteen pixels of nothing at each end. The inset is the
+   component's own, measured off the rendered path rather than guessed. The
+   dimension SVG shares this width and viewBox scale, so the two coordinate
+   systems are the same one. If the chart's size or its dots change, re-measure
+   with `path.getBBox()`. */
+const MAG_W = 280;
+const MAG_X0 = 2;
+const MAG_X1 = MAG_W - MAG_X0;
+
 type Rect = { x: number; y: number; l: number; r: number; t: number; b: number };
 
-// The shipped-work curve fig. 6 draws, at word size. Real numbers in a real
-// sentence beats a nice-looking squiggle.
+/* The shipped-work curve fig. 6 draws, at word size.
+ *
+ * Read what this is before adding anything that states a value from it. CHART
+ * is a hand-plotted path in fig. 6's own 272x64 SVG space, so `c.y` is a pixel
+ * position and `52 - c.y` is a height above the baseline, running 2 to 44. The
+ * shape is real, it is fourteen years of shipped work in order with a story on
+ * every point, but the numbers are coordinates and they are not a quantity of
+ * anything.
+ *
+ * Both charts below therefore run with `readout={false}`, which keeps the
+ * crosshair and drops the chip that was printing "44" at a reader. Fig. 3
+ * carries no numbers at all for the same reason: a plausible-looking figure
+ * that means nothing is the one dishonest thing this page could do. If this is
+ * ever given a real series, the readouts can come back with it. */
 const SPARK = CHART.map((c) => 52 - c.y);
+/* Read what that is before making either chart below state a value from it.
+ *
+ * CHART is a hand-plotted path in fig. 6's own 272x64 SVG space, so `c.y` is a
+ * pixel position and `52 - c.y` is a height above a baseline, running 2 to 44.
+ * The shape is real, fourteen years of shipped work in order, but the numbers
+ * are coordinates and are not a quantity of anything.
+ *
+ * Which is why both charts here are the STATIC entry point. The interactive one
+ * ships a picker, and the picker printed "44" in a hover chip and announced
+ * "Point 1 of 14: 2" to a screen reader. It was buying nothing either way: the
+ * loupe is this figure's interaction, and a second focusable control inside the
+ * sentence competes with it. Fig. 3 carries no numbers at all for the same
+ * reason. If this is ever given a real series, the picker can come with it. */
 
 export function Loupe() {
   const stageRef = useRef<HTMLDivElement>(null);
@@ -61,7 +107,7 @@ export function Loupe() {
   const dragging = useRef(false);
   const moved = useRef(false);
   const fx = useFX();
-  const [cur, setCur] = useState(5);
+  const [cur, setCur] = useState(CHART_WORD);
 
   const measure = useCallback(() => {
     const stage = stageRef.current;
@@ -92,6 +138,11 @@ export function Loupe() {
     const r = rects.current[i];
     if (!stage || !loupe || !detail || !r) return;
     loupe.style.transform = `translate(${r.x - 29}px,${r.y - 29}px)`;
+    // Until this has run once, the lens has no transform and CSS has it at the
+    // stage's top left corner. The placing effect runs after the first paint,
+    // so it was painted there for a frame and then jumped onto the sentence.
+    // It is hidden until it is somewhere.
+    loupe.dataset.placed = "true";
     const d = detail.getBoundingClientRect();
     const base = stage.getBoundingClientRect();
     const dt = d.top - base.top;
@@ -209,7 +260,16 @@ export function Loupe() {
               // This is the claim the panel is making, so it is made rather
               // than illustrated.
               <span className="w spark" data-lit={cur === i}>
-                <Sparkline data={SPARK} width={58} height={14} summary="a sparkline, set inline" />
+                <Sparkline
+                  data={SPARK}
+                  width={58}
+                  height={14}
+                  // Same reason as the enlarged one below. A CSS rule tried to
+                  // ink this for a while and never matched: it selected
+                  // `polyline`, and the component draws a `path`.
+                  color="var(--accent)"
+                  summary="a sparkline, set inline"
+                />
               </span>
             ) : (
               <span className="w" data-lit={cur === i}>
@@ -276,39 +336,65 @@ export function Loupe() {
 
       <div className="lp-detail" ref={detailRef}>
         {WORDS[cur] === null ? (
-          <svg className="lp-mag" width="280" height="112" viewBox="0 0 280 112">
-            <defs>
-              <marker
-                id="lp-arrow"
-                viewBox="0 0 8 8"
-                refX="7"
-                refY="4"
-                markerWidth="7"
-                markerHeight="7"
-                orient="auto-start-reverse"
-              >
-                <path d="M0 .8 8 4 0 7.2z" fill="context-stroke" />
-              </marker>
-            </defs>
-            <polyline points="20,66 50,46 80,56 110,31 140,41 170,21 200,36 230,11 260,26" />
-            <line
-              className="dline"
-              x1="20"
-              y1="84"
-              x2="260"
-              y2="84"
-              markerStart="url(#lp-arrow)"
-              markerEnd="url(#lp-arrow)"
+          /* The enlarged detail is the same component as the word in the
+             sentence, at eight times the size and on the smooth curve.
+             
+             It used to be a hand-drawn <polyline> with nine literal points, a
+             picture of the chart sitting under a lens whose whole claim is that
+             the thing in the sentence is real. Enlarging a detail on a drawing
+             does not redraw it, it shows the same part closer. Same `SPARK`
+             series as the inline one, so the two cannot drift. */
+          <div className="lp-mag">
+            <span className="lp-mag-key">106 types</span>
+            <Sparkline
+              data={SPARK}
+              width={MAG_W}
+              height={64}
+              curve="smooth"
+              dots="minmax"
+              // The series colour by the library's own prop, the same way
+              // SpectrumDemo passes its palette. Without it the enlarged curve
+              // comes out of the --mc-* bridge in --ink-2, while the word it is
+              // an enlargement of is in the ink.
+              color="var(--accent)"
+              summary="the shipped-work curve, enlarged"
             />
-            <line className="dline" x1="20" y1="76" x2="20" y2="92" />
-            <line className="dline" x1="260" y1="76" x2="260" y2="92" />
-            <text x="140" y="100" textAnchor="middle">
-              1-7 kB gzip each
-            </text>
-            <text x="264" y="16">
-              106 types
-            </text>
-          </svg>
+            <svg
+              className="lp-dims"
+              width={MAG_W}
+              height="34"
+              viewBox={`0 0 ${MAG_W} 34`}
+              aria-hidden="true"
+            >
+              <defs>
+                <marker
+                  id="lp-arrow"
+                  viewBox="0 0 8 8"
+                  refX="7"
+                  refY="4"
+                  markerWidth="7"
+                  markerHeight="7"
+                  orient="auto-start-reverse"
+                >
+                  <path d="M0 .8 8 4 0 7.2z" fill="context-stroke" />
+                </marker>
+              </defs>
+              <line
+                className="dline"
+                x1={MAG_X0}
+                y1="10"
+                x2={MAG_X1}
+                y2="10"
+                markerStart="url(#lp-arrow)"
+                markerEnd="url(#lp-arrow)"
+              />
+              <line className="dline" x1={MAG_X0} y1="2" x2={MAG_X0} y2="18" />
+              <line className="dline" x1={MAG_X1} y1="2" x2={MAG_X1} y2="18" />
+              <text x={MAG_W / 2} y="30" textAnchor="middle">
+                1-7 kB gzip each
+              </text>
+            </svg>
+          </div>
         ) : (
           <>
             <div className="lp-word">

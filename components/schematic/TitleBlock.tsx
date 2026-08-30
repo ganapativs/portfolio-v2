@@ -14,8 +14,8 @@ function sheetName(pathname: string): string {
   return "sheet";
 }
 
-// Day one at Tracxn. The tenure cell counts from here and is the only number in
-// the block that is different every time it is read.
+// His first day at Tracxn, not the company's. The tenure cell counts from here
+// and is the only number in the block that is different every time it is read.
 const START = { y: 2015, m: 8 };
 
 function tenure(now: Date): string {

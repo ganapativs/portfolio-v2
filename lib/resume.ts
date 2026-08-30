@@ -165,7 +165,7 @@ export const roles: Role[] = [
     start: "Sep 2015",
     end: "Sep 2016",
     bullets: [
-      "Day-one commit on the original React + Reflux + Webpack frontend: landing page, dashboard, masonry feeds, sidebar, signup flow and theme system in a four-month sprint.",
+      "Committed to the original React + Reflux + Webpack frontend on my first day. Landing page, dashboard, masonry feeds, sidebar, signup flow and theme system in a four-month sprint.",
       "Architected and shipped the cross-platform iOS + Android mobile app on React Native + Redux as sole frontend engineer.",
     ],
   },

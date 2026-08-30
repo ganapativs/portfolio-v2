@@ -240,7 +240,21 @@
 .xp {
   display: flex;
   gap: 10px;
-  margin-top: 16px;
+  /* Capped, the same as .sgbfig below and for the same reason. The sheet stops
+     at --w-sheet, so this plate stops at 439px and the figure inside it at 389,
+     which is the drawing at its intended size. Below 900 the row collapses to
+     one column, the plate doubles in width and the figure doubled with it: 456
+     wide and 700 tall, taller than the viewport it had just been given more
+     room in, and the plate went from 683 to 912. A figure is drawn at a size.
+     More room is not a reason to redraw it bigger. */
+  max-width: 390px;
+  /* A floor the centring cannot eat, the same as .spectrum. `margin-block:
+     auto` overwrites `margin-top`, and an auto margin resolves to zero when
+     there is no free space: on desktop this plate is stretched by its
+     neighbour and the drawing floated on 39px, but below 900 the row is one
+     column, the plate is only as tall as its contents, and the top slab sat
+     flat against the meta line. Padding is not distributable, so it holds. */
+  padding-top: 16px;
   margin-block: auto;
 }
 .xp svg {
@@ -355,7 +369,42 @@
    The text inside is remounted on every change (a React key), so `cap-in`
    runs each time: without it a swap between two captions of the same height
    read as a flicker rather than as a change. */
-.xp-cap,
+/* The note slot on figs. 1 and 3. Not a Caption. It holds the plate's own copy
+   at rest and a part's note under the pointer, and it reserves its own height
+   rather than animating between two.
+
+   Every string the slot can hold is in the DOM, stacked into one grid cell, all
+   but the live one hidden. A grid row is as tall as its tallest item, so the
+   slot is the tallest note at whatever width the plate happens to be, and it
+   cannot change when the text does. `visibility: hidden` rather than `opacity`,
+   because hidden also takes the ghosts out of the accessibility tree and out of
+   the selection, while still occupying their space.
+
+   The alternative was writing the strings to the same length, which was tried:
+   it holds at most widths and drops a line at one viewport in five, because a
+   line break falls where the spaces are and not where the character count is.
+   This is exact, and it stays exact the next time the copy is edited. */
+.xp-note {
+  display: grid;
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid var(--rule-3);
+}
+.xp-note > * {
+  grid-area: 1 / 1;
+}
+.xp-ghost {
+  visibility: hidden;
+  pointer-events: none;
+}
+.xp-note b {
+  font-family: var(--f-mono);
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--accent);
+  display: block;
+  margin-bottom: 2px;
+}
 .tl-cap {
   min-height: 44px;
   margin-top: 14px;
@@ -373,17 +422,20 @@
 .cap-in {
   animation: cap-in var(--dur-base) var(--ease-out) both;
 }
+/* --cap-dir is the direction the text travels from, set per swap by the figure
+   that owns the slot: +1 enters from below, -1 from above. Fig. 1 sets it to
+   the direction the pointer just moved down the stack, so the note arrives the
+   way the eye did. Everything else leaves it unset and gets the old rise. */
 @keyframes cap-in {
   from {
     opacity: 0;
-    transform: translateY(3px);
+    transform: translateY(calc(var(--cap-dir, 1) * 4px));
   }
   to {
     opacity: 1;
     transform: none;
   }
 }
-.xp-cap b,
 .tl-cap b {
   font-family: var(--f-mono);
   font-size: 11.5px;
@@ -393,19 +445,60 @@
   margin-bottom: 1px;
 }
 
-/* Draw-on-first-view: the assembly builds itself once, bottom slab up. */
-.willdraw .slab polygon,
+/* Draw-on-first-view: the assembly builds itself once, bottom slab up.
+   
+   `fill-opacity` is half of that and it was missing. The dash offset hides a
+   stroke, not a shape: the slab faces are filled in --raise and --sunk, and a
+   fill is painted the instant the element exists. So the figure arrived as five
+   grey lozenges sitting there fully formed, and then had its outlines drawn on
+   top of them, which is the opposite of a drawing being drawn. Fading the fill
+   in rather than re-declaring it keeps the two face colours in one place.
+   
+   The fill follows its own outline rather than arriving with it: 260ms behind
+   the stroke on that slab, which is most of the way through its 420ms draw. The
+   line first, then the material. */
+.willdraw .slab polygon:not(.ghost),
 .willdraw .leader {
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
 }
-.willdraw[data-drawn="true"] .slab polygon,
+.willdraw .slab polygon:not(.ghost) {
+  fill-opacity: 0;
+}
+/* The setting-out lines. See the note in Exploded.tsx: with both the stroke and
+   the fill hidden there is nothing in the plate until the draw runs, so the
+   figure's own outline is there in pencil from the start. It is not dashed and
+   not animated in, because it is what was already on the paper.
+   
+   It is rubbed out per slab, 140ms after that slab's stroke begins, so the ink
+   is overtaking the pencil rather than replacing it. `fill: none` matters: this
+   is the same polygon as the drawn face, and a ghost with a fill is just the
+   grey brick again. */
+.willdraw .slab polygon.ghost {
+  fill: none;
+  fill-opacity: 1;
+  /* --rule, not --rule-3. The faint weight is for a hairline sitting next to
+     type; at 1px across an empty 370px plate it was invisible, which is the
+     blank space this exists to fill. */
+  stroke: var(--rule);
+  stroke-width: 1;
+  stroke-dasharray: none;
+  stroke-dashoffset: 0;
+}
+.willdraw[data-drawn="true"] .slab polygon.ghost {
+  opacity: 0;
+  transition: opacity 320ms var(--ease-out) calc(var(--i) * 70ms + 140ms);
+}
 .willdraw[data-drawn="true"] .leader {
   transition: stroke-dashoffset 420ms var(--ease-out);
   stroke-dashoffset: 0;
 }
-.willdraw[data-drawn="true"] .slab polygon {
-  transition-delay: calc(var(--i) * 70ms);
+.willdraw[data-drawn="true"] .slab polygon:not(.ghost) {
+  transition:
+    stroke-dashoffset 420ms var(--ease-out) calc(var(--i) * 70ms),
+    fill-opacity 300ms var(--ease-out) calc(var(--i) * 70ms + 260ms);
+  stroke-dashoffset: 0;
+  fill-opacity: 1;
 }
 /* The glyphs fade rather than draw, and that is not a style choice.
    `pathLength="1"` normalises a dash pattern to the path's own length, but
@@ -434,12 +527,31 @@
     stroke-dasharray: none;
     stroke-dashoffset: 0;
   }
+  .willdraw .slab polygon:not(.ghost) {
+    fill-opacity: 1;
+  }
+  /* Nothing to set out for: the ink is already on the paper. */
+  .willdraw .slab polygon.ghost {
+    display: none;
+  }
 }
 
 /* ---- fig. 2 · the loupe -------------------------------------------------- */
 
+/* The lens hangs above this box, so the box has to allow for it.
+   
+   The loupe is 58px and Loupe.tsx centres it on the word it is over, at
+   `wordCentre - 29`. On the sentence's first line that centre is half of a
+   35px line box, so the lens starts at 17.5 - 29 = -11.5px: it sits twelve
+   pixels above the stage with only the 16px margin between it and the meta
+   line, and it read as pinned to the type above it. The padding is inside the
+   box the word rectangles are measured against, so it moves the lens down with
+   the sentence rather than needing a second number in the component. Twenty
+   puts the ring eight pixels inside its own box and starts the sentence 36px
+   under the meta, which is where fig. 1's drawing starts. */
 .lp-stage {
   position: relative;
+  padding-top: 20px;
   margin-top: 16px;
 }
 .lp-sentence {
@@ -464,16 +576,23 @@
   display: inline-block;
   vertical-align: -3px;
 }
-.lp-sentence .spark polyline {
-  stroke: var(--accent);
-  stroke-width: 1.5;
-  fill: none;
-}
+/* The chart's ink is passed as the component's own `color` prop in Loupe.tsx,
+   not set here. This rule used to live here and selected `polyline`, which the
+   component has not drawn for some time: it renders a `path`, so the rule
+   matched nothing and the one chart on the page that is set in prose was grey
+   while the copy beside it called it the real thing. Styling somebody else's
+   internals by element name is how that happens quietly. */
 /* The loupe is a real lens: a ring with cross hairs that run past its edge, and
    a wash of ink inside the glass. It is dragged, so it has no transition while
    the hand is on it. */
 .loupe {
   position: absolute;
+  /* Placed by Loupe.tsx, which cannot know where the words are until it has
+     measured them. Hidden rather than parked at 0,0: `left`/`top` are the
+     stage's corner, and one painted frame there before the effect ran read as
+     the lens flying in from the top left on every load. `visibility`, so it
+     still holds its place in the accessibility tree and takes focus. */
+  visibility: hidden;
   width: 58px;
   height: 58px;
   border-radius: var(--r-point);
@@ -485,6 +604,9 @@
   z-index: 3;
   transition: transform var(--dur-base) var(--ease-out);
   background: radial-gradient(circle, transparent 62%, var(--accent-soft) 63%);
+}
+.loupe[data-placed="true"] {
+  visibility: visible;
 }
 .loupe:active {
   cursor: grabbing;
@@ -587,13 +709,28 @@
   text-align: right;
   line-height: 1.7;
 }
+/* The enlarged chart, its dimension and its one annotation, stacked. It was a
+   single 280x112 SVG holding a hand-drawn polyline; it is the real component
+   now, so the drawing furniture around it is its own box underneath. */
 .lp-mag {
-  display: block;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
-.lp-mag polyline {
-  stroke: var(--accent);
-  stroke-width: 2;
-  fill: none;
+/* Right-aligned inside the box rather than started at x=264 of a 280 viewBox,
+   which put six of its nine characters past the edge. The count belongs to the
+   chart above the dimension line, so it sits with it rather than in it. */
+.lp-mag-key {
+  align-self: flex-end;
+  font-family: var(--f-mono);
+  font-size: 10px;
+  color: var(--ink-3);
+  line-height: 1;
+  margin-bottom: 2px;
+}
+.lp-mag svg {
+  display: block;
 }
 .lp-mag .dline {
   stroke: var(--rule-2);
@@ -806,19 +943,31 @@
 
 /* ---- fig. 4 · react-spectrum, running ------------------------------------ */
 
+/* `margin-block: auto` centres the demo in whatever slack the plate has, the
+   same as every other figure here. The `margin-top` that used to sit above it
+   was dead: `margin-block` overwrites it, and an auto margin resolves to zero
+   when there is no free space to distribute. This plate is the tallest thing in
+   its row, so there never was any, and the stage sat flush against the last
+   line of the paragraph while the sgb figure beside it floated on 17px.
+   The floor is padding instead. An auto margin cannot absorb padding, so the
+   gap holds at zero slack and the centring still works when there is some. */
 .spectrum {
-  margin-top: 14px;
+  padding-top: 14px;
   margin-block: auto;
 }
-/* The height is reserved, not measured. The library draws on the client only —
-   it picks its widths at random, so it cannot be server-rendered — and a box
+/* The height is reserved, not measured. The library draws on the client only,
+   it picks its widths at random and so cannot be server-rendered, and a box
    that grew when it arrived would shift everything under it.
 
-   147px is the measured height of what it actually draws: four lines at
-   `wordHeight` 9 plus `lineDistance` 9, the 14/5 padding and a 1px border. The
-   reserve used to be 74, which is half, and the box doubled at hydration. It
-   scored no CLS only because it sits below the fold, which is luck rather than
-   design. If `linesPerParagraph` changes, this changes with it. */
+   147px is what it draws: seven rows at `wordHeight` 9 plus `lineDistance` 9,
+   the 14/5 padding and a 1px border. The reserve used to be 74, which is half,
+   and the box doubled at hydration. It scored no CLS only because it sits below
+   the fold, which is luck rather than design.
+
+   It is now also exactly what the stage measures, not just a floor under it.
+   SpectrumDemo hands the library the stage's own width, so nothing wraps and
+   the row count is `linesPerParagraph` on every roll. Change either that or the
+   two 9s and this changes with them. */
 .spectrum-stage {
   min-height: 147px;
   padding: 14px 16px 5px;
@@ -1108,8 +1257,15 @@
   margin-left: auto;
   white-space: nowrap;
 }
+/* The one link out of the revision list, so it says it goes somewhere. The
+   arrow is the same one the drawing already uses in "OpenAPI -> docs", and it
+   is on the ::after rather than in the string so it stays out of the
+   accessible name: the link is "all writing", not "all writing right arrow".
+   It steps forward on hover, which is the only thing here that moves. */
 .rev-all {
-  display: inline-block;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
   margin-top: 10px;
   font-family: var(--f-mono);
   font-size: 12.5px;
@@ -1117,9 +1273,17 @@
   border-bottom: 1px solid transparent;
   transition: border-color var(--dur-fast) var(--ease-out);
 }
+.rev-all::after {
+  content: "\2192";
+  transition: transform var(--dur-fast) var(--ease-out);
+}
 .rev-all:hover,
 .rev-all:focus-visible {
   border-color: var(--accent);
+}
+.rev-all:hover::after,
+.rev-all:focus-visible::after {
+  transform: translateX(3px);
 }
 
 /* ---- responsive ---------------------------------------------------------- */
@@ -1129,8 +1293,17 @@
     grid-template-columns: minmax(0, 1fr);
     gap: 36px;
   }
+  /* One column, so the drawing has to line up with the prose above it.
+     The .fig box is the SVG, and the SVG's left 5.71% is the gutter the
+     dimension lines and the leader label live in: aligning the box leaves the
+     canvas, which is the part a reader sees as the figure, 26px right of every
+     paragraph. Pull it back by the gutter. A percentage transform resolves
+     against the element's own border box, which is where the 5.71% came from,
+     so it stays exact as the figure narrows. Nothing in the SVG sits left of
+     x=24, so nothing overflows the column edge. */
   .fig {
     margin-left: 0;
+    transform: translateX(-5.71%);
   }
   .mechs {
     grid-template-columns: minmax(0, 1fr);

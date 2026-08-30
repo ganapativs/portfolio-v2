@@ -415,11 +415,33 @@ function NorthArrow() {
       viewBox="0 0 18 18"
       aria-hidden="true"
     >
+      {/* The dial, behind the ring and on the ring's own centre line, so the
+          stroke lands exactly on its edge. Transparent until the strip sticks,
+          where it takes the strip's ground: the compass straddles the strip's
+          bottom edge on purpose, and with nothing behind it the page's own
+          prose ran straight through the glass. */}
+      <circle className="dial" cx="9" cy="9" r="8" />
       <circle cx="9" cy="9" r="8" fill="none" stroke="currentColor" strokeWidth="1" />
+      {/* Both halves are filled, and that is the fix rather than a preference.
+          
+          They have always been the same path mirrored about y=9, but the north
+          half was filled and the south half was stroked. A stroke straddles the
+          path, so the south half sat half a pixel wider on each side, and at an
+          apex this sharp — half-angle about 17 degrees — the miter join runs
+          0.5 / sin(17°), call it 1.7px, past the vertex. On an 18px glyph that
+          is a needle whose two halves are visibly different lengths, and the
+          needle turns to follow the pointer, so the overhang swings around
+          where it cannot be missed. Two fills of one geometry are symmetric by
+          construction. Weight is carried by the fill instead: the accent on
+          north, the same ink as the ring held back on south.
+          
+          The pivot is outside the needle group. It does not rotate, being on
+          the axis, and it caps the seam where the two halves meet. */}
       <g className="needle" ref={needleRef}>
         <path className="tip" d="M9 2.5 L11 9 L7 9 Z" />
-        <path d="M9 15.5 L11 9 L7 9 Z" fill="none" stroke="currentColor" strokeWidth="1" />
+        <path className="tail" d="M9 15.5 L11 9 L7 9 Z" />
       </g>
+      <circle className="pivot" cx="9" cy="9" r="1.15" />
     </svg>
   );
 }

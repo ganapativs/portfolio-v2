@@ -362,6 +362,24 @@
   inherits: false;
   initial-value: 1;
 }
+/* Registered for the same reason the blur is: it is animated. The rule's gap
+   closes to nothing as the strip condenses so the two hairlines meet the
+   compass ring, and an unregistered custom property is a token stream that
+   cannot be interpolated, so the gap would snap in one frame and take the
+   whole rule's layout with it. Nothing inside this strip may reflow while it
+   condenses. */
+@property --hd-rule-gap {
+  syntax: "<length>";
+  /* Inherited, and that is load-bearing. `.hd-title` cancels exactly one gap
+     with `margin-inline-start: calc(var(--hd-rule-gap) * -1)`, and it is a
+     child of the element the gap is declared on. Registered `inherits: false`
+     it read the initial value instead of the live one, held its pull-back at
+     -14px against a gap that had closed to 0, and put the compass fourteen
+     pixels left of centre. It only looked right before because the one value
+     it could see happened to be the only value there was. */
+  inherits: true;
+  initial-value: 14px;
+}
 
 /* Flush to the top of the viewport once stuck. The 22px of air above the row
    is right at the head of the sheet and wrong in a running strip: content
@@ -369,6 +387,10 @@
    either way, so nothing below notices. */
 .hd[data-stuck="true"] {
   padding-top: 0;
+  /* Declared once and read twice: by the strip, and by the compass dial that
+     straddles the strip's bottom edge. Two hand-kept copies of a ground is how
+     a mark ends up a shade off the surface it is punched into. */
+  --hd-ground: color-mix(in oklab, var(--paper) 78%, transparent);
 }
 
 .hd[data-stuck="true"] .hd-strip {
@@ -376,7 +398,7 @@
      pays for the rule's own top half, so the space above the row and the space
      between the row and the line are the same nine pixels. */
   padding-block: 9px 0;
-  background: color-mix(in oklab, var(--paper) 78%, transparent);
+  background: var(--hd-ground);
   --hd-blur: 14px;
   --hd-sat: 1.6;
 }
@@ -631,6 +653,7 @@
   margin-top: 16px;
   min-width: 0;
   transition:
+    --hd-rule-gap var(--dur-base) var(--ease-out),
     margin-top var(--dur-base) var(--ease-out),
     margin-bottom var(--dur-base) var(--ease-out);
 }
@@ -643,6 +666,15 @@
      the ground's bottom edge rather than nine pixels above it. The compass
      straddles that edge, which is what a survey mark on a rule does. */
   margin-bottom: -9px;
+  /* The rule runs into the compass rather than stopping short of it. The gap
+     exists to hold the drawing title apart from the hairlines; once the title
+     has closed there is nothing left to hold apart, and the two 14px gaps
+     either side of the compass read as the line being broken around it. The
+     ring is `cx=9 r=8` on a 1px stroke in an 18px box, so its outer edge is
+     half a pixel inside the box and zero here puts the hairlines on it.
+     `.hd-title`'s pull-back is `calc(var(--hd-rule-gap) * -1)`, so it follows
+     this to zero on its own and stays exactly one gap throughout. */
+  --hd-rule-gap: 0px;
 }
 .hd-rule::before,
 .hd-rule::after {
@@ -698,6 +730,25 @@
 }
 .north .tip {
   fill: var(--accent);
+}
+/* South is the same ink as the ring, held back so north reads as north. A
+   compass needle is one shape in two weights, not two shapes. */
+.north .tail {
+  fill: currentColor;
+  opacity: 0.45;
+}
+.north .pivot {
+  fill: currentColor;
+}
+/* Nothing under the glass while the compass sits at the head of the sheet: the
+   drawing is behind it there and should stay visible. It fills only once the
+   strip is a running header over the reader's content. */
+.north .dial {
+  fill: transparent;
+  transition: fill var(--dur-base) var(--ease-out);
+}
+.hd[data-stuck="true"] .north .dial {
+  fill: var(--hd-ground);
 }
 
 /* ---- panels: the shared drawing-panel material --------------------------- */

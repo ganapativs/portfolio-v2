@@ -793,10 +793,65 @@ different ground, and the band says so.
   column. Do not "fix" that by splitting the component in two.
 - **A caption slot that swaps text keys its content and lets the slot animate
   its height.** `interpolate-size: allow-keywords` is set on `:root` in
-  `tokens.css`; `.xp-cap` / `.tl-cap` transition `height`, and the inner
-  `.cap-in` element carries a React `key` so it remounts and replays its fade.
-  Without both halves the swap reads as a flicker: the height snaps and the
-  text cuts.
+  `tokens.css`; `.tl-cap` transitions `height`, and the inner `.cap-in` element
+  carries a React `key` so it remounts and replays its fade. Without both halves
+  the swap reads as a flicker, the height snaps and the text cuts. **Only fig. 5
+  still works this way**, because its entries are dates and ranges that cannot
+  be evened out. Figs. 1 and 3 take the other road entirely, below. `.xp-cap` is
+  gone with them.
+- **A draw-in has to hide the fill as well as the stroke, and then it has to
+  put something back.** `stroke-dashoffset` hides a line; a `fill` is painted
+  the moment the element exists. Fig. 1's slab faces are filled in `--raise` and
+  `--sunk`, so the figure arrived as five grey lozenges fully formed and then
+  had its outlines drawn on top of them, which is a drawing in reverse. The
+  `.willdraw` rules animate `fill-opacity` from 0, 260ms behind each slab's own
+  stroke: the line first, then the material. Animate the opacity rather than
+  re-declaring the colours, or the two face tones end up written twice.
+  **Hiding both leaves a 370px hole, though, and that is worse.** So each slab
+  also carries a `.ghost` copy of its top face: the outline, `--rule` at 1px,
+  undashed, in the server-rendered HTML from the first byte, rubbed out 140ms
+  after its own slab's stroke begins. It is the setting-out line, and the ink
+  overtakes it. Three details are load-bearing. The ghost is a `polygon` inside
+  `.slab`, so every draw-in rule is scoped `:not(.ghost)` or it gets dash-hidden
+  along with everything else. It needs `.willdraw .slab polygon.ghost` to
+  out-specify `.xp .slab polygon`, which would otherwise fill and ink it. And it
+  is `fill: none`: a ghost with a fill is just the grey brick again.
+  Reduced motion `display: none`s it, there being nothing to set out for.
+- **`CHART` in `app/(press)/content.ts` is a hand-plotted path, not data.**
+  `{ x: 10, y: 50 }` is a pixel position in fig. 6's own 272x64 SVG space, so
+  `52 - c.y` is a height above a baseline running 2 to 44 and is not a quantity
+  of anything. `Pipeline.tsx` uses it correctly, as coordinates. `Loupe.tsx` and
+  `Specimens.tsx` feed it to real chart components, and that is fine as a shape
+  and **not** fine the moment a component states a value from it. The loupe's
+  two charts were on the `…/interactive` entry point, whose picker printed "44"
+  in a hover chip and announced "Point 1 of 14: 2" to a screen reader. Both are
+  on the **static** entry point now, which has no picker at all, the same as the
+  specimen tray. That was the right answer rather than suppressing the picker's
+  output, because the interaction here is the loupe: a second focusable control
+  inside the sentence was competing with it for the same drag.
+  **Every chart drawn from `CHART` must be a static entry point** unless it is
+  given a real series first. A plausible number that means nothing is the one
+  dishonest thing this page can do, and it is why fig. 3 carries no numbers at
+  all.
+- **A microcharts chart is coloured through its `color` prop, never by
+  selecting its internals.** `.lp-sentence .spark polyline` set the inline
+  sparkline in the ink for a while and then silently stopped: the component
+  renders a `path`. The one chart on this page that is set in prose was grey
+  while the copy beside it called it the real thing, and nothing failed. Both
+  the inline chart and the enlarged one in the loupe's detail box pass
+  `color="var(--accent)"`, the same way `SpectrumDemo` passes its palette.
+- **The loupe's detail box holds the real component, not a picture of it.** It
+  was a hand-drawn `<polyline>` of nine literal points inside a lens whose whole
+  claim is that the thing in the sentence is real. It is the same `Sparkline` on
+  the same `SPARK` series at 280x64 on `curve="smooth"`, with the dimension line
+  and the caption as their own small SVG beneath it, so the two cannot drift.
+- **The lens is `visibility: hidden` until `Loupe.tsx` has placed it.** It is
+  positioned by a transform written from a measurement, and the placing effect
+  runs after the first paint, so it was painted at the stage's top left corner
+  for a frame and then flew onto the sentence on every load. It also starts on
+  the inline chart rather than on a word (`CHART_WORD`, derived from `WORDS`),
+  because the detail box should be showing the component when the reader
+  arrives.
 - **Never combine `pathLength` with `vector-effect: non-scaling-stroke` on a
   dash-drawn path.** `pathLength` normalises the dash pattern to the path's own
   length, but `non-scaling-stroke` moves dash computation into screen space, so
@@ -821,9 +876,66 @@ different ground, and the band says so.
 - **Text that changes under the pointer goes through
   `components/schematic/Caption.tsx`.** It measures both heights and animates
   between them, because `interpolate-size: allow-keywords` is Chrome 129 and
-  Safari 26 and this site's floor is Safari 16.4. The caption slots under fig.
-  1, fig. 3 and fig. 5 all use it; the pipeline's stage note and its computed
-  readout take the `cap-in` fade alone, being single lines in a fixed box.
+  Safari 26 and this site's floor is Safari 16.4. Fig. 3 and fig. 5 use it; the
+  pipeline's stage note and its computed readout take the `cap-in` fade alone,
+  being single lines in a fixed box.
+- **Figs. 1 and 3 do not. They reserve instead of animating (`.xp-note`).** The
+  slot carries the plate's own copy at rest and a part's note under the pointer,
+  and **every string it can hold is rendered into one grid cell, all but the
+  live one `visibility: hidden`**. A grid row is as tall as its tallest item, so
+  the slot is the tallest note at whatever width the plate happens to be, it
+  cannot move when the text swaps, and it stays correct when the copy is next
+  edited. `visibility` rather than `opacity`, because hidden also takes the
+  ghosts out of the accessibility tree and out of the selection while still
+  occupying their space.
+  This replaced a Caption sitting above a second paragraph of copy: two blocks
+  of prose, the top one growing and shrinking on every part. On fig. 3 that was
+  worse than it looked, because both plates in `.mechs2` are grid items of one
+  track, so the react-spectrum plate beside it rose and fell along with it.
+  **Writing the strings to the same length was tried first and is not enough.**
+  It holds at most widths and drops a line at about one viewport in five: a line
+  break falls where the spaces are, not where the character count is. The copy
+  is still evened up, because it reads better and it keeps the reserved box
+  tight, but the grid is what makes it exact.
+  **A plate's link moves into `.meta` when its body moves into the slot**, and
+  that is not cosmetic: a link inside a block that swaps on hover leaves the tab
+  order under a reader tabbing towards it, so the browser picks the next target
+  before React puts it back.
+- **A figure's top gap is `padding-top`, never `margin-top`, because every
+  figure here also carries `margin-block: auto`.** The plates are flex columns
+  and the auto margins hand the free space to the figure so it sits centred
+  rather than leaving a hole at the foot. Two things follow, and both shipped
+  broken. `margin-block` is written after `margin-top`, so it overwrites it and
+  the declared gap never applies at all. And an auto margin resolves to **zero**
+  when there is no free space, which is exactly the case for a plate that is not
+  being stretched by a taller neighbour: `.spectrum` sat flush against its
+  paragraph on desktop because it is the tallest thing in its row, and `.xp` sat
+  flush against the meta line at every width below 900 because a one-column
+  plate is only as tall as its contents. Padding is not distributable, so it
+  survives both. `.xp`, `.spectrum` and `.lp-stage` all carry the floor as
+  padding now.
+- **`.lp-stage`'s padding is also what keeps the lens off the type above it.**
+  The loupe is 58px and is placed at `wordCentre - 29`, so on the sentence's
+  first line it starts twelve pixels above its own stage. The word rectangles
+  are measured against the stage box, so padding there moves the lens down with
+  the sentence and no second number is needed in `Loupe.tsx`.
+- **A figure is drawn at a size, and both figures on the sheet are capped to
+  it** (`max-width` on `.xp` and on `.sgbfig`). They are percentage-sized inside
+  their plate, and the plate doubles in width when its row collapses to one
+  column, so without a cap the exploded view went from 241 x 369 to 456 x 700
+  and its plate from 683 to 912. More room is not a reason to redraw a figure
+  bigger. `.xp` caps at 390 because `--w-sheet` puts the plate at 439 and the
+  figure inside it at 389, which is the drawing at its intended size.
+- **`.mechs` collapses at 900 and `.mechs2` at 640, and that gap is measured,
+  not an oversight.** Two columns were tried on `.mechs` down to 640: it holds
+  at 880, and by 780 fig. 1's leader labels run past the plate edge and fig. 2's
+  specimen tray truncates its captions ("change po…", "quantile …"). The two
+  plates in `.mechs` carry more than the two in `.mechs2` and need the width.
+- **`--cap-dir` sets which way a swapped caption enters.** The shared `cap-in`
+  keyframe reads it as `calc(var(--cap-dir, 1) * 4px)`, so `1` enters from below
+  and `-1` from above. Fig. 1 sets it to the direction the pointer moved along
+  the stack, so the note arrives the way the eye did. Fig. 3 does the same along
+  its three parts. Every other slot leaves it unset and gets the old rise.
 - **The portrait renders a real `next/image` on the server and hides it only
   once the halftone canvas has actually drawn.** Keep it that way — a bare
   canvas has no `alt` and nothing for a crawler.

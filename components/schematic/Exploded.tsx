@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useFX } from "@/components/providers/FXProvider";
-import { Caption } from "./Caption";
 import { useCoarsePointer } from "./useCoarsePointer";
 import { useDrawOnFirstView } from "./useDrawOnFirstView";
 
@@ -30,7 +29,7 @@ type Stroke = { d: string; solid?: boolean; dash?: boolean };
 const PARTS: { name: string; note: string; glyph: Stroke[] }[] = [
   {
     name: "OpenAPI → docs",
-    note: "The API documentation portal writes itself from the OpenAPI spec, and the assistant lives inside it. One source, two readers: a person and a model.",
+    note: "The API documentation portal writes itself from the OpenAPI spec, and the assistant lives inside it. One source, read once by a person and once by a model.",
     // A page with a folded corner and two rules. The spec goes in one end and a
     // documentation site comes out the other.
     glyph: [
@@ -55,7 +54,7 @@ const PARTS: { name: string; note: string; glyph: Stroke[] }[] = [
   },
   {
     name: "tools + skills",
-    note: "The layer that goes and gets things. It reads Tracxn records on the assistant's behalf, and every skill is a separate testable unit rather than one enormous prompt.",
+    note: "The layer that fetches. It reads Tracxn records on the assistant's behalf, and every skill is a separate testable unit rather than one enormous prompt.",
     // Four parts on a grid. A skill is a part you can pull out and test on its
     // own, which is the whole point of the layer.
     glyph: [
@@ -67,7 +66,7 @@ const PARTS: { name: string; note: string; glyph: Stroke[] }[] = [
   },
   {
     name: "eval harness",
-    note: "Every prompt is versioned, and a version only ships when the evals pass. The logs are complete enough to answer, later, why a given answer came out the way it did.",
+    note: "Every prompt is versioned, and a version ships only when the evals pass. The logs are full enough to answer, later, why an answer came out the way it did.",
     // Two cases: one passes, one does not. A single tick read as "done", which
     // is not what an eval suite is. A suite is a thing that can fail, and the
     // cross is the half that makes the tick mean anything.
@@ -135,8 +134,12 @@ const CX = 125;
 const GS = 2.6;
 const GK = (HALF_H / HALF_W) * GS;
 
-export function Exploded({ fig }: { fig: string }) {
-  const [on, setOn] = useState(-1);
+export function Exploded({ fig, body }: { fig: string; body: string }) {
+  // `dir` rides with `on` rather than in a ref, because it is read during
+  // render: the note enters from the side of the stack the pointer came from,
+  // and a ref written just before setState is not guaranteed to survive a
+  // double render.
+  const [{ on, dir }, setSel] = useState({ on: -1, dir: 1 });
   const coarse = useCoarsePointer();
   const fx = useFX();
   const clearTid = useRef(0);
@@ -147,15 +150,19 @@ export function Exploded({ fig }: { fig: string }) {
   const enter = (i: number) => {
     window.clearTimeout(clearTid.current);
     if (i === on) return;
-    setOn(i);
+    // Down the stack, the note rises into place from below; up the stack it
+    // drops in from above. The text travels the way the eye just did.
+    setSel({ on: i, dir: i > on ? 1 : -1 });
     fx?.tick();
   };
   // A short grace period, because moving from a slab to its own label leaves
-  // both for a frame and the caption would otherwise blink.
+  // both for a frame and the note would otherwise blink.
   const leave = () => {
     window.clearTimeout(clearTid.current);
-    clearTid.current = window.setTimeout(() => setOn(-1), 60);
+    clearTid.current = window.setTimeout(() => setSel({ on: -1, dir: -1 }), 60);
   };
+
+  const rest = coarse ? "five layers · tap one" : "five layers · point at one";
 
   return (
     <>
@@ -195,6 +202,17 @@ export function Exploded({ fig }: { fig: string }) {
                   onPointerLeave={leave}
                   onClick={() => enter(i)}
                 >
+                  {/* The setting-out line.
+                      
+                      The slab's own outline, faint and undashed, present from
+                      the first byte of HTML and rubbed out once the inked line
+                      has been drawn over it. Without it the plate is simply
+                      empty until the draw-in runs, which is a 370px hole where
+                      the figure is going to be: the drawn stroke is hidden by
+                      its dash offset and the faces are hidden by fill-opacity,
+                      so there is nothing left to see. A drawing is set out in
+                      pencil before it is inked, so that is what is there. */}
+                  <polygon className="ghost" points={top} />
                   <polygon
                     className="side"
                     points={`${CX - HALF_W},${m} ${CX},${b} ${CX},${b + DEPTH} ${CX - HALF_W},${m + DEPTH}`}
@@ -261,18 +279,44 @@ export function Exploded({ fig }: { fig: string }) {
         </div>
       </div>
 
-      <Caption
-        className="xp-cap"
-        id="xp-cap-assistant"
-        itemKey={String(on)}
-        label={on < 0 ? "five layers" : PARTS[on].name}
-      >
-        {on < 0
-          ? coarse
-            ? "Tap a layer to read what it does."
-            : "Point at a layer to read what it does."
-          : PARTS[on].note}
-      </Caption>
+      {/* One note slot, and it does not resize.
+          
+          It used to be a Caption, which measures its old and new heights and
+          interpolates between them, and it sat above a second paragraph that
+          carried the panel's own copy. Two blocks of prose, and the top one
+          grew and shrank every time a pointer crossed a label: five expansions
+          and five collapses to read five layers, with the whole plate pumping
+          under them.
+          
+          So the panel's copy moved in here as the resting state, and the slot
+          reserves its own height. Every string it can hold is rendered into the
+          same grid cell, all but the live one `visibility: hidden`, so the row
+          is always as tall as the tallest of them at whatever width the plate
+          happens to be. Evening the copy up gets close and breaks at one
+          viewport in five, because a line break is a function of where the
+          spaces fall and not of the character count. This is exact at every
+          width, and it stays exact when the copy is next edited.
+          
+          It is not a live region. It changes under the pointer, and a figure
+          with five parts announced five times while a pointer crossed it. The
+          labels point at it with aria-describedby instead, so it is read once,
+          on focus, as the description of the thing focused. */}
+      <div className="p-body xp-note" id="xp-cap-assistant">
+        <div
+          className="cap-in"
+          key={String(on)}
+          style={{ "--cap-dir": dir } as React.CSSProperties}
+        >
+          <b>{on < 0 ? rest : PARTS[on].name}</b>
+          {on < 0 ? body : PARTS[on].note}
+        </div>
+        {[{ b: rest, n: body }, ...PARTS.map((p) => ({ b: p.name, n: p.note }))].map((x) => (
+          <div className="xp-ghost" key={x.b} aria-hidden="true">
+            <b>{x.b}</b>
+            {x.n}
+          </div>
+        ))}
+      </div>
     </>
   );
 }
