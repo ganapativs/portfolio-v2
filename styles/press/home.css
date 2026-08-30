@@ -294,9 +294,17 @@
   vector-effect: non-scaling-stroke;
   transition: stroke var(--dur-fast) var(--ease-out);
 }
+/* Dashed: present, but not taken. The two models the router passed over. The
+   dash pattern is in screen space because of `non-scaling-stroke`, which is
+   exactly what is wanted here — the dashes stay the same size at any scale.
+   (It is the same interaction that broke the draw-in, where the pattern was
+   also being normalised by `pathLength`. There is no pathLength here.) */
+.xp .slab .glyph path.dash {
+  stroke-dasharray: 2.5 2.5;
+}
 /* One filled mark per set, at most, and only where something has to be singled
-   out: the model the router actually picked. A solid survives the shear when
-   nothing else does. */
+   out: the model the router actually picked, and the tongue inside the port. A
+   solid survives the shear when nothing else does. */
 .xp .slab .glyph path.solid {
   fill: var(--ink-2);
   stroke: none;

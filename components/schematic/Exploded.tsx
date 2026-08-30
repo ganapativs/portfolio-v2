@@ -25,7 +25,7 @@ import { useDrawOnFirstView } from "./useDrawOnFirstView";
  * built from free angles and curves collapses into a scribble. The first two
  * sets did exactly that.
  */
-type Stroke = { d: string; solid?: boolean };
+type Stroke = { d: string; solid?: boolean; dash?: boolean };
 
 const PARTS: { name: string; note: string; glyph: Stroke[] }[] = [
   {
@@ -43,13 +43,14 @@ const PARTS: { name: string; note: string; glyph: Stroke[] }[] = [
   {
     name: "model router",
     note: "One question in, one model out. The router reads what is being asked and sends it to the model that should answer it, so nothing costs more than it needs to.",
-    // One line in, three models, one of them filled. Choosing is the whole job,
-    // and a solid bar is the one mark that says "this one" after the shear.
+    // One line in, three models. The one it picked is solid; the two it did not
+    // are dashed, which is the drawing convention for a thing that is there but
+    // not taken. A decision, drawn as a decision.
     glyph: [
       { d: "M-16 0 H-4" },
-      { d: "M-4 -14 H14 V-6 H-4 Z" },
+      { d: "M-4 -14 H14 V-6 H-4 Z", dash: true },
       { d: "M-4 -4 H14 V4 H-4 Z", solid: true },
-      { d: "M-4 6 H14 V14 H-4 Z" },
+      { d: "M-4 6 H14 V14 H-4 Z", dash: true },
     ],
   },
   {
@@ -67,15 +68,33 @@ const PARTS: { name: string; note: string; glyph: Stroke[] }[] = [
   {
     name: "eval harness",
     note: "Every prompt is versioned, and a version only ships when the evals pass. The logs are complete enough to answer, later, why a given answer came out the way it did.",
-    // A case, and a pass. Two strokes, which is all that survives at this size.
-    glyph: [{ d: "M-13 -13 H13 V13 H-13 Z" }, { d: "M-8 0 L-2 6 L8 -7" }],
+    // Two cases: one passes, one does not. A single tick read as "done", which
+    // is not what an eval suite is. A suite is a thing that can fail, and the
+    // cross is the half that makes the tick mean anything.
+    glyph: [
+      { d: "M-15 -13 H-1 V1 H-15 Z" },
+      { d: "M-12 -6 L-9 -3 L-4 -10" },
+      { d: "M1 -1 H15 V13 H1 Z" },
+      { d: "M4 2 L12 10" },
+      { d: "M12 2 L4 10" },
+    ],
   },
   {
     name: "MCP server",
     note: "Read-only connectors behind OAuth, added after launch, so a coding client can reach the API without anyone pasting a key. The team co-owns it now.",
-    // Two things and the line between them. That is what the layer is for: a
-    // coding client at one end, the API at the other.
-    glyph: [{ d: "M-16 -7 H-5 V7 H-16 Z" }, { d: "M-5 0 H5" }, { d: "M5 -7 H16 V7 H5 Z" }],
+    // A plug entering a port. Not the protocol's own mark, which is drawn in
+    // curves that would not survive this projection and is not mine to reuse
+    // anyway: this is the metaphor its own documentation opens with, that MCP
+    // is a USB-C port for AI applications. So a port with the tongue in it, and
+    // a plug on a lead going in.
+    glyph: [
+      { d: "M-16 0 H-11" },
+      { d: "M-11 -7 H-3 V7 H-11 Z" },
+      { d: "M-3 -3 H2" },
+      { d: "M-3 3 H2" },
+      { d: "M2 -11 H16 V11 H2 Z" },
+      { d: "M7 -4 H12 V4 H7 Z", solid: true },
+    ],
   },
 ];
 
@@ -202,7 +221,11 @@ export function Exploded({ fig }: { fig: string }) {
                     transform={`translate(${CX} ${m}) matrix(${GS} ${-GK} ${GS} ${GK} 0 0)`}
                   >
                     {p.glyph.map((g) => (
-                      <path key={g.d} d={g.d} className={g.solid ? "solid" : undefined} />
+                      <path
+                        key={g.d}
+                        d={g.d}
+                        className={g.solid ? "solid" : g.dash ? "dash" : undefined}
+                      />
                     ))}
                   </g>
                 </g>
