@@ -57,21 +57,45 @@ export function Caption({
   useLayoutEffect(() => {
     const b = box.current;
     if (!b) return;
+
+    // Where the slot is right now. If a previous change is still travelling
+    // its height is pinned to an inline pixel value, and that value is the
+    // honest starting point; otherwise the box has already reflowed to the new
+    // content and the only record of where it was is the ref.
+    const pinned = b.style.height !== "";
+    const from = pinned ? b.getBoundingClientRect().height : lastH.current;
+
+    // Clear before measuring, always. Reading `offsetHeight` while the height
+    // is pinned returns the pinned value, so a reader who moved on before the
+    // last change had finished measured the *old* height as the new target:
+    // the slot animated to where it already was and stayed expanded, and
+    // moving the pointer off the figure never brought it back down.
+    b.style.height = "";
     const to = b.offsetHeight;
-    const from = lastH.current;
     lastH.current = to;
-    if (from === null || from === to) return;
+    if (from === null || Math.abs(from - to) < 0.5) return;
+
     b.style.height = `${from}px`;
     // Read forces the reflow, so the two heights are two separate styles rather
     // than one batched write the browser would collapse into a jump.
     void b.offsetHeight;
     b.style.height = `${to}px`;
-    const clear = () => {
+
+    const done = (e: TransitionEvent) => {
+      // Only this element's own height. Transitions bubble, and the label
+      // inside carries `color: var(--accent)`, so an ink change fired a
+      // `transitionend` through here and released the height mid-travel.
+      if (e.target !== b || e.propertyName !== "height") return;
       b.style.height = "";
-      b.removeEventListener("transitionend", clear);
+      b.removeEventListener("transitionend", done);
+      b.removeEventListener("transitioncancel", done);
     };
-    b.addEventListener("transitionend", clear);
-    return () => b.removeEventListener("transitionend", clear);
+    b.addEventListener("transitionend", done);
+    b.addEventListener("transitioncancel", done);
+    return () => {
+      b.removeEventListener("transitionend", done);
+      b.removeEventListener("transitioncancel", done);
+    };
   }, [itemKey]);
 
   return (

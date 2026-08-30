@@ -639,10 +639,18 @@ Replaces the old view-transition contract. **The clip-path iris is gone.**
    `ttb` from the keyboard. A number key has no position on the page, and a
    different axis is a more honest way to say so than a wipe pretending to start
    somewhere.
-5. **The swap is fired by whichever comes first, the midpoint or a 1.2 s
+5. **The swap is fired by whichever comes first, the midpoint or a 1.6 s
    guard**, and `apply` is idempotent so it cannot run twice. See the glimm trap
    in "Stack snapshot" for why the guard is not optional.
-6. **Reduced motion**: glimm's own `reducedMotion: "instant"` default is left
+6. **A second press while the band is still crossing restarts it.**
+   `playSweep` continues from the controller's current progress by design,
+   which is right for a page navigation and wrong for a toggle: press the theme
+   twice quickly and the second sweep starts wherever the first had got to, so
+   past the midpoint the swap fires at once and the band is already leaving.
+   The reader sees the paper change with no pass over it. `sweepApply` lands the
+   interrupted change immediately, cancels its handle, and winds the band back
+   to zero through the controller `SweepProvider` hands it via `onController`.
+7. **Reduced motion**: glimm's own `reducedMotion: "instant"` default is left
    alone, and `motion.css` kills the `--accent` transition. The ink arrives
    rather than travelling.
 

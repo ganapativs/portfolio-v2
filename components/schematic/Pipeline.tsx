@@ -447,10 +447,13 @@ export function Pipeline() {
           if (touched.current) return;
           muted.current = true;
           const t0 = performance.now();
-          // Slow enough to be read rather than noticed. At 2.4s the five stages
-          // went by faster than a reader could work out that they were stages,
-          // which defeated the point of showing them unasked.
-          const D = 3800;
+          // Slow enough to be read rather than noticed. This has been raised
+          // twice: 2.4s, then 3.8s, and both times the five stages went by
+          // before a reader had worked out that they were stages, which defeats
+          // the whole point of showing them unasked. The pass is the one piece
+          // of motion on the sheet nobody asked for, so it has to earn the time
+          // it takes by being legible, not by being brief.
+          const D = 7600;
           // The pass is a demonstration, so it is worth nothing if nobody is
           // watching it. It gives up the moment the tab is hidden or the
           // preference changes, and settles on the finished card rather than

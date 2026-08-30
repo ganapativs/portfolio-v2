@@ -101,10 +101,17 @@ const CX = 125;
 /**
  * The glyph's change of basis into the face's own plane.
  *
- * The face's two axes are (HALF_W, HALF_H) and (-HALF_W, HALF_H), so a unit of
- * the symbol's x runs down-right and a unit of its y runs down-left. 2.6 is as
- * large as the symbol can be drawn and still clear the edges: the face allows a
- * projected half-extent of HALF_W either way, and 2.6 x 16 x 2 is 83 of 95.
+ * The face's two axes are (HALF_W, HALF_H) and (-HALF_W, HALF_H). The symbol's
+ * x runs up-right along the first and its y runs down-right along the second,
+ * which is the quarter turn from the obvious mapping: with x down-right and y
+ * down-left every symbol read as if it had been laid on the slab sideways.
+ * Either assignment keeps the symbol in the plane, because both are just ways
+ * of parameterising the same face, so this is purely a question of which way
+ * the figure faces. It faces the reader now.
+ *
+ * 2.6 is as large as the symbol can be drawn and still clear the edges: the
+ * face allows a projected half-extent of HALF_W either way, and 2.6 x 16 x 2 is
+ * 83 of 95.
  */
 const GS = 2.6;
 const GK = (HALF_H / HALF_W) * GS;
@@ -192,7 +199,7 @@ export function Exploded({ fig }: { fig: string }) {
                       singled out. */}
                   <g
                     className="glyph"
-                    transform={`translate(${CX} ${m}) matrix(${GS} ${GK} ${-GS} ${GK} 0 0)`}
+                    transform={`translate(${CX} ${m}) matrix(${GS} ${-GK} ${GS} ${GK} 0 0)`}
                   >
                     {p.glyph.map((g) => (
                       <path key={g.d} d={g.d} className={g.solid ? "solid" : undefined} />

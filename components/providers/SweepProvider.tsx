@@ -1,6 +1,7 @@
 "use client";
 import { createMeshShader } from "glimm";
 import { GlimmProvider } from "glimm/react";
+import { setSweepController } from "@/lib/sweep";
 
 /**
  * cubic-bezier(.22, 1, .36, 1), the one curve the rest of the site eases on,
@@ -102,6 +103,9 @@ export function SweepProvider({ children }: { children: React.ReactNode }) {
   return (
     <GlimmProvider
       shaderFactory={meshFactory}
+      // Handed to lib/sweep.ts so a second press can wind the band back to the
+      // start rather than joining the one already crossing. See sweepApply.
+      onController={setSweepController}
       sweepMs={900}
       outroMs={420}
       // The palette swaps at 0.45 of 900ms, so the ink has moved 405ms after
