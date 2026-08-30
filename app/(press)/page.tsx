@@ -83,8 +83,8 @@ export default async function HomePage() {
             though most weeks still have some code in them.
           </p>
           <p>
-            Right now that code is a customer-facing <span className="amber">AI assistant</span>{" "}
-            over private-market data, and <span className="amber">106 word-sized chart types</span>{" "}
+            Right now that code is a customer-facing <span className="accent">AI assistant</span>{" "}
+            over private-market data, and <span className="accent">106 word-sized chart types</span>{" "}
             built on my own time.
           </p>
           <p className="intro-ask">

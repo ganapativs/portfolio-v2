@@ -48,7 +48,7 @@
   max-width: 32em;
 }
 .intro strong,
-.intro .amber {
+.intro .accent {
   font-weight: 600;
 }
 /* The ask. One line at the end of the introduction, saying what response the

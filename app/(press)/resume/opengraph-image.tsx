@@ -9,6 +9,6 @@ export default async function Image() {
   return renderOG({
     eyebrow: "résumé",
     title: `${CAREER_YEARS} years, one company since 2015. Printable.`,
-    accent: "dustblue",
+    accent: "bottle",
   });
 }

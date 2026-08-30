@@ -249,7 +249,7 @@
     --rule-3: #e6e2d6;
     --rule: #cdc8b8;
     --rule-2: #a29c88;
-    --accent: #7a4e0a;
+    --accent: #22587a;
     --accent-soft: transparent;
   }
   /* `!important` is load-bearing. The no-flash script in app/layout.tsx sets

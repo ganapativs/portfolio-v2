@@ -15,6 +15,14 @@ html {
   /* Anchor jumps and ruler clicks glide. motion.css turns this off for
      reduced motion, and scrollIntoView opts out explicitly there too. */
   scroll-behavior: smooth;
+  /* The header is sticky, so the top of the scrollport is not the top of the
+     readable page. Every scroll the browser performs for us — a ruler tick, an
+     anchor jump, find-in-page, focus moving into an off-screen control — lands
+     the target under the condensed strip without this. The strip bottoms out
+     39px from the viewport top once stuck; 56px clears it with a line of air.
+     scroll-padding on the scrollport rather than scroll-margin on the targets:
+     one number, and it covers the targets nobody remembered to mark. */
+  scroll-padding-top: 56px;
   background: var(--paper);
   /* `clip`, not `hidden`, and this is load-bearing for the sticky header.
      `overflow-x: hidden` makes the element a scroll container, so a sticky
@@ -75,7 +83,7 @@ button {
 
    `fill` is here because of SVG. Inside an <svg> the glyphs are painted with
    `fill`, not `color`, so a selection that only set `color` left drawn text
-   sitting on an amber slab in whatever colour it already was. Firefox is the
+   sitting on an inked slab in whatever colour it already was. Firefox is the
    only engine that honours it, which is why the drawings opt out of selection
    entirely below. */
 ::selection {
@@ -134,7 +142,7 @@ kbd {
 .dim {
   color: var(--ink-3);
 }
-.amber {
+.accent {
   color: var(--accent);
 }
 .kn {

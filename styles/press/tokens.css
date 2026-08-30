@@ -40,7 +40,11 @@
 @property --accent {
   syntax: "<color>";
   inherits: true;
-  initial-value: #8f5c0c;
+  /* The default ink's light value, mirroring DEFAULT_INK in lib/ink.ts. Nothing
+     normally reads it — `:root` always sets --accent — but it is what paints if
+     a declaration is ever invalid at computed-value time, and an initial value
+     from a retired default is a silent way to print last season's ink. */
+  initial-value: #2b6083;
 }
 
 /* 2 — SURFACES ---------------------------------------------------------------
@@ -106,10 +110,11 @@
    active one. Without --sw-* the picker needs a second hand-maintained copy of
    the whole palette, and nothing fails loudly when the two drift.
 
-   Amber is the default and the reason the drawing reads as a drawing: it is the
-   colour of a hard pencil on tracing paper, and it is the only one of the six
-   that is a material rather than a hue. The other five are pigments a drawing
-   office would actually have had.
+   Dust blue is the default. It is the ink a drawing office reproduced in:
+   blueprint stock, the diazo line, the pencil-blue a draughtsman set out with.
+   It is a working colour rather than a brand one, which is the whole test the
+   other five have to pass too. Drafting amber sits beside it as the colour of a
+   hard pencil on tracing paper.
 
    Two rules govern the pairs, and neither is arithmetic:
 
@@ -119,27 +124,37 @@
       amber. Every pair moves in hue, not only in lightness.
 
    2. Every pair clears AA against its own ground as text (the weakest is amber
-      on paper at 5.11:1) and 3:1 as a line. The palette is checked as type,
-      not as swatches, because --accent sets live values and actions. */
+      on paper at 5.11:1, then olive at 5.32:1) and 3:1 as a line. The palette
+      is checked as type, not as swatches, because --accent sets live values
+      and actions. */
 
 :root {
+  --sw-dustblue: oklch(0.47 0.08 240);
   --sw-amber: #8f5c0c;
   --sw-bottle: oklch(0.45 0.095 158);
   --sw-oxblood: oklch(0.46 0.115 25);
-  --sw-dustblue: oklch(0.47 0.08 240);
   --sw-aubergine: oklch(0.44 0.112 316);
-  --sw-slate: oklch(0.46 0.05 250);
+  --sw-olive: oklch(0.5 0.095 112);
 }
 [data-theme="dark"] {
+  --sw-dustblue: oklch(0.75 0.075 245);
   --sw-amber: #d9962b;
   --sw-bottle: oklch(0.75 0.092 154);
   --sw-oxblood: oklch(0.73 0.11 29);
-  --sw-dustblue: oklch(0.75 0.075 245);
   --sw-aubergine: oklch(0.72 0.105 320);
-  --sw-slate: oklch(0.75 0.045 250);
+  --sw-olive: oklch(0.78 0.11 108);
 }
 
+/* The default MUST be the first rule in this run, and it is not a style
+   preference. `:root` and `[data-ink="x"]` are both specificity 0,1,0, so the
+   cascade falls through to source order: whichever is written last wins on an
+   element that matches both, and <html> matches both. Declared here, every ink
+   below overrides it. Declared halfway down the list, it silently kills every
+   ink above it and those swatches paint the default instead. */
 :root,
+[data-ink="dustblue"] {
+  --accent: var(--sw-dustblue);
+}
 [data-ink="amber"] {
   --accent: var(--sw-amber);
 }
@@ -149,14 +164,11 @@
 [data-ink="oxblood"] {
   --accent: var(--sw-oxblood);
 }
-[data-ink="dustblue"] {
-  --accent: var(--sw-dustblue);
-}
 [data-ink="aubergine"] {
   --accent: var(--sw-aubergine);
 }
-[data-ink="slate"] {
-  --accent: var(--sw-slate);
+[data-ink="olive"] {
+  --accent: var(--sw-olive);
 }
 
 /* Derived weights. These are plain custom properties rather than registered
@@ -172,6 +184,25 @@
      it, so the tween is what the reader sees underneath the band rather than
      something competing with it. See components/providers/SweepProvider.tsx. */
   transition: --accent var(--dur-ink) var(--ease-out);
+}
+
+/* ...except when the paper changes under it.
+
+   The ground swaps in one frame at the band's midpoint; the ink took 340ms to
+   follow. Everywhere under the band that lag is invisible, but the header sits
+   above it (z-index 70 over 60, so the control that caused the flip stays
+   legible), and the bar under the G is painted in --accent. Flipping to
+   graphite therefore left the light-ground ink — oxblood at oklch(.46 …), 1.9:1
+   on #131417 — sitting on the dark ground for the whole tween, and the bar read
+   as gone. Going the other way it was a washed-out light-ground value on paper.
+
+   A theme flip is not an interpolation between two inks, it is the same ink
+   repigmented for a different ground, and the band is what carries it. So the
+   token snaps with everything else. ThemeProvider stamps data-repapering for
+   the one frame it takes to commit the swap, and the tween is back for the
+   next ink pick. */
+:root[data-repapering] {
+  transition: none;
 }
 
 /* 4 — TYPE, SPACE, MOTION --------------------------------------------------- */

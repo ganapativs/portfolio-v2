@@ -66,7 +66,7 @@ export async function renderOG({
   eyebrow,
   title,
   footer = "meetguns.com",
-  accent = "amber",
+  accent = "dustblue",
 }: RenderArgs) {
   const fonts = await getFonts();
   const ink = INK_HEX[accent];

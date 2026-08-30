@@ -281,7 +281,6 @@
   color: var(--ink);
   letter-spacing: -0.015em;
   text-wrap: balance;
-  scroll-margin-top: 88px;
 }
 .prose h2 {
   margin: clamp(40px, 6vh, 60px) 0 0.55em;

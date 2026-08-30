@@ -12,7 +12,7 @@ Next.js **16.2** + React **19.2** + Tailwind **v4** in this repo. APIs, conventi
 
 **The Schematic.** One sheet of an engineering drawing, alive: registration
 ticks at the corners, a measuring edge down the left, a Bayer-dither light under
-the cursor, drafting amber as the default ink, and a title block for a footer.
+the cursor, dust blue as the default ink, and a title block for a footer.
 Six inks, two grounds, and nothing else adjustable.
 
 The home page is six figures, a parts list and a revisions list. Every figure is
@@ -41,7 +41,7 @@ Stale agent rules lie. The pairs that actually break:
   `app/icon.tsx`, `lib/icon-png.tsx`, `app/opengraph-image.tsx`,
   `app/(press)/blog/opengraph-image.tsx`, `app/(press)/resume/opengraph-image.tsx`
   and the per-post `accent` in `lib/posts.ts`. Renaming an ink touches all of
-  them, and **the regex fails silently** — a miss falls back to `amber` rather
+  them, and **the regex fails silently** — a miss falls back to `dustblue` rather
   than throwing, so it reads as a forgetful browser, not as a bug.
 - **The `--sw-<id>` names in `tokens.css` ⇆ `InkSwatch` in
   `components/schematic/Header.tsx`**, which paints each swatch with
@@ -220,7 +220,7 @@ Unchanged from the previous design except that **every page now renders inside
 | `/rss.xml`                                     | `app/rss.xml/route.ts`                                       | RSS 2.0 feed of `published` posts                                                                                                    |
 | `/llms.txt`                                    | `app/llms.txt/route.ts`                                      | Curated plain-text site map for AI systems; links each post's `.md` mirror                                                           |
 | `/api/vitals`                                  | `app/api/vitals/route.ts`                                    | Edge runtime — receives next/web-vitals beacons                                                                                      |
-| `/opengraph-image*`                            | `app/**/opengraph-image.tsx`                                 | Per-route OG cards, all through `lib/og.tsx`. Home `amber`, blog and résumé `dustblue`                                               |
+| `/opengraph-image*`                            | `app/**/opengraph-image.tsx`                                 | Per-route OG cards, all through `lib/og.tsx`. Home `dustblue`, blog and résumé `bottle`                                              |
 | `error`                                        | `app/error.tsx`                                              | Root error boundary. Outside the (press) group, so it mounts `<Sheet>` itself                                                        |
 | `not-found`                                    | `app/not-found.tsx`, `app/(press)/blog/[slug]/not-found.tsx` | 404 (`robots: { index: false }`). The global one also mounts `<Sheet>` itself                                                        |
 
@@ -272,6 +272,13 @@ none` with `.hd > *` set back to `auto`, so the dead area under the condensed
   and the ground runs past the line; and the rule's `margin-bottom: -9px` is
   half its own height, which puts the hairline exactly on the ground's bottom
   edge with the compass straddling it.
+- **The scroll offset it needs is `scroll-padding-top` on `html`, not
+  `scroll-margin-top` on the targets** (`base.css`). The condensed strip bottoms
+  out 39px from the viewport top, so every scroll the browser performs for us —
+  a ruler tick, an anchor jump, find-in-page, focus moving into an off-screen
+  control — would otherwise land its target underneath it. One number on the
+  scrollport covers all of them, including the targets nobody remembered to
+  mark; the essay headings used to carry their own 88px copy and no longer do.
 - **Two widths, deliberately.** The ground bleeds to the sheet's inner edge,
   because a blur that stops mid-air is worse than no blur. The rule inside it
   stays at the drawing's width, like every other rule here.
@@ -532,16 +539,20 @@ its mirror.**
 
 ### The six inks (`styles/press/tokens.css` ⇆ `lib/ink.ts`)
 
-| ID                | Label          | Light (`--sw-*`)      | Dark (`--sw-*`)       | Mirror light / dark   | Hz  |
-| ----------------- | -------------- | --------------------- | --------------------- | --------------------- | --- |
-| `amber` (default) | drafting amber | `#8f5c0c`             | `#d9962b`             | `#8f5c0c` / `#d9962b` | 440 |
-| `bottle`          | bottle green   | `oklch(.45 .095 158)` | `oklch(.75 .092 154)` | `#176540` / `#7fbf93` | 492 |
-| `oxblood`         | oxblood        | `oklch(.46 .115 25)`  | `oklch(.73 .11 29)`   | `#8d3936` / `#e58c7f` | 544 |
-| `dustblue`        | dust blue      | `oklch(.47 .08 240)`  | `oklch(.75 .075 245)` | `#2b6083` / `#86b3db` | 596 |
-| `aubergine`       | aubergine      | `oklch(.44 .112 316)` | `oklch(.72 .105 320)` | `#6a3c7c` / `#c28fce` | 648 |
-| `slate`           | slate          | `oklch(.46 .05 250)`  | `oklch(.75 .045 250)` | `#435a73` / `#99b1ca` | 700 |
+| ID                   | Label          | Light (`--sw-*`)      | Dark (`--sw-*`)       | Mirror light / dark   | Hz  |
+| -------------------- | -------------- | --------------------- | --------------------- | --------------------- | --- |
+| `amber`              | drafting amber | `#8f5c0c`             | `#d9962b`             | `#8f5c0c` / `#d9962b` | 440 |
+| `bottle`             | bottle green   | `oklch(.45 .095 158)` | `oklch(.75 .092 154)` | `#176540` / `#7fbf93` | 492 |
+| `oxblood`            | oxblood        | `oklch(.46 .115 25)`  | `oklch(.73 .11 29)`   | `#8d3936` / `#e58c7f` | 544 |
+| `dustblue` (default) | dust blue      | `oklch(.47 .08 240)`  | `oklch(.75 .075 245)` | `#2b6083` / `#86b3db` | 596 |
+| `aubergine`          | aubergine      | `oklch(.44 .112 316)` | `oklch(.72 .105 320)` | `#6a3c7c` / `#c28fce` | 648 |
+| `olive`              | olive          | `oklch(.5 .095 112)`  | `oklch(.78 .11 108)`  | `#65681f` / `#bebd66` | 700 |
 
-`brass` and `umber` are **gone**. Do not reintroduce them.
+`brass`, `umber` and `slate` are **gone**. Do not reintroduce them. `slate` was
+retired because at `oklch(.46 .05 250)` it was dust blue at 10 degrees and half
+the chroma: a second blue rather than a sixth pigment. `olive` took the slot
+because amber to bottle is the palette's widest hue gap (88 degrees), so it is
+the only place a sixth ink sits more than 40 degrees from both neighbours.
 
 The Hz column is the pitch the picker plucks on a pick. The six rise linearly by
 52 Hz, so playing the tray left to right is a rising run — that is the point of
@@ -554,13 +565,15 @@ Two rules govern the pairs, and neither is arithmetic:
    dark ground swallows chroma and a lit amber has to shout a little to stay
    amber. Every pair moves in hue, not only in lightness.
 2. **Every pair clears AA against its own ground as text** (the weakest is amber
-   on paper at 5.11:1) and 3:1 as a line. The palette is checked as type, not as
-   swatches, because `--accent` sets live values and actions.
+   on paper at 5.11:1, then olive at 5.32:1) and 3:1 as a line. The palette is
+   checked as type, not as swatches, because `--accent` sets live values and
+   actions.
 
-**Amber is the default and it is a material, not a hue.** It is the colour of a
-hard pencil on tracing paper, which is the one thing on the list that makes the
-drawing read as a drawing. The other five are pigments a drawing office would
-actually have had.
+**Dust blue is the default, and it is a material, not a hue.** It is the ink a
+drawing office reproduced in: blueprint stock, the diazo line, the pencil-blue a
+draughtsman set out with. The other five are pigments a drawing office would
+actually have had, drafting amber among them as the colour of a hard pencil on
+tracing paper.
 
 **These are pigments, not signals.** The six accents on `microcharts.dev` — the
 sibling property — are near-equiluminant, because chart series must be or one
@@ -661,13 +674,19 @@ introduce one.**
 
 ### `<html>` data attributes
 
-| Attribute                  | Set by                     | Triggers           |
-| -------------------------- | -------------------------- | ------------------ |
-| `data-theme="light\|dark"` | no-flash → `ThemeProvider` | Every dark surface |
-| `data-ink="<id>"`          | no-flash → `InkProvider`   | The active ink     |
+| Attribute                  | Set by                     | Triggers                        |
+| -------------------------- | -------------------------- | ------------------------------- |
+| `data-theme="light\|dark"` | no-flash → `ThemeProvider` | Every dark surface              |
+| `data-ink="<id>"`          | no-flash → `InkProvider`   | The active ink                  |
+| `data-repapering`          | `ThemeProvider`, one frame | Kills the `--accent` transition |
 
-Those two and nothing else, plus the inline ground colour and `colorScheme`.
-`data-mode` is gone.
+The first two and nothing else, plus the inline ground colour and
+`colorScheme`. `data-mode` is gone.
+
+`data-repapering` is not a third palette axis: it is written and removed inside
+one theme swap and is never persisted. It exists so the ink snaps with the
+ground it belongs to instead of tweening to catch up with it — see
+`:root[data-repapering]` in `tokens.css` and point 2b of the sweep contract.
 
 ---
 
@@ -688,6 +707,8 @@ Replaces the old view-transition contract. **The clip-path iris is gone.**
    the band passed: it read as the underline blinking off and on. The band
    re-inks the sheet; the control surface that caused it stays legible while it
    happens.
+   1c. **The header is also the only place the `--accent` tween is visible on a
+   theme flip**, which is why there is not one any more. See 2b.
 2. **Both palette changes — theme and ink — go through `sweepApply()` in
    `lib/sweep.ts`**, which hands the state swap to glimm. glimm draws one WebGL
    band across the viewport and applies the change underneath it at the

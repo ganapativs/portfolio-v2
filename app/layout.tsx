@@ -126,7 +126,7 @@ export const viewport: Viewport = {
 // The ink regex has to list every id in lib/ink.ts. A miss is silent: it falls
 // back to the default rather than throwing, so a renamed ink looks like a
 // forgetful browser rather than a bug.
-const noFlash = `(function(){try{var d=document.documentElement;var t=localStorage.getItem('mg_theme');if(t!=='light'&&t!=='dark'){t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}d.dataset.theme=t;d.style.colorScheme=t;d.style.backgroundColor=t==='dark'?'#131417':'#f5f3ec';var i=localStorage.getItem('mg_ink');if(!/^(amber|bottle|oxblood|dustblue|aubergine|slate)$/.test(i||''))i='amber';d.dataset.ink=i;}catch(e){}})();`;
+const noFlash = `(function(){try{var d=document.documentElement;var t=localStorage.getItem('mg_theme');if(t!=='light'&&t!=='dark'){t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}d.dataset.theme=t;d.style.colorScheme=t;d.style.backgroundColor=t==='dark'?'#131417':'#f5f3ec';var i=localStorage.getItem('mg_ink');if(!/^(amber|bottle|oxblood|dustblue|aubergine|olive)$/.test(i||''))i='dustblue';d.dataset.ink=i;}catch(e){}})();`;
 
 const consoleSig = `(function(){var a=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#8f5c0c';console.log('%cmeetguns · built with care in Bengaluru · vsg.inbox@gmail.com','font-family:ui-monospace,monospace;font-size:13px;letter-spacing:.08em;color:'+a+';line-height:1.8;');})();`;
 

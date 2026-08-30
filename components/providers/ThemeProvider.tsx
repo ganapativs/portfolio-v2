@@ -76,12 +76,23 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     pendingOrigin.current = null;
     const apply = () => {
       const root = document.documentElement;
+      // The ink snaps with the ground rather than tweening to catch up with it.
+      // See :root[data-repapering] in tokens.css for why — the header paints
+      // above the band, so a 340ms lag on --accent is visible there and only
+      // there. The getComputedStyle below flushes style while the flag is on,
+      // which is what commits the swap without a transition.
+      root.dataset.repapering = "";
       root.dataset.theme = theme;
       root.style.colorScheme = theme;
       // Mirror the ground from the token rather than duplicating its value: the
       // canvas is painted from <html>, and the no-flash script wrote a literal
       // there that this replaces.
       root.style.backgroundColor = getComputedStyle(root).getPropertyValue("--paper").trim();
+      // A timer, not rAF: a hidden tab freezes rAF and the flag would stick,
+      // taking the tween off the next ink pick with it.
+      setTimeout(() => {
+        delete root.dataset.repapering;
+      }, 0);
     };
     sweepApply(sweep, apply, {
       // The band is the whole tray crossing the sheet, from the active ink on
