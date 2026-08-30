@@ -439,6 +439,7 @@
   width: auto;
   color: var(--ink);
   flex: none;
+  align-self: center;
 }
 .hd-mark .mark-bar {
   fill: var(--accent);
@@ -463,9 +464,20 @@
     transform: scaleX(1);
   }
 }
+/* Baselines, not boxes.
+   
+   The two names are set in two faces at two sizes, so centring their boxes
+   put the Kannada baseline 3.7px above the Latin one. It had been corrected by
+   hand with `align-self: flex-end` and a 1px nudge, which aligns the bottoms of
+   the boxes instead: right only for the exact pair of fonts and sizes it was
+   tuned against, and wrong the moment either moves. Aligning the baselines is
+   the thing that was actually wanted, and it holds at any size.
+   
+   The mark is not type and has no baseline worth aligning to, so it opts out
+   and stays centred on the line. */
 .hd-brand {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 12px;
   min-width: 0;
 }
@@ -479,8 +491,9 @@
   font-family: var(--f-kannada);
   font-size: 14px;
   color: var(--ink-3);
-  align-self: flex-end;
-  padding-bottom: 1px;
+  /* Its own line-height, so the Kannada matras do not open the flex line up
+     to 1.55 of the body leading and drag the header taller. */
+  line-height: 1;
 }
 .hd-nav {
   margin-left: auto;
