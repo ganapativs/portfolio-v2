@@ -645,14 +645,24 @@ Replaces the old view-transition contract. **The clip-path iris is gone.**
    alone, and `motion.css` kills the `--accent` transition. The ink arrives
    rather than travelling.
 
-`SweepProvider`'s settings are all decisions, documented in the file:
-`sweepMs 640` / `outroMs 300` / `midpoint 0.42` is the one place the motion law
-is deliberately exceeded, because this is the whole sheet being re-inked rather
-than a control answering, and at 380ms the band was over before the eye found
-it; `waveAmount 0` and a tight band because this site is drawn with a
-straightedge; `brightness` and `peakAlpha` pulled down because at the library's
-defaults the band blew out to near-white on graphite, which is the one colour
-the palette does not contain.
+`SweepProvider`'s settings are all decisions, documented in the file. It runs
+glimm's **mesh** shader (`shaderFactory: createMeshShader`), not the flat one:
+the band is a lit crest with a trailing second wave, refraction and a dispersed
+rim, so it reads as a material passing over the sheet rather than as a lighter
+rectangle. `sweepMs 900` / `outroMs 420` / `midpoint 0.45` is the one place the
+motion law is deliberately exceeded, because this is the whole sheet being
+re-inked rather than a control answering; it has been shortened twice and both
+times the sweep was simply missed. `waveAmount` and `rippleAmount` are on now.
+`brightness` and `peakAlpha` stay pulled down because at the library's defaults
+the band blows out to near-white on graphite, which is the one colour the
+palette does not contain.
+
+**An ink pick sweeps two colours; a paper change sweeps all six.** `accentPair`
+for the pick, because two colours is the whole event. `themeBand()` in
+`ThemeProvider` builds an `accentChain` from the active ink on the ground it is
+leaving, through the other five at their new values in tray order, to the same
+ink on the ground it arrives at: every ink is about to be repigmented for a
+different ground, and the band says so.
 
 ---
 

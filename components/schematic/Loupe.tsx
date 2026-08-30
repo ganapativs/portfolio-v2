@@ -104,10 +104,13 @@ export function Loupe() {
       el.style.width = `${Math.hypot(dx, dy)}px`;
       el.style.transform = `translate(${x1}px,${y1}px) rotate(${Math.atan2(dy, dx)}rad)`;
     };
-    // Both tangents start at the foot of the sentence block, not at the word.
-    // Run them from the word itself and they cut straight through the lines
-    // below it, which is the one thing a callout on a drawing must not do.
-    const sy = (sentenceRef.current?.getBoundingClientRect().bottom ?? 0) - base.top + 4;
+    // Both tangents leave the lens itself, on its ring. The lens is 58px, so
+    // its radius is 29, and at 16 either side of centre the ring is at
+    // sqrt(29^2 - 16^2) = 24.2 below it. Starting them at the foot of the
+    // sentence block instead kept them off the prose, but it also left the
+    // callout drawn from nothing: two lines rising to a circle they never
+    // touch. A leader that does not touch what it leads from is not a leader.
+    const sy = r.y + 24;
     line(l1.current, r.x - 16, sy, dl, dt);
     line(l2.current, r.x + 16, sy, dr, dt);
   }, []);

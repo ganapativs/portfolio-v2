@@ -9,9 +9,9 @@ import {
   useState,
 } from "react";
 import { useGlimm } from "glimm/react";
-import { accentPair } from "glimm";
+import { accentChain } from "glimm";
 import { sweepApply } from "@/lib/sweep";
-import { INK_HEX, INK_HEX_DARK, isInkId, DEFAULT_INK } from "@/lib/ink";
+import { INKS, INK_HEX, INK_HEX_DARK, isInkId, DEFAULT_INK } from "@/lib/ink";
 import { track } from "@/lib/analytics";
 
 type Theme = "light" | "dark";
@@ -32,11 +32,24 @@ function readInitialTheme(): Theme {
   return "light";
 }
 
-/** The active ink's two values, which is what the sweep band is painted with. */
-function inkEnds() {
+/**
+ * What the band is painted with on a theme flip: the whole tray, passing over
+ * the sheet, starting on the active ink as it is now and landing on the same
+ * ink as it will be on the new ground.
+ *
+ * An ink pick sweeps two colours because two colours is the whole event. A
+ * paper change is not about one ink: every one of the six is about to be
+ * repigmented for a different ground, and a band carrying all six says that.
+ * The four in the middle are the other inks at their new values, in tray
+ * order, so the pass is the same rising run the picker plays.
+ */
+function themeBand(next: "light" | "dark") {
   const id = typeof document === "undefined" ? DEFAULT_INK : document.documentElement.dataset.ink;
   const key = isInkId(id) ? id : DEFAULT_INK;
-  return [INK_HEX[key], INK_HEX_DARK[key]] as const;
+  const from = next === "dark" ? INK_HEX[key] : INK_HEX_DARK[key];
+  const to = next === "dark" ? INK_HEX_DARK[key] : INK_HEX[key];
+  const others = INKS.filter((i) => i.id !== key).map((i) => (next === "dark" ? i.darkHex : i.hex));
+  return accentChain([from, ...others, to]);
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
@@ -70,11 +83,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       // there that this replaces.
       root.style.backgroundColor = getComputedStyle(root).getPropertyValue("--paper").trim();
     };
-    const [light, dark] = inkEnds();
     sweepApply(sweep, apply, {
-      // The band is the live ink travelling between its two grounds, so the
-      // colour that sweeps across is the one the reader chose.
-      palette: accentPair(theme === "dark" ? light : dark, theme === "dark" ? dark : light),
+      // The band is the whole tray crossing the sheet, from the active ink on
+      // the ground it is leaving to the same ink on the ground it is arriving
+      // at. See themeBand above.
+      palette: themeBand(theme),
       // Left to right on a pointer press, top to bottom from the keyboard. The
       // keyboard has no position on the page, and a different axis is a more
       // honest way to say so than a wipe pretending to start somewhere.
