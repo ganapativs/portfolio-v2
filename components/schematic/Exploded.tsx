@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useFX } from "@/components/providers/FXProvider";
-import dynamic from "next/dynamic";
 import { Caption } from "./Caption";
 import { useCoarsePointer } from "./useCoarsePointer";
 import { useDrawOnFirstView } from "./useDrawOnFirstView";
@@ -89,13 +88,6 @@ const PARTS: { name: string; note: string; glyph: Stroke[] }[] = [
  * about 67 degrees, and a page reads as a page. The stack is taller for it, and
  * the plate had the height to spare.
  */
-/**
- * The traffic layer is a separate chunk and only fetched where WebGPU exists.
- * The figure is complete without it: the SVG carries the structure, the labels,
- * the hover and the draw-in, and this adds the movement.
- */
-const FlowLayer = dynamic(() => import("./FlowLayer").then((m) => m.FlowLayer), { ssr: false });
-
 const W = 300;
 const HALF_W = 95;
 const HALF_H = 40;
@@ -150,75 +142,72 @@ export function Exploded({ fig }: { fig: string }) {
         <span className="sr-only"> — replay the drawing</span>
       </button>
       <div className="xp">
-        <div className="xp-plate">
-          <svg ref={svgRef} className="willdraw" viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
-            <defs>
-              <pattern
-                id="hatchP"
-                width="6"
-                height="6"
-                patternUnits="userSpaceOnUse"
-                patternTransform="rotate(45)"
-              >
-                <line x1="0" y1="0" x2="0" y2="6" stroke="var(--accent)" strokeWidth="1" />
-              </pattern>
-            </defs>
-            {PARTS.map((p, i) => {
-              const y = Y0 + i * STEP;
-              const m = y + HALF_H;
-              const b = y + HALF_H * 2;
-              const top = `${CX},${y} ${CX + HALF_W},${m} ${CX},${b} ${CX - HALF_W},${m}`;
-              return (
-                <g key={p.name}>
-                  <g
-                    className="slab"
-                    data-on={on === i}
-                    style={{ ["--i" as string]: i }}
-                    onPointerEnter={() => enter(i)}
-                    onPointerLeave={leave}
-                    onClick={() => enter(i)}
-                  >
-                    <polygon
-                      className="side"
-                      points={`${CX - HALF_W},${m} ${CX},${b} ${CX},${b + DEPTH} ${CX - HALF_W},${m + DEPTH}`}
-                      pathLength="1"
-                    />
-                    <polygon
-                      className="side"
-                      points={`${CX},${b} ${CX + HALF_W},${m} ${CX + HALF_W},${m + DEPTH} ${CX},${b + DEPTH}`}
-                      pathLength="1"
-                    />
-                    <polygon points={top} pathLength="1" />
-                    <polygon className="hatch" points={top} />
-                    {/* Projected into the slab's own plane, so the symbol lies
-                        on the face rather than being pasted over it. The matrix
-                        is the face's geometry, not a guess; see GS and GK above.
-
-                        The symbols were redrawn three times for this. Free angles
-                        and curves do not survive the shear, and neither does fine
-                        internal detail: what reads is four strokes or fewer, wide
-                        apart, and one solid mark where something has to be
-                        singled out. */}
-                    <g
-                      className="glyph"
-                      transform={`translate(${CX} ${m}) matrix(${GS} ${GK} ${-GS} ${GK} 0 0)`}
-                    >
-                      {p.glyph.map((g) => (
-                        <path key={g.d} d={g.d} className={g.solid ? "solid" : undefined} />
-                      ))}
-                    </g>
-                  </g>
-                  <path
-                    className="leader"
-                    d={`M${CX + HALF_W + 2} ${m} L${W - 4} ${m}`}
+        <svg ref={svgRef} className="willdraw" viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
+          <defs>
+            <pattern
+              id="hatchP"
+              width="6"
+              height="6"
+              patternUnits="userSpaceOnUse"
+              patternTransform="rotate(45)"
+            >
+              <line x1="0" y1="0" x2="0" y2="6" stroke="var(--accent)" strokeWidth="1" />
+            </pattern>
+          </defs>
+          {PARTS.map((p, i) => {
+            const y = Y0 + i * STEP;
+            const m = y + HALF_H;
+            const b = y + HALF_H * 2;
+            const top = `${CX},${y} ${CX + HALF_W},${m} ${CX},${b} ${CX - HALF_W},${m}`;
+            return (
+              <g key={p.name}>
+                <g
+                  className="slab"
+                  data-on={on === i}
+                  style={{ ["--i" as string]: i }}
+                  onPointerEnter={() => enter(i)}
+                  onPointerLeave={leave}
+                  onClick={() => enter(i)}
+                >
+                  <polygon
+                    className="side"
+                    points={`${CX - HALF_W},${m} ${CX},${b} ${CX},${b + DEPTH} ${CX - HALF_W},${m + DEPTH}`}
                     pathLength="1"
                   />
+                  <polygon
+                    className="side"
+                    points={`${CX},${b} ${CX + HALF_W},${m} ${CX + HALF_W},${m + DEPTH} ${CX},${b + DEPTH}`}
+                    pathLength="1"
+                  />
+                  <polygon points={top} pathLength="1" />
+                  <polygon className="hatch" points={top} />
+                  {/* Projected into the slab's own plane, so the symbol lies
+                      on the face rather than being pasted over it. The matrix
+                      is the face's geometry, not a guess; see GS and GK above.
+
+                      The symbols were redrawn three times for this. Free angles
+                      and curves do not survive the shear, and neither does fine
+                      internal detail: what reads is four strokes or fewer, wide
+                      apart, and one solid mark where something has to be
+                      singled out. */}
+                  <g
+                    className="glyph"
+                    transform={`translate(${CX} ${m}) matrix(${GS} ${GK} ${-GS} ${GK} 0 0)`}
+                  >
+                    {p.glyph.map((g) => (
+                      <path key={g.d} d={g.d} className={g.solid ? "solid" : undefined} />
+                    ))}
+                  </g>
                 </g>
-              );
-            })}
-          </svg>
-          <FlowLayer layer={on} height={H} />
-        </div>
+                <path
+                  className="leader"
+                  d={`M${CX + HALF_W + 2} ${m} L${W - 4} ${m}`}
+                  pathLength="1"
+                />
+              </g>
+            );
+          })}
+        </svg>
 
         <div className="xp-labels">
           {PARTS.map((p, i) => (

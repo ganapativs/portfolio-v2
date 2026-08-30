@@ -18,15 +18,14 @@
     "lint:fix": "oxlint --fix",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
-    "check": "node scripts/check-wgsl.mjs && oxfmt --check && oxlint",
+    "check": "oxfmt --check && oxlint",
     "fix": "oxfmt && oxlint --fix",
     "knip": "knip",
     "index:submit": "node scripts/submit-index.mjs",
     "gen:favicon": "python3 scripts/gen-favicon.py",
     "gen:pwa-screenshots": "bash scripts/gen-pwa-screenshots.sh",
     "gen:kannada-subset": "python3 scripts/subset-kannada.py",
-    "prepare": "simple-git-hooks || true",
-    "check:wgsl": "node scripts/check-wgsl.mjs"
+    "prepare": "simple-git-hooks || true"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
@@ -45,8 +44,7 @@
     "rehype-highlight": "^7.0.2",
     "rehype-slug": "^6.0.0",
     "remark-gfm": "^4.0.1",
-    "remark-smartypants": "^3.0.3",
-    "vgpu": "^0.3.1"
+    "remark-smartypants": "^3.0.3"
   },
   "devDependencies": {
     "@fontsource/hanken-grotesk": "^5.3.0",

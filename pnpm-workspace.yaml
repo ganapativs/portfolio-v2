@@ -1,9 +1,5 @@
 allowBuilds:
-  # vgpu ships a Node-side WebGPU adapter with a native build step. The browser
-  # entry point this site uses never touches it, so it is never built.
-  "@vgpu/adapter-node": false
   sharp: true
   simple-git-hooks: true
-  webgpu: false
 minimumReleaseAgeExclude:
   - "@microcharts/react@0.8.0 || 0.11.0"
