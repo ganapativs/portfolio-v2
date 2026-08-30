@@ -77,8 +77,10 @@ export function EssayShell({ post, children }: { post: Post; children: React.Rea
             priority
             fetchPriority="high"
             quality={70}
-            // 834px, not 760: the cover deliberately bleeds wider than the prose measure.
-            sizes="(min-width: 940px) 834px, 100vw"
+            // The cover takes the whole plate now that the essay has no card
+            // around it, so it is the sheet's content width rather than the
+            // old card's inner width.
+            sizes="(min-width: 1104px) 976px, 100vw"
           />
         </div>
       )}

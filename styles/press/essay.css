@@ -169,18 +169,27 @@
   transform: translateX(-4px);
 }
 
-/* The essay is a document laid on the drawing board, so it gets its own opaque
-   ground and its own frame. Reading a thousand words through a drifting grid is
-   the kind of thing that looks good in a screenshot and is miserable to do. */
+/* The essay sits on the sheet, with no card around it.
+   
+   It used to have its own opaque ground and its own frame, on the argument
+   that reading a thousand words through a drifting grid is miserable. That was
+   true when there were three parallaxing background layers; there is one now,
+   it is the dither, and it is about five per cent ink under the cursor. The
+   argument went with the layers. What was left was prose in a box on a sheet,
+   which is a container inside a container.
+   
+   So: no ground, no frame, no padding, and the full width of the plate. The
+   measure below is what keeps it readable, not the box. */
 .essay {
-  max-width: 940px;
-  margin: 44px auto 0;
-  padding: clamp(24px, 4vw, 52px);
-  background: var(--raise);
-  border: 1px solid var(--rule);
+  /* The same 52px the writing index opens with, so a post and the list it came
+     from start at the same place on the sheet. */
+  padding-top: 52px;
 }
-/* Prose caps at the reading measure. Everything that is not prose, which is the
-   cover and the library demos, gets the whole plate. */
+/* Prose caps at the reading measure and everything that is not prose gets the
+   whole plate. That contrast is the layout now that the card has gone: a cover
+   the full width of the sheet against a 760px column of type, left aligned.
+   Prose at the plate's width would be a hundred and thirty characters a line,
+   which no amount of clean gets away with. */
 .essay > *,
 .prose > * {
   max-width: var(--w-essay);
