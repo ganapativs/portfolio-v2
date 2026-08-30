@@ -109,12 +109,12 @@ const CX = 125;
 const GS = 2.6;
 const GK = (HALF_H / HALF_W) * GS;
 
-export function Exploded() {
+export function Exploded({ fig }: { fig: string }) {
   const [on, setOn] = useState(-1);
   const coarse = useCoarsePointer();
   const fx = useFX();
   const clearTid = useRef(0);
-  const svgRef = useDrawOnFirstView<SVGSVGElement>();
+  const { ref: svgRef, replay } = useDrawOnFirstView<SVGSVGElement>();
 
   useEffect(() => () => window.clearTimeout(clearTid.current), []);
 
@@ -133,6 +133,14 @@ export function Exploded() {
 
   return (
     <>
+      {/* The plate number is the replay control. The assembly draws itself once
+          per load, and a reader who scrolled past it in a hidden tab never saw
+          it; this is the same pass, on request, and it is where a reader would
+          look to find out what they were looking at. */}
+      <button type="button" className="p-fig p-fig-replay" onClick={replay}>
+        {fig}
+        <span className="sr-only"> — replay the drawing</span>
+      </button>
       <div className="xp">
         <svg ref={svgRef} className="willdraw" viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
           <defs>
@@ -209,6 +217,7 @@ export function Exploded() {
               className="xp-label"
               data-on={on === i}
               data-analytics={`cta:assistant.${p.name}`}
+              aria-describedby="xp-cap-assistant"
               style={{ top: `${((Y0 + i * STEP + HALF_H) / H) * 100}%` }}
               onPointerEnter={() => enter(i)}
               onPointerLeave={leave}
@@ -224,6 +233,7 @@ export function Exploded() {
 
       <Caption
         className="xp-cap"
+        id="xp-cap-assistant"
         itemKey={String(on)}
         label={on < 0 ? "five layers" : PARTS[on].name}
       >

@@ -1,4 +1,5 @@
 "use client";
+import type { KeyboardEvent } from "react";
 import { useState } from "react";
 import { useFX } from "@/components/providers/FXProvider";
 import { Caption } from "./Caption";
@@ -36,11 +37,11 @@ const PARTS = [
   },
 ] as const;
 
-export function SgbFigure() {
+export function SgbFigure({ fig }: { fig: string }) {
   const [on, setOn] = useState<string | null>(null);
   const coarse = useCoarsePointer();
   const fx = useFX();
-  const svgRef = useDrawOnFirstView<SVGSVGElement>();
+  const { ref: svgRef, replay } = useDrawOnFirstView<SVGSVGElement>();
   const cur = PARTS.find((p) => p.id === on);
 
   const enter = (id: string) => {
@@ -49,8 +50,41 @@ export function SgbFigure() {
     fx?.tick();
   };
 
+  /**
+   * Each named part of the drawing is a real control.
+   *
+   * They were `<g>` elements with pointer handlers and nothing else, so the
+   * three notes — which are the only place this figure says what it is showing
+   * — could not be reached from a keyboard at all. An SVG group takes
+   * `tabIndex` and a role, and Enter and Space have to be handled by hand
+   * because it is not a `<button>`.
+   */
+  const part = (id: string, label: string) => ({
+    className: "sgb-hit",
+    role: "button",
+    tabIndex: 0,
+    "aria-label": label,
+    "aria-describedby": "xp-cap-sgb",
+    "data-on": on === id,
+    onPointerEnter: () => enter(id),
+    onPointerLeave: () => setOn(null),
+    onFocus: () => enter(id),
+    onBlur: () => setOn(null),
+    onClick: () => enter(id),
+    onKeyDown: (e: KeyboardEvent) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        enter(id);
+      }
+    },
+  });
+
   return (
     <>
+      <button type="button" className="p-fig p-fig-replay" onClick={replay}>
+        {fig}
+        <span className="sr-only"> — replay the drawing</span>
+      </button>
       <svg
         ref={svgRef}
         className="sgbfig willdraw"
@@ -61,13 +95,7 @@ export function SgbFigure() {
         {/* The population: 65 tiles, drawn as the field the detail is taken
             from. Eight across, so the last row is deliberately short — 65 is
             not a round number and the drawing does not pretend it is. */}
-        <g
-          className="sgb-grid sgb-hit"
-          data-on={on === "series"}
-          onPointerEnter={() => enter("series")}
-          onPointerLeave={() => setOn(null)}
-          onClick={() => enter("series")}
-        >
+        <g {...part("series", "65 series")} className="sgb-grid sgb-hit">
           {/* One transparent target over the whole field. Without it the only
               hoverable pixels are the 1px strokes themselves, and the pointer
               crossing a gap reads as a leave: the caption flickered on every
@@ -94,13 +122,7 @@ export function SgbFigure() {
         {/* The detail: one series card at size. */}
         <g className="sgb-card">
           <rect className="sgb-frame" x="150" y="10" width="146" height="94" pathLength="1" />
-          <g
-            className="sgb-hit"
-            data-on={on === "price"}
-            onPointerEnter={() => enter("price")}
-            onPointerLeave={() => setOn(null)}
-            onClick={() => enter("price")}
-          >
+          <g {...part("price", "live price")}>
             <rect className="sgb-hitbox" x="150" y="10" width="146" height="37" />
             {/* A real ticker off the live site, not a plausible-looking one.
                 There is no series maturing in 2031. */}
@@ -112,13 +134,7 @@ export function SgbFigure() {
             </text>
           </g>
           <line className="sgb-rule" x1="150" y1="47" x2="296" y2="47" pathLength="1" />
-          <g
-            className="sgb-hit"
-            data-on={on === "rates"}
-            onPointerEnter={() => enter("rates")}
-            onPointerLeave={() => setOn(null)}
-            onClick={() => enter("rates")}
-          >
+          <g {...part("rates", "what you earn")}>
             <rect className="sgb-hitbox" x="150" y="47" width="146" height="57" />
             <text className="sgb-t sgb-dim" x="162" y="62">
               effective interest rate
@@ -134,6 +150,7 @@ export function SgbFigure() {
 
       <Caption
         className="xp-cap"
+        id="xp-cap-sgb"
         itemKey={on ?? "none"}
         label={cur ? cur.label : "general arrangement"}
       >

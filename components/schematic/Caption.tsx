@@ -31,12 +31,20 @@ import { useLayoutEffect, useRef } from "react";
  */
 export function Caption({
   className,
+  id,
   itemKey,
   label,
   children,
 }: {
   /** `xp-cap` on the figures, `tl-cap` on the career timeline. */
   className: string;
+  /**
+   * The slot is not a live region. It changes on hover, and a figure with five
+   * parts announced five times while a pointer crossed it. The controls that
+   * drive it point at this id with `aria-describedby` instead, so the caption
+   * is read once, on focus, as the description of the thing focused.
+   */
+  id: string;
   /** Changes when the caption changes. */
   itemKey: string;
   /** The name of the thing, set in mono and in the live ink. */
@@ -67,7 +75,7 @@ export function Caption({
   }, [itemKey]);
 
   return (
-    <div className={className} ref={box} aria-live="polite">
+    <div className={className} id={id} ref={box}>
       <div className="cap-in" key={itemKey}>
         <b>{label}</b>
         {children}

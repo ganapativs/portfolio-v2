@@ -1,6 +1,7 @@
 "use client";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { KeysHint } from "./KeysHint";
 import { Socials } from "./Socials";
 import { identity } from "@/lib/resume";
 
@@ -120,7 +121,10 @@ export function TitleBlock() {
               India <span aria-hidden="true">🇮🇳</span> · Bengaluru
             </span>
           </span>
-          <Socials compact />
+          <span className="tb-contact-r">
+            <KeysHint />
+            <Socials compact />
+          </span>
         </div>
       </div>
       <div className="foot-pad" />

@@ -748,6 +748,16 @@
 }
 /* Only the hitboxes take the pointer. Letting the 1px strokes take it too meant
    the pointer left the group every time it crossed the gap between two tiles. */
+/* The named parts are controls now, so they need a focus ring the drawing can
+   live with: the accent outline the rest of the sheet uses, on the group's own
+   box rather than on the strokes inside it. */
+.sgb-hit:focus-visible {
+  outline: 1.5px solid var(--accent);
+  outline-offset: 2px;
+}
+.sgb-hit {
+  cursor: pointer;
+}
 .sgbfig .sgb-tile,
 .sgbfig .sgb-frame,
 .sgbfig .sgb-rule,

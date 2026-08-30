@@ -105,10 +105,9 @@ export default async function HomePage() {
       {/* ---- fold 2 · the mechanisms ------------------------------------- */}
       <section className="mechs" id="mechanisms" data-sec="figures">
         <article className="panel">
-          <span className="p-fig">fig. 1 · exploded view</span>
           <h2>The assistant</h2>
           <p className="meta">{ASSISTANT.meta}</p>
-          <Exploded />
+          <Exploded fig="fig. 1 · exploded view" />
           <p className="p-body">
             {ASSISTANT.body}{" "}
             <a
@@ -159,7 +158,6 @@ export default async function HomePage() {
 
       <section className="mechs2">
         <article className="panel">
-          <span className="p-fig">fig. 3 · running series</span>
           <h2>sgb</h2>
           <p className="meta">
             {SGB.meta} ·{" "}
@@ -168,7 +166,7 @@ export default async function HomePage() {
             </a>
           </p>
           <p className="p-body">{SGB.body}</p>
-          <SgbFigure />
+          <SgbFigure fig="fig. 3 · running series" />
         </article>
 
         <article className="panel">

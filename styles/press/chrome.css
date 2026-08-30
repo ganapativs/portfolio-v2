@@ -203,7 +203,9 @@
 }
 .ruler-sec {
   position: absolute;
-  right: 5px;
+  /* The padding is the hit area and the offset pays it back, so the label sits
+     exactly where it did while the target is 24px across rather than 16. */
+  right: 0;
   transform: translateY(50%);
   writing-mode: vertical-rl;
   rotate: 180deg;
@@ -211,7 +213,7 @@
   font-size: 9px;
   letter-spacing: 0.1em;
   color: var(--ink-3);
-  padding: 3px 1px;
+  padding: 4px 5px;
   transition: color var(--dur-fast) var(--ease-out);
 }
 .ruler-sec:hover,
@@ -369,7 +371,13 @@
 
 .inks {
   display: flex;
-  gap: 4px;
+  /* 8px, not 4px. The chips are 16px painted and 24px to the finger (see the
+     ::after below), so at a 4px gap their centres were 20px apart and every
+     target overlapped both of its neighbours by 4px. That is worse than a small
+     target: it is a target that belongs to somebody else. At 8px the centres
+     are 24px apart and the 24px targets tile exactly, which is also what WCAG
+     2.2's spacing exception measures. */
+  gap: 8px;
   margin-right: 2px;
 }
 /* 16px painted, 24px to the finger. WCAG 2.2 wants a 24x24 target and the
@@ -537,6 +545,23 @@
   color: var(--ink-3);
   margin: 0 0 10px;
   display: block;
+}
+/* Two of the plate numbers are buttons: pressing one replays that figure's
+   draw-in. It has to look exactly like the ones that are not, because a plate
+   number is a label first, so it takes the ink only under the pointer. */
+.p-fig-replay {
+  /* The plate number is rendered by the figure component, which sits below the
+     heading in source order, but it reads first. The panels are flex columns,
+     so `order` puts it back at the top without splitting the component in two
+     just to place a label. */
+  order: -1;
+  text-align: left;
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+.p-fig-replay:hover,
+.p-fig-replay:focus-visible {
+  color: var(--accent);
 }
 .meta {
   font-family: var(--f-mono);
@@ -771,6 +796,18 @@ h2.sec-label {
   font-size: 12px;
   color: var(--ink-3);
   overflow-wrap: anywhere;
+}
+/* The right-hand end of the contact row: the keys offer, then the marks. */
+.tb-contact-r {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.tb-keys {
+  font-size: 11px;
+  padding: 4px 9px;
 }
 .tb-contact .socials {
   gap: 2px;

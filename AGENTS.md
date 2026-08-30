@@ -736,6 +736,16 @@ code that never runs is not a trade worth making.
   group — `error.tsx`, `not-found.tsx` — mounts `<Sheet>` itself.
 - A new section wants `data-sec="<label>"` **and** an `id`, or the ruler will
   not tick it.
+- **A control is 24px to the pointer even when it is smaller than that on the
+  page.** The ink chips are 16px painted with an inset `::after` and an 8px gap,
+  so the 24px targets tile without overlapping; the ruler's section ticks pay
+  for their padding with a matching offset. Both were failing WCAG 2.2's
+  2.5.8, and the chips were failing it in the worse direction: overlapping
+  targets, where a press lands on somebody else's control.
+- **Two of the plate numbers (`.p-fig-replay`) are buttons that replay their
+  figure's draw-in.** They are rendered by the figure component, which sits
+  below the heading in source, and put back on top with `order: -1` on the flex
+  column. Do not "fix" that by splitting the component in two.
 - **A caption slot that swaps text keys its content and lets the slot animate
   its height.** `interpolate-size: allow-keywords` is set on `:root` in
   `tokens.css`; `.xp-cap` / `.tl-cap` transition `height`, and the inner
@@ -759,6 +769,10 @@ code that never runs is not a trade worth making.
   **one solid fill** is the only mark that reliably singles something out after
   the shear. Prototype glyph sets against the face before committing: a symbol
   that reads flat tells you nothing about how it reads on the slab.
+- **A caption slot is not a live region.** `Caption` takes an `id` and the
+  controls that drive it point at it with `aria-describedby`, so it is read once
+  on focus. As `aria-live="polite"` a figure with five parts announced five
+  times while a pointer crossed it.
 - **Text that changes under the pointer goes through
   `components/schematic/Caption.tsx`.** It measures both heights and animates
   between them, because `interpolate-size: allow-keywords` is Chrome 129 and

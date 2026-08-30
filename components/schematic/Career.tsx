@@ -65,6 +65,7 @@ export function Career() {
                   className={`tl-role ${i % 2 === 0 ? "above" : "below"}${now ? " now" : ""}`}
                   style={{ left: `${mid}%` }}
                   data-on={on === i}
+                  aria-describedby="tl-cap-career"
                   onPointerEnter={() => set(i)}
                   onFocus={() => set(i)}
                 >
@@ -88,7 +89,7 @@ export function Career() {
         </div>
       </div>
 
-      <Caption className="tl-cap" itemKey={cur.range} label={cur.range}>
+      <Caption className="tl-cap" id="tl-cap-career" itemKey={cur.range} label={cur.range}>
         {cur.body}
       </Caption>
 
