@@ -249,6 +249,16 @@ none` with `.hd > *` set back to `auto`, so the dead area under the condensed
   strip does not swallow clicks meant for the page. Putting the ground on `.hd`
   instead tints and blurs the whole locked box, which is twice the height of
   the strip.
+- **Nothing inside the strip may reflow while it condenses.** Only padding,
+  opacity, a background colour and a blur radius animate. Three earlier
+  versions each looked wrong for the same reason: `display: none` on the
+  Kannada name (not animatable, so the brand block relaid out in one frame),
+  an animated `font-size` on the name and `height` on the mark (text reflow is
+  a sequence of different layouts, not an interpolation), and `backdrop-filter`
+  switching on (not animatable, so its backdrop layer was created mid
+  transition). The blur is a pair of registered custom properties now, present
+  from the start at zero strength, and every part of the condense shares
+  `--dur-base` and `--ease-out`.
 - **Two widths, deliberately.** The ground bleeds to the sheet's edges, because
   a blur that stops mid-air is worse than no blur. The rule under it is the
   width of the drawing, like every other rule here, so it is a pseudo-element

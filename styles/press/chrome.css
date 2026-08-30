@@ -322,9 +322,34 @@
   padding-block: 0;
   /* One duration and one curve for every part of the condense, so nothing in
      the strip arrives before anything else. */
+  backdrop-filter: blur(var(--hd-blur)) saturate(var(--hd-sat));
+  -webkit-backdrop-filter: blur(var(--hd-blur)) saturate(var(--hd-sat));
   transition:
     padding-block var(--dur-base) var(--ease-out),
-    background var(--dur-base) var(--ease-out);
+    background var(--dur-base) var(--ease-out),
+    --hd-blur var(--dur-base) var(--ease-out),
+    --hd-sat var(--dur-base) var(--ease-out);
+}
+/* The blur ramps rather than switching on.
+   
+   `backdrop-filter` is not an animatable property, so turning it on at the
+   moment of sticking created the element's backdrop layer in a single frame,
+   which is the flash. Registered custom properties *are* animatable, so the
+   radius and the saturation are interpolated instead and the filter is present
+   from the start at zero strength: same layer throughout, nothing created
+   mid-transition.
+
+   `saturate` is here because a plain blur drains a low-chroma palette to grey,
+   and it has to ramp with the radius or the ink shifts hue on the first frame. */
+@property --hd-blur {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+@property --hd-sat {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 1;
 }
 .hd-row::after {
   content: "";
@@ -351,21 +376,23 @@
 .hd[data-stuck="true"] .hd-row {
   padding-block: 9px;
   background: color-mix(in oklab, var(--paper) 78%, transparent);
-  backdrop-filter: blur(14px) saturate(1.6);
-  -webkit-backdrop-filter: blur(14px) saturate(1.6);
+  --hd-blur: 14px;
+  --hd-sat: 1.6;
 }
-/* Condensed: the Kannada name and the long form of the title go, the mark and
-   the name step down, and the title rule closes up against the row. Nothing is
-   removed that is a control. */
-.hd[data-stuck="true"] .hd-kn {
-  display: none;
-}
-.hd[data-stuck="true"] .hd-mark {
-  height: 21px;
-}
-.hd[data-stuck="true"] .hd-name {
-  font-size: 17px;
-}
+/* Condensed: the title rule closes up and the padding tightens. That is all.
+   
+   Nothing is dropped and nothing is resized, and both of those were flicker.
+   The Kannada name used to go here, and `display: none` is not animatable, so
+   the brand block reflowed in a single frame in the middle of a 260ms
+   transition. The mark and the name used to shrink, and animating an SVG's
+   height and a font's size relays out the row on every frame of the
+   transition, which no amount of easing makes smooth: text reflow is not
+   interpolation, it is a sequence of different layouts.
+
+   What is left animating is padding, opacity, a background colour and a blur
+   radius. None of them touch layout inside the strip, so the mark and the name
+   simply travel up. That is the whole condense, and it is the part that was
+   always smooth. */
 /* The drawing title and the north arrow go. They belong at the head of the
    sheet, where they say what this sheet is; in a running strip they are a
    second line of furniture over the reader's content, and what the reader
@@ -378,9 +405,13 @@
 .hd-rule {
   height: 18px;
   overflow: hidden;
+  /* Every part of the collapse on one duration. The opacity used to run at
+     --dur-fast while the height ran at --dur-base, so the title had already
+     vanished while the gap it left was still closing: one movement read as
+     two. */
   transition:
     height var(--dur-base) var(--ease-out),
-    opacity var(--dur-fast) var(--ease-out),
+    opacity var(--dur-base) var(--ease-out),
     margin-top var(--dur-base) var(--ease-out);
 }
 .hd[data-stuck="true"] .hd-rule {
@@ -388,14 +419,7 @@
   margin-top: 0;
   opacity: 0;
 }
-@media (prefers-reduced-motion: no-preference) {
-  .hd .hd-mark,
-  .hd .hd-name {
-    transition:
-      height var(--dur-base) var(--ease-out),
-      font-size var(--dur-base) var(--ease-out);
-  }
-}
+
 /* No backdrop-filter here. It is a compositing hint as much as an effect, and
    on a browser without it the strip has to stay readable, so the ground goes
    opaque instead of translucent. */
@@ -408,7 +432,8 @@
    is a tenth of the viewport held permanently. The mark is the home link and
    carries the identity on its own; the name is one scroll away. */
 @media (max-width: 640px) {
-  .hd[data-stuck="true"] .hd-name {
+  .hd[data-stuck="true"] .hd-name,
+  .hd[data-stuck="true"] .hd-kn {
     display: none;
   }
 }
