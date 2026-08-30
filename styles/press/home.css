@@ -243,12 +243,29 @@
   margin-top: 16px;
   margin-block: auto;
 }
-.xp svg {
+/* The plate: the drawing, and the traffic layer sitting exactly on it. */
+.xp-plate {
+  position: relative;
   width: 62%;
   min-width: 0;
   flex: 0 0 62%;
+  align-self: center;
+}
+.xp svg {
+  display: block;
+  width: 100%;
   height: auto;
   overflow: visible;
+}
+/* Inert to the pointer, so the slabs keep their own hit testing. Under the
+   labels' z-order and over the slabs, which is where a flow annotation goes:
+   on the drawing, not over the writing. */
+.xp-flow {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
 }
 .xp .slab {
   cursor: pointer;
@@ -1164,4 +1181,48 @@
     margin-left: 0;
     flex-basis: 100%;
   }
+}
+
+/* ---- /lab · the WebGPU workbench ----------------------------------------
+   Not part of the drawing. These pages exist to compare three experiments one
+   at a time, at size, and they go when one of them is picked. Deliberately
+   plain: anything designed here is attention the experiments should be getting.
+   -------------------------------------------------------------------------- */
+
+.lab {
+  padding: 24px 0 64px;
+}
+.lab-stage {
+  margin: 28px 0 32px;
+  padding: 28px;
+  border: 1px solid var(--rule);
+  background: var(--raise);
+}
+.lab-status {
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin: 0 0 20px;
+}
+/* The figure gets the whole plate, because a thing being judged should not be
+   judged at the size it happens to take in a two-column row. */
+.lab-figure {
+  max-width: 620px;
+  margin-inline: auto;
+}
+.lab-cols {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 28px 40px;
+}
+.lab-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+.lab-list li {
+  margin-bottom: 8px;
 }
