@@ -366,8 +366,10 @@
 }
 
 .hd[data-stuck="true"] .hd-strip {
-  /* No padding under the rule: the rule is the strip's bottom edge. */
-  padding-block: 8px 0;
+  /* No padding under the rule: the rule is the strip's bottom edge. The top
+     pays for the rule's own top half, so the space above the row and the space
+     between the row and the line are the same nine pixels. */
+  padding-block: 9px 0;
   background: color-mix(in oklab, var(--paper) 78%, transparent);
   --hd-blur: 14px;
   --hd-sat: 1.6;
@@ -614,7 +616,10 @@
     margin-bottom var(--dur-base) var(--ease-out);
 }
 .hd[data-stuck="true"] .hd-rule {
-  margin-top: 7px;
+  /* Zero, because the rule's box already carries nine pixels above its
+     hairline. Any margin here is added to that and the strip goes
+     bottom-heavy. */
+  margin-top: 0;
   /* Half the rule's own height, pulled back, so the hairline sits exactly on
      the ground's bottom edge rather than nine pixels above it. The compass
      straddles that edge, which is what a survey mark on a rule does. */
