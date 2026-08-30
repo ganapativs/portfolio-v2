@@ -13,6 +13,19 @@
 .dither {
   position: fixed;
   inset: 0;
+  /* Load-bearing, and not the same thing as `inset: 0`.
+  
+     A canvas is a replaced element, so `width: auto` resolves to its *intrinsic*
+     size — the width attribute — and the `right: 0` constraint is dropped as
+     over-constrained. Without these two lines the element's CSS box is whatever
+     the buffer happens to be, which is twice the viewport at DPR 2: the 2D
+     field then drew the light at double the distance from the origin, so a
+     pointer on the left of the screen lit the middle and a pointer on the right
+     lit nothing. And the GPU field, whose surface sizes the buffer *from* the
+     CSS box, doubled itself every resize until the canvas was 16 million pixels
+     across. Same missing declaration, two very different symptoms. */
+  width: 100%;
+  height: 100%;
   z-index: 0;
   pointer-events: none;
 }

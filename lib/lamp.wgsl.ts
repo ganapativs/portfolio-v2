@@ -82,13 +82,19 @@ fn fs_main(@location(0) uv: vec2f) -> @location(0) vec4f {
   }
 
   // The screen: one square per cell, its side set by how much tone is here.
+  //
+  // The floor of 0.35 and the 1.45 span are matched to the 2D field, which
+  // fills a flat 2x2 block in a 4px cell wherever it passes at all. A dot whose
+  // side is only proportional to tone lays down a fraction of that ink and the
+  // whole field disappears; this reaches the same 1.0 half-side at mid tone and
+  // goes past it at the core, which is the part a growing dot is for.
   let cell = floor(p / PITCH);
-  let tone = clamp(f * 1.35 - bayer4(u32(cell.x), u32(cell.y)) * 0.55, 0.0, 1.0);
+  let tone = clamp(f * 1.6 - bayer4(u32(cell.x), u32(cell.y)) * 0.5, 0.0, 1.0);
   if (tone <= 0.002) {
     discard;
   }
   let q = abs(p - (cell + 0.5) * PITCH);
-  let cov = clamp(tone * PITCH * 0.5 - max(q.x, q.y) + 0.5, 0.0, 1.0);
+  let cov = clamp(0.35 + tone * 1.45 - max(q.x, q.y) + 0.5, 0.0, 1.0);
   let o = lamp.ink.a * cov;
   return vec4f(lamp.ink.rgb * o, o);
 }
