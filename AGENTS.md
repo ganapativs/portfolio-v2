@@ -246,7 +246,14 @@ leaves the top of the page. Four things about it are load-bearing.
 - **The strip is `.hd-row`, not `.hd`.** The header carries only the space; the
   row carries the ground, the blur and the rule. `.hd` is `pointer-events:
 none` with `.hd > *` set back to `auto`, so the dead area under the condensed
-  strip does not swallow clicks meant for the page.
+  strip does not swallow clicks meant for the page. Putting the ground on `.hd`
+  instead tints and blurs the whole locked box, which is twice the height of
+  the strip.
+- **Two widths, deliberately.** The ground bleeds to the sheet's edges, because
+  a blur that stops mid-air is worse than no blur. The rule under it is the
+  width of the drawing, like every other rule here, so it is a pseudo-element
+  rather than a border and it fades rather than switching: as a bleeding border
+  it changed width as it arrived, and the line shot out sideways.
 
 It is translucent and blurred, which is a deliberate exception to the rule in
 `.impeccable.md` that nothing here is glass. It is tinted with the ground rather
