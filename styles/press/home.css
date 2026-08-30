@@ -110,9 +110,19 @@
 }
 /* Once the halftone has drawn itself the photograph underneath is redundant,
    but it renders on the server so a crawler and a reader without JavaScript
-   still get a real portrait with real alt text. */
+   still get a real portrait with real alt text.
+   
+   It fades rather than being switched off, and it fades on `opacity` rather
+   than `visibility` for two reasons: the photograph turning into its own
+   halftone is the figure developing rather than one image being swapped for
+   another, and an image at `visibility: hidden` leaves the accessibility tree
+   along with its alt text, which is the one thing it is still here for. */
+.fig-photo {
+  transition: opacity var(--dur-base) var(--ease-out);
+}
 .fig[data-drawn="true"] .fig-photo {
-  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
 }
 .fig svg {
   display: block;

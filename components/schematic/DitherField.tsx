@@ -132,7 +132,10 @@ export function DitherField() {
       cx += (px - cx) * k;
       cy += (py - cy) * k;
       const t = px > -999 ? 1 : 0;
-      a += (t - a) * approach(0.08, dt);
+      // 0.16 rather than 0.08. The light is meant to be under the hand, and
+      // at half this rate it took most of a second to arrive, which read as
+      // the page still settling rather than as a lamp being moved.
+      a += (t - a) * approach(0.16, dt);
       draw();
       if (Math.abs(px - cx) < 0.5 && Math.abs(py - cy) < 0.5 && Math.abs(t - a) < 0.01) {
         a = t;
