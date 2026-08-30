@@ -1,4 +1,4 @@
-import { Lamp } from "./Lamp";
+import { DitherField } from "./DitherField";
 import { SchematicHeader } from "./Header";
 import { PageFX } from "./PageFX";
 import { Ruler } from "./Ruler";
@@ -14,7 +14,7 @@ import { TitleBlock } from "./TitleBlock";
 export function Sheet({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <Lamp />
+      <DitherField />
       <Ruler />
 
       <a href="#main-content" className="skip-link">
