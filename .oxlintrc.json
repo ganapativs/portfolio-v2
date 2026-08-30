@@ -23,7 +23,28 @@
     // Stylesheet imports have nothing to bind. `@microcharts/react/styles.css`
     // ships the library's tokens and is imported for its side effect, which is
     // the documented way to use it.
-    "import/no-unassigned-import": "off"
+    "import/no-unassigned-import": "off",
+    // oxlint 1.80 promoted the React Compiler rules into `correctness`, which
+    // this config errors on, and all five hits are in Pipeline.tsx. Warn, not
+    // off: two of them are worth revisiting, and the other three cannot fire
+    // usefully here.
+    //
+    // `preserve-manual-memoization` reports that the compiler could not keep an
+    // existing useCallback. The compiler is not enabled (there is no
+    // `reactCompiler` in next.config.ts), so there is nothing to preserve it
+    // for. `immutability` is a ref write inside a pointerdown handler, which is
+    // where a ref is supposed to be written.
+    //
+    // `refs` and `set-state-in-effect` are real. The first is
+    // `fxRef.current = fx` during render, the standard latest-value ref, which
+    // an effect would leave stale for the first frame. The second is the
+    // effect that clears the highlight when the stage changes. Both are
+    // deliberate and both would be better expressed; neither is worth rewriting
+    // a hand-tuned animation component for during a dependency bump.
+    "react/preserve-manual-memoization": "warn",
+    "react/immutability": "warn",
+    "react/refs": "warn",
+    "react/set-state-in-effect": "warn"
   },
   "ignorePatterns": [
     ".next/**",

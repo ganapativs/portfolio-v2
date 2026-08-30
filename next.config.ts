@@ -43,8 +43,12 @@ const nextConfig: NextConfig = {
   // scanning, and buys nothing.
   poweredByHeader: false,
   experimental: {
-    viewTransition: true,
-    // Deliberately OFF, having been measured both ways.
+    // `viewTransition` was here and is gone. Next 16.3 turned view transitions
+    // on for the App Router with no configuration, and the key no longer
+    // exists on ExperimentalConfig, so leaving it in fails the typecheck.
+    // <ViewTransition> in app/(press)/layout.tsx is unchanged.
+    //
+    // inlineCss is deliberately OFF, having been measured both ways.
     //
     // Inlining removes the stylesheet's round trip, which is the usual win.
     // But the flag has a documented flaw — the styles ship twice on first
