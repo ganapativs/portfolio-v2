@@ -59,6 +59,23 @@ Stale agent rules lie. The pairs that actually break:
   build fails loudly if they drift).
 - `lib/resume.ts` `skills` ⇆ the `MATERIALS` list in `app/(press)/content.ts`
   (throws at module load if a name is renamed).
+- **Every number about the public work comes from `PUBLIC_WORK` in
+  `lib/resume.ts`**, and the star total and repo count are read live through
+  `lib/github.ts` where a page can await it. Four surfaces used to print
+  hand-typed copies and they were wrong: 55 repos (it is 38 original, 194
+  including forks) and 15 npm packages (16). The comment in `resume.ts` carries
+  the two API calls that verify them.
+- **The one-line bio is `BIO` in `lib/resume.ts`**, printed by
+  `app/layout.tsx`'s description, `app/manifest.ts`, `personSchema` in
+  `lib/jsonld.tsx` and `app/llms.txt/route.ts`. As four hand-typed copies, three
+  of them claimed he joined Tracxn as an intern. He did not: the internship was
+  at Thinkappz in 2013, and Tracxn was 2015 as a software engineer.
+- **`CAREER_YEARS` in `lib/resume.ts`** is the only place the career length is
+  written. The home page, the portrait's height dimension, the pipeline card,
+  both OG titles and llms.txt all read it. It is a checked constant rather than
+  an age computed from a date, because the value is rendered on the server and
+  again on the client and one that turned over between build and visit would be
+  a hydration mismatch. Bump it each July.
 - `app/manifest.ts` `screenshots` sizes ⇆ the dimensions
   `scripts/gen-pwa-screenshots.sh` captures (a mismatch silently drops the rich
   install dialog).

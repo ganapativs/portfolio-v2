@@ -31,7 +31,7 @@ const PARTS = [
   {
     id: "rates",
     label: "what you earn",
-    note: "The two derived rates: effective interest, and effective cash flow. This is the number the coupon on the face value does not tell you, and the whole reason the tracker exists.",
+    note: "The two derived rates: effective interest rate, and effective cash flow rate. These are the numbers the coupon printed on the face value does not tell you, and the whole reason the tracker exists.",
   },
 ] as const;
 
@@ -101,11 +101,13 @@ export function SgbFigure() {
             onClick={() => enter("price")}
           >
             <rect className="sgb-hitbox" x="150" y="10" width="146" height="37" />
+            {/* A real ticker off the live site, not a plausible-looking one.
+                There is no series maturing in 2031. */}
             <text className="sgb-t" x="162" y="28">
-              SGBSEP31II
+              SGBSEP28VI
             </text>
             <text className="sgb-t sgb-dim" x="162" y="40">
-              Sep 23 - Sep 31 · NSE · BSE
+              Sep 20 - Sep 28 · NSE · BSE
             </text>
           </g>
           <line className="sgb-rule" x1="150" y1="47" x2="296" y2="47" pathLength="1" />
@@ -118,11 +120,11 @@ export function SgbFigure() {
           >
             <rect className="sgb-hitbox" x="150" y="47" width="146" height="57" />
             <text className="sgb-t sgb-dim" x="162" y="62">
-              effective interest
+              effective interest rate
             </text>
             <rect className="sgb-bar" x="162" y="68" width="86" height="4" pathLength="1" />
             <text className="sgb-t sgb-dim" x="162" y="87">
-              effective cash flow
+              effective cash flow rate
             </text>
             <rect className="sgb-bar" x="162" y="93" width="54" height="4" pathLength="1" />
           </g>

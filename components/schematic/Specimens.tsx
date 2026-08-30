@@ -1,6 +1,7 @@
 "use client";
 import "@microcharts/react/styles.css";
 import { useEffect, useMemo, useState } from "react";
+import { PUBLIC_WORK } from "@/lib/resume";
 import type { ReactNode } from "react";
 import { ActivityGrid } from "@microcharts/react/activity-grid";
 import { Bullet } from "@microcharts/react/bullet";
@@ -308,12 +309,12 @@ const POOL: readonly Specimen[] = [
       // 100 only). Fifteen of fifty-five repos is the rate; twenty cells is the
       // resolution it is drawn at.
       <IconArray
-        value={15 / 55}
+        value={PUBLIC_WORK.npm / PUBLIC_WORK.repos}
         total={20}
         label="none"
         width={60}
         height={H}
-        summary="15 of 55 public repositories ship to npm"
+        summary={`${PUBLIC_WORK.npm} of ${PUBLIC_WORK.repos} original public repositories ship to npm`}
       />
     ),
   },
@@ -321,7 +322,14 @@ const POOL: readonly Specimen[] = [
   {
     id: "tally marks",
     family: "glyph",
-    node: <TallyMarks value={15} total={20} height={24} summary="15 packages published to npm" />,
+    node: (
+      <TallyMarks
+        value={PUBLIC_WORK.npm}
+        total={20}
+        height={24}
+        summary={`${PUBLIC_WORK.npm} packages published to npm`}
+      />
+    ),
   },
   {
     id: "dice pips",
@@ -338,12 +346,12 @@ const POOL: readonly Specimen[] = [
       // specimen sitting inside a one-ink drawing.
       <MicroDonut
         data={[
-          { label: "on npm", value: 15 },
-          { label: "the rest", value: 40 },
+          { label: "on npm", value: PUBLIC_WORK.npm },
+          { label: "the rest", value: PUBLIC_WORK.repos - PUBLIC_WORK.npm },
         ]}
         size={30}
         colors={["var(--accent)", "var(--ink-3)"]}
-        summary="15 of 55 public repositories ship to npm"
+        summary={`${PUBLIC_WORK.npm} of ${PUBLIC_WORK.repos} original public repositories ship to npm`}
       />
     ),
   },
@@ -353,9 +361,9 @@ const POOL: readonly Specimen[] = [
     family: "composite",
     node: (
       <Bullet
-        value={2400}
+        value={PUBLIC_WORK.stars}
         target={2052}
-        domain={[0, 3000]}
+        domain={[0, 3500]}
         width={W}
         summary="Stars across every repo, against bttn.css alone"
       />

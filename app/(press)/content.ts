@@ -4,11 +4,12 @@ import { flagships, skills } from "@/lib/resume";
  * The drawing's copy and its data, kept out of the JSX so the page reads as
  * structure.
  *
- * Every number on this page is real and checked: 55 public repos, 2,400+ stars
- * across them, 15 npm packages, 2,052 on bttn.css, 106 chart types in
- * microcharts, 1.16 kB for react-dynamic-import. Where a number also appears on
- * the résumé it is pulled from lib/resume.ts rather than retyped, so the two
- * surfaces cannot drift.
+ * Every number on this page is real and checked. The counts of public work
+ * live in `PUBLIC_WORK` in lib/resume.ts with the API calls that verify them;
+ * the rest are 2,050 stars on bttn.css, 106 chart types in microcharts and
+ * 1.16 kB for react-dynamic-import. Where a number also appears on the résumé
+ * it is pulled from lib/resume.ts rather than retyped, so the two surfaces
+ * cannot drift.
  */
 
 const stars = (name: string) => flagships.find((f) => f.name === name)?.stars ?? 0;
@@ -52,7 +53,7 @@ export const ERAS: readonly Era[] = [
     short: "tech lead",
     length: "4 yrs",
     range: "2016 - 2020 · Technology Lead",
-    body: "I wrote the internal React component library in November 2016. The team has built on it for a decade since, which makes it the most useful thing I have made and the least visible.",
+    body: "I wrote the internal React component library in November 2016. The team has built on it ever since, which makes it the most useful thing I have made and the least visible.",
   },
   {
     from: 2020,
@@ -76,7 +77,7 @@ export const ERAS: readonly Era[] = [
     short: "VP, Technology",
     length: "3 yrs +",
     range: "2023 - now · VP, Technology",
-    body: "Architect of the customer-facing AI assistant and the API docs portal it lives in. Also the frontend hiring loop, architecture reviews and RFCs.",
+    body: "I built the customer-facing AI assistant and the API docs portal it lives in. I also run the frontend hiring loop, the architecture reviews and the RFCs.",
   },
 ] as const;
 
@@ -242,7 +243,7 @@ export const MICROCHARTS = {
 export const SGB = {
   href: "https://sgb.vercel.app",
   meta: "2021 · still live",
-  body: "A tracker for India's Sovereign Gold Bonds. It puts every series on one page and ranks them by what a buyer really earns at today's price, not by the coupon printed on the face value. A scraper runs on a schedule and writes one JSON file to S3. Four years of small changes later, it is still up and still mine.",
+  body: "A tracker for India's Sovereign Gold Bonds. It puts every live series on one page and ranks them by what a buyer really earns at today's price, not by the coupon printed on the face value. A scraper runs on a schedule and writes one JSON file to S3. Five years of small changes later, it is still up and still mine.",
 } as const;
 
 /**
@@ -254,5 +255,8 @@ export const SPECTRUM = {
   href: "https://github.com/ganapativs/react-spectrum",
   npm: "https://www.npmjs.com/package/react-spectrum",
   meta: "2019 · own time · 318 stars",
-  body: "A small library that turns any string into a colourful text placeholder. It is 1.3 kB, and it has no dependencies. What you see below is the real package, drawing in the ink you picked.",
+  // 1.9 kB is the gzipped size of dist/react-spectrum.es.js, which is the
+  // build this page actually loads. "No dependencies" was not true either:
+  // React is a dependency, and saying so costs nothing.
+  body: "A small library that turns any string into a colourful text placeholder. It is 1.9 kB gzipped and needs nothing but React. What you see below is the real package, drawing in the ink you picked.",
 } as const;

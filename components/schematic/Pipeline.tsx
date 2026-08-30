@@ -4,7 +4,7 @@ import { useFX } from "@/components/providers/FXProvider";
 import { CHART, STAGES, STAGE_NOTE } from "@/app/(press)/content";
 import { useCoarsePointer } from "./useCoarsePointer";
 import { useReducedMotion } from "./useReducedMotion";
-import { identity } from "@/lib/resume";
+import { CAREER_YEARS, identity, STARS_ROUNDED } from "@/lib/resume";
 
 const SNS = "http://www.w3.org/2000/svg";
 const cl = (v: number, a: number, b: number) => (v < a ? a : v > b ? b : v);
@@ -718,7 +718,7 @@ export function Pipeline() {
               </span>
             </span>
             <span className="ui-title tx">
-              <span className="tx-r">Twelve years of interfaces</span>
+              <span className="tx-r">{CAREER_YEARS} years of interfaces</span>
               <i className="tx-b" aria-hidden="true" />
             </span>
             <span className="bmov" aria-hidden="true" />
@@ -726,8 +726,8 @@ export function Pipeline() {
 
           <div className="ui-stats" data-node="stats">
             {[
-              ["12", "years"],
-              ["2,400+", "stars"],
+              [String(CAREER_YEARS), "years"],
+              [STARS_ROUNDED, "stars"],
             ].map(([v, l]) => (
               <div className="ui-stat" key={l}>
                 <span className="wf alt" aria-hidden="true">

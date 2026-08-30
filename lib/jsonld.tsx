@@ -1,5 +1,5 @@
 import type { Post } from "@/lib/posts";
-import { education, flagships, identity, roles, skills } from "@/lib/resume";
+import { BIO, education, flagships, identity, roles, skills } from "@/lib/resume";
 
 export const SITE_URL = "https://meetguns.com";
 const PERSON_NAME = identity.name;
@@ -28,8 +28,7 @@ export const personSchema = {
   alternateName: "meetguns",
   url: SITE_URL,
   image: `${SITE_URL}/portrait/ganapativs.webp`,
-  description:
-    "Full-stack engineer with a design mind. Twelve years in, based in Bengaluru. Intern to VP of Technology at Tracxn, still writing code.",
+  description: BIO,
   jobTitle: identity.jobTitle,
   // The home page is the profile page for this Person; naming it here is what
   // lets a crawler resolve the node to a page rather than to a bare identifier.
@@ -196,8 +195,9 @@ export function projectsSchema() {
 
 /**
  * The employment history, as one Organization node carrying an EmployeeRole per
- * title held. Intern to VP of Technology at one company is the central claim
- * this site makes; in prose it is a sentence, here it is five dated facts.
+ * title held. Software engineer to VP of Technology at one company is the
+ * central claim this site makes; in prose it is a sentence, here it is five
+ * dated facts.
  *
  * The nesting is the shape schema.org documents for Role: the relationship
  * property (`employee`) holds the Role, and the Role repeats that property with

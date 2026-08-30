@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useFX } from "@/components/providers/FXProvider";
+import { CAREER_YEARS } from "@/lib/resume";
 import { useReducedMotion } from "./useReducedMotion";
 
 const COLS = 56;
@@ -511,7 +512,7 @@ export function Portrait() {
           markerEnd="url(#dim-arrow)"
         />
         <text className="anno" x="342" y="160" transform="rotate(-90 342 160)" textAnchor="middle">
-          12 yrs experience
+          {CAREER_YEARS} yrs experience
         </text>
 
         <line className="ext" x1="24" y1="296" x2="24" y2="336" pathLength="1" />

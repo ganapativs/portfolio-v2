@@ -23,7 +23,7 @@ export const ROLE_COPY: Record<string, string[]> = {
   "Vice President, Technology": [
     "Built the customer-facing AI assistant and the API documentation portal it runs in. The docs come from the OpenAPI spec. An intent router sends each question to the model that suits it. Behind that sit a tools and skills layer, server-side document export, versioned prompts under an eval harness, and logs complete enough to audit. Shipped and hardened since, alongside the engineering queue.",
     "Designed the MCP server surface and shipped its first version. The connectors are read-only and sit behind OAuth, so AI coding clients reach the API without a pasted key. The team co-owns it now.",
-    "Wrote @microcharts/react on my own time. It gives 106 word-sized chart types with no runtime dependencies, 1-7 kB gzip each, accessible by default and safe in server components. Design, code, docs and release, all solo.",
+    "Wrote @microcharts/react on my own time. It gives 106 word-sized chart types with no runtime dependencies, 1-7 kB gzip each, accessible by default and safe in server components. The design, the code, the docs and the release were all mine.",
     "Ran a performance program across the stack. It covered native image loading with DPR-aware URLs, compression on portal assets, render profiling, and a pass over scroll, re-renders and CSS.",
     "Rewrote the PDF viewer in the internal component library. It has a new animation system, a vertical-scroll mode and new micro-interactions. Every document surface uses it.",
     "Hardened the server-side PDF report pipeline. Wrote the team's Cursor and Claude Code rule packs, which set out how we use AI on the codebase.",
@@ -54,4 +54,4 @@ export const ROLE_COPY: Record<string, string[]> = {
 };
 
 export const SUMMARY =
-  "Full-stack engineer with a design mind. I joined Tracxn in 2015 as an engineer and I am VP of Technology there now. Four promotions since, and I still write code most weeks. The work splits between the architecture and the people, so a week holds the frontend hiring loop, the review queue and what gets built next. The most recent build is the customer-facing AI assistant and the API documentation portal it runs in. On my own time I wrote @microcharts/react.";
+  "Full-stack engineer with a design mind. I joined Tracxn in 2015 as a software engineer and I am VP of Technology there now. The work splits between the architecture and the people, so a week holds the frontend hiring loop, the review queue and whatever gets built next. Most weeks still have some code in them. The most recent build is the customer-facing AI assistant and the API documentation portal it runs in. On my own time I wrote @microcharts/react.";

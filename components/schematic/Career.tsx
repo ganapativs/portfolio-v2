@@ -14,7 +14,7 @@ const pct = (y: number) => 1.5 + ((y - Y0) / YSPAN) * 97;
  *
  * A timeline drawn the way a part is dimensioned rather than the way a résumé
  * is listed: an axis with year ticks, station points where the role changed,
- * and a bracket dimension under each era carrying its length. Twelve years is a
+ * and a bracket dimension under each era carrying its length. Thirteen years is a
  * measurement, so it is drawn as one.
  *
  * Roles alternate above and below the axis, which is what stops six labels on

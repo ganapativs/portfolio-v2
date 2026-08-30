@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { INK_HEX, SURFACE_HEX } from "@/lib/ink";
+import { BIO } from "@/lib/resume";
 
 export const dynamic = "force-static";
 
@@ -11,8 +12,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: `Ganapati V S · meetguns${suffix}`,
     short_name: `meetguns${suffix}`,
-    description:
-      "Full-stack engineer with a design mind, twelve years in, based in Bengaluru. Intern to VP of Technology at Tracxn, still shipping code.",
+    description: BIO,
     start_url: "/",
     id: "/",
     scope: "/",

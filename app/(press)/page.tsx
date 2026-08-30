@@ -31,7 +31,8 @@ const Specimens = dynamic(() =>
   import("@/components/schematic/Specimens").then((m) => m.Specimens),
 );
 import { published } from "@/lib/posts";
-import { speaking } from "@/lib/resume";
+import { CAREER_YEARS, PUBLIC_WORK, speaking } from "@/lib/resume";
+import { getStars } from "@/lib/github";
 import {
   JsonLd,
   employmentSchema,
@@ -47,7 +48,10 @@ export const metadata: Metadata = {
 
 const DATE = new Intl.DateTimeFormat("en-CA", { timeZone: "UTC" });
 
-export default function HomePage() {
+export default async function HomePage() {
+  // The same daily-revalidated fetch the résumé makes, so the two pages cannot
+  // print different counts of the same account.
+  const stars = await getStars();
   return (
     <>
       {/* The home page absorbed /about and /work, so it carries the schema for
@@ -68,22 +72,31 @@ export default function HomePage() {
               then had to go looking for the point. */}
           <h1>I build the interfaces people work in.</h1>
           <p className="intro-lede">
-            Full-stack engineer with a design mind. Twelve years in, based in Bengaluru.
+            Full-stack engineer with a design mind. {CAREER_YEARS} years in, based in Bengaluru.
           </p>
+          {/* The internship was at Thinkappz in 2013. Tracxn was 2015, as a
+              software engineer, and three earlier drafts of this page got that
+              wrong in four places at once. */}
           <p>
-            I started at Tracxn as an intern. I am <strong>VP of Technology</strong> there now. I
-            still write code every week.
+            I joined Tracxn in 2015 as a software engineer and I am{" "}
+            <strong>VP of Technology</strong> there now. The job is mostly the team these days,
+            though most weeks still have some code in them.
           </p>
           <p>
             Right now that code is a customer-facing <span className="amber">AI assistant</span>{" "}
             over private-market data, and <span className="amber">106 word-sized chart types</span>{" "}
-            I built on my own time.
+            built on my own time.
           </p>
           <p className="intro-ask">
             Open to talking about architecture, hiring loops and open source.
           </p>
-          <CopyEmail />
-          <Socials />
+          {/* One row. The chip and the five marks are both "how to reach me",
+              and stacked they cost the introduction a whole line of height it
+              was spending against the portrait beside it. */}
+          <div className="intro-actions">
+            <CopyEmail />
+            <Socials />
+          </div>
         </div>
 
         <Portrait />
@@ -197,7 +210,10 @@ export default function HomePage() {
 
         <div className="panel">
           <h2 className="sec-label">Parts list</h2>
-          <p className="meta">55 public repos · 2,400+ stars · 15 npm packages</p>
+          <p className="meta">
+            {stars.repos} public repos · {stars.total.toLocaleString("en-US")} stars ·{" "}
+            {PUBLIC_WORK.npm} npm packages
+          </p>
           <PartsList />
         </div>
 

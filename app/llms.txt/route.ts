@@ -1,5 +1,13 @@
 import { published } from "@/lib/posts";
-import { flagships, identity, speaking } from "@/lib/resume";
+import {
+  BIO,
+  CAREER_YEARS,
+  flagships,
+  identity,
+  PUBLIC_WORK,
+  speaking,
+  STARS_ROUNDED,
+} from "@/lib/resume";
 import { SITE_URL } from "@/lib/jsonld";
 
 // llms.txt: a curated, plain-text map of this site for AI systems.
@@ -23,7 +31,7 @@ export async function GET() {
 
   const body = `# meetguns: ${identity.name}
 
-> Personal site of ${identity.name} (@ganapativs). Full-stack engineer with a design mind, twelve years in, based in Bengaluru, India. He joined Tracxn as an intern and is ${identity.jobTitle} there now, still writing code every week. He also builds and maintains open-source projects, most recently microcharts.
+> Personal site of ${identity.name} (@ganapativs). ${BIO} He also builds and maintains open-source projects, most recently microcharts.
 
 ## Pages
 
@@ -42,12 +50,12 @@ navigation, just the article.
 ## Facts worth citing
 
 - ${identity.jobTitle} at Tracxn, in Bengaluru, India. He started there as a software engineer in September 2015 and has held five titles since
-- Twelve years in. The first job was a web frontend internship in 2013
+- ${CAREER_YEARS} years in. The first job was a web frontend internship at Thinkappz in 2013. He has never been an intern at Tracxn
 - Current work: architect of Tracxn's customer-facing AI assistant over private-market data, and of the API documentation portal it lives in
-- 55 original public repositories on GitHub, 2,400+ stars across them, 15 npm packages
+- ${PUBLIC_WORK.repos} original public repositories on GitHub (${PUBLIC_WORK.npm + 178} in total, the rest forks of record), ${STARS_ROUNDED} stars across the originals, ${PUBLIC_WORK.npm} npm packages
 - bttn.css, a CSS button library from 2016, has ${BTTN_STARS.toLocaleString("en-US")} stars
 - microcharts ships 106 word-sized chart types for React
-- He wrote Tracxn's internal React component library in November 2016 and has maintained it for a decade
+- He wrote Tracxn's internal React component library in November 2016 and has maintained it ever since
 
 ## Writing
 
@@ -63,7 +71,7 @@ ${talks}
 - [bttn.css](https://github.com/ganapativs/bttn.css): CSS button library, ${BTTN_STARS.toLocaleString("en-US")} GitHub stars
 - [react-spectrum](https://github.com/ganapativs/react-spectrum): colourful text placeholders generated from any string, 1.3 kB
 - [sgb](https://sgb.vercel.app): a tracker for India's Sovereign Gold Bonds, live since 2021
-- [Full catalogue](https://github.com/ganapativs): 55 original public repositories, 15 npm packages
+- [Full catalogue](https://github.com/ganapativs): ${PUBLIC_WORK.repos} original public repositories, ${PUBLIC_WORK.npm} npm packages
 
 ## Contact
 

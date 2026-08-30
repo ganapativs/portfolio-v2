@@ -11,11 +11,12 @@ import { WebVitals } from "@/components/WebVitals";
 import { Analytics } from "@/components/Analytics";
 import { JsonLd, personSchema, websiteSchema, SITE_URL } from "@/lib/jsonld";
 import { GA_ENABLED, gaStub } from "@/lib/analytics/ga-id";
-import { identity } from "@/lib/resume";
+import { BIO, identity } from "@/lib/resume";
 import "@/styles/press.css";
 
-const SITE_DESC =
-  "Full-stack engineer with a design mind, twelve years in, based in Bengaluru. Intern to VP of Technology at Tracxn, still shipping code.";
+// One string, shared with the manifest, the Person schema and llms.txt.
+// See lib/resume.ts for why it is not typed out here.
+const SITE_DESC = BIO;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

@@ -39,6 +39,53 @@ export type Education = {
 
 export type SkillGroup = { label: string; items: string[]; strong?: string[] };
 
+/**
+ * The career starts in July 2013, with the Thinkappz internship. Every surface
+ * that counts the years counts from here, so the home page, the portrait's
+ * dimension, the pipeline card and the metadata cannot disagree.
+ *
+ * A checked constant rather than an age computed from a date: this number is
+ * rendered on the server and again on the client, and one that turned over
+ * between the build and the visit would be a hydration mismatch. Bump it each
+ * July.
+ */
+export const CAREER_YEARS = 13;
+
+/**
+ * The public work, counted against the GitHub and npm APIs on 2026-08-30.
+ *
+ *   194 public repositories on the account, of which 38 are original and the
+ *   remaining 156 are forks of record. 2,649 stars across the originals. 16
+ *   packages published to npm.
+ *
+ * These replace a set of numbers that had drifted: the site claimed 55 repos
+ * and 15 npm packages, and neither was right. The résumé renders the star
+ * total live through lib/github.ts; this is what every other surface prints,
+ * and the fallback when the API cannot be reached.
+ *
+ * Re-check with:
+ *   api.github.com/users/ganapativs/repos?per_page=100&type=owner  (walk every
+ *   page, drop `fork: true`, sum `stargazers_count`)
+ *   registry.npmjs.org/-/v1/search?text=maintainer:ganapativs
+ */
+export const PUBLIC_WORK = { repos: 38, stars: 2649, npm: 16 } as const;
+
+/** "2,600+" — rounded down to the hundred, so it is true for a while. */
+export const STARS_ROUNDED = `${(Math.floor(PUBLIC_WORK.stars / 100) * 100).toLocaleString("en-US")}+`;
+
+/**
+ * The one-line biography.
+ *
+ * The site's meta description, the web manifest, the Person schema and
+ * llms.txt all print this. They used to print four hand-typed copies, and
+ * three of them said he joined Tracxn as an intern. He did not: the internship
+ * was at Thinkappz in 2013, and he joined Tracxn in 2015 as a software
+ * engineer. One string, so a fact cannot be wrong in three places at once.
+ */
+export const BIO =
+  `Full-stack engineer with a design mind, ${CAREER_YEARS} years in, based in Bengaluru. ` +
+  `At Tracxn since 2015 and VP of Technology there now, still writing code most weeks.`;
+
 export const identity: Identity = {
   name: "Ganapati V S",
   jobTitle: "Vice President, Technology",
@@ -145,7 +192,7 @@ export const roles: Role[] = [
 export const flagships: Flagship[] = [
   {
     name: "@microcharts/react",
-    stars: 0,
+    stars: 152,
     year: "2026",
     repo: "https://github.com/ganapativs/microcharts",
     blurb:
@@ -153,7 +200,7 @@ export const flagships: Flagship[] = [
   },
   {
     name: "bttn.css",
-    stars: 2052,
+    stars: 2050,
     year: "2016",
     repo: "https://github.com/ganapativs/bttn.css",
     blurb: "A CSS button library: Product Hunt feature in 2016, still in people's projects today.",
@@ -167,7 +214,7 @@ export const flagships: Flagship[] = [
   },
   {
     name: "preact-redux-autocompete",
-    stars: 35,
+    stars: 34,
     year: "2016",
     repo: "https://github.com/ganapativs/preact-redux-autocompete",
     blurb: "Preact + Redux autocomplete with keyboard nav.",

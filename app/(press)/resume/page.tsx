@@ -1,6 +1,8 @@
 import { PrintCV } from "@/components/schematic/PrintCV";
 import {
+  CAREER_YEARS,
   identity,
+  PUBLIC_WORK,
   roles,
   flagships,
   education,
@@ -16,8 +18,7 @@ import { ROLE_COPY, SUMMARY } from "./copy";
 export const metadata = pageMetadata({
   title: "Résumé",
   path: "/resume",
-  description:
-    "Résumé of Ganapati V S. VP, Technology at Tracxn. Twelve years, four promotions. The AI assistant and docs portal, microcharts, and a decade of open source.",
+  description: `Résumé of Ganapati V S. VP, Technology at Tracxn. ${CAREER_YEARS} years, four promotions. The AI assistant and docs portal, microcharts, and open source going back to 2013.`,
   ogType: "profile",
 });
 
@@ -140,8 +141,8 @@ export default async function ResumePage() {
                   </a>
                 </div>
                 <div className="cv-item-note">
-                  55 public repos, 15 npm packages, {stars.total.toLocaleString("en-US")} stars
-                  between them.
+                  {stars.repos} original public repos, {PUBLIC_WORK.npm} npm packages,{" "}
+                  {stars.total.toLocaleString("en-US")} stars between them.
                 </div>
               </div>
             </div>
