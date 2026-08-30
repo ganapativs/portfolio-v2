@@ -224,6 +224,35 @@ Unchanged from the previous design except that **every page now renders inside
 | `error`                                        | `app/error.tsx`                                              | Root error boundary. Outside the (press) group, so it mounts `<Sheet>` itself                                                        |
 | `not-found`                                    | `app/not-found.tsx`, `app/(press)/blog/[slug]/not-found.tsx` | 404 (`robots: { index: false }`). The global one also mounts `<Sheet>` itself                                                        |
 
+### The running header
+
+`components/schematic/Header.tsx` is `position: sticky` and condenses once it
+leaves the top of the page. Four things about it are load-bearing.
+
+- **There is one copy of it in the DOM.** A separate sticky clone is the easy
+  way and it would register the whole keyboard map twice, which
+  `ShortcutProvider` refuses and warns about in development.
+- **The outer box never changes size**, locked to `--hd-h`, which `Header.tsx`
+  measures while unstuck. A sticky element stays in flow, so a header that
+  shrinks on stick pulls the page up by the difference at that exact moment. A
+  spacer below it driven by a `ResizeObserver` was tried first and was worse:
+  the observer fires _after_ each resize, so the content below sat a frame
+  behind the header for the whole condense and juddered the entire way down.
+- **`overflow-x` on `html` is `clip`, not `hidden`, and that is what makes
+  sticky work at all.** `hidden` makes the element a scroll container, so a
+  sticky child sticks to _its_ box rather than to the viewport, and a box as
+  tall as the document never sticks. `clip` contains a stray horizontal
+  overflow without creating a scrollport. Safari 16 and up, which is the floor.
+- **The strip is `.hd-row`, not `.hd`.** The header carries only the space; the
+  row carries the ground, the blur and the rule. `.hd` is `pointer-events:
+none` with `.hd > *` set back to `auto`, so the dead area under the condensed
+  strip does not swallow clicks meant for the page.
+
+It is translucent and blurred, which is a deliberate exception to the rule in
+`.impeccable.md` that nothing here is glass. It is tinted with the ground rather
+than with white, separated by a rule rather than a shadow, and has no radius:
+tracing paper laid over the drawing, not a floating panel.
+
 ### The sheet
 
 `components/schematic/Sheet.tsx` is the chrome every page shares: the dither

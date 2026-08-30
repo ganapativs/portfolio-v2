@@ -16,7 +16,13 @@ html {
      reduced motion, and scrollIntoView opts out explicitly there too. */
   scroll-behavior: smooth;
   background: var(--paper);
-  overflow-x: hidden;
+  /* `clip`, not `hidden`, and this is load-bearing for the sticky header.
+     `overflow-x: hidden` makes the element a scroll container, so a sticky
+     child sticks to *its* box rather than to the viewport, and a box as tall as
+     the document never scrolls: the header simply left with the page. `clip`
+     contains a stray horizontal overflow the same way without creating a
+     scrollport. Safari has had it since 16, which is this site's floor. */
+  overflow-x: clip;
   scrollbar-color: var(--rule) transparent;
 }
 body {
@@ -28,7 +34,6 @@ body {
   font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;
   min-height: 100svh;
-  overflow-x: hidden;
 }
 
 ::-webkit-scrollbar {

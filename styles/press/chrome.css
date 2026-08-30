@@ -264,8 +264,135 @@
 
 /* ---- header -------------------------------------------------------------- */
 
+/* One pixel of nothing, above the header, watched by an observer. The moment
+   it leaves the viewport the header is stuck. */
+.hd-sentinel {
+  display: block;
+  height: 1px;
+  margin-bottom: -1px;
+}
+
+/* The running header.
+   
+   A drawing set repeats its title strip at the top of every continuation
+   sheet, and that is what this becomes once the full header has scrolled off:
+   the same one, condensed, still carrying the mark, the name, the sheet it is
+   on and every control. There is exactly one copy of it in the DOM. A second,
+   sticky clone would be the easy way and it would register the whole keyboard
+   map twice, which the shortcut registry refuses and warns about.
+
+   Translucent and blurred, which is a deliberate exception to the rule in
+   .impeccable.md that nothing on this sheet is glass. The read is tracing
+   paper laid over the drawing, not a floating panel: it is tinted with the
+   ground rather than with white, it is separated by a rule rather than by a
+   shadow, and it has no radius. `saturate` keeps the ink under it from going
+   grey, which is what a plain blur does to a low-chroma palette.
+
+   Backdrop filters are expensive on a large surface, so it is only asked for
+   once the header is actually stuck. */
 .hd {
+  position: sticky;
+  top: 0;
+  /* Above the sheet and its panels, below the sweep band at 60. */
+  z-index: 40;
   padding: 22px 0 0;
+  /* Locked to the natural height measured in Header.tsx, so condensing the
+     strip inside never moves a pixel of the page below it. */
+  min-height: var(--hd-h, auto);
+  transition: padding-top var(--dur-base) var(--ease-out);
+  /* The box is taller than the strip once condensed, and the difference is
+     dead space over the reader's content. Given back here and taken again by
+     the strip itself, so a click in that gap reaches the page. */
+  pointer-events: none;
+}
+.hd > * {
+  pointer-events: auto;
+}
+/* The strip is the row, not the header. It carries the ground, the blur and
+   the rule; the header carries only the space they sit in. */
+.hd-row {
+  /* Paid back in padding, so the ground reaches into the gutters rather than
+     stopping at the text column. */
+  margin-inline: calc(var(--gutter) * -1);
+  padding-inline: var(--gutter);
+  padding-block: 0;
+  border-bottom: 1px solid transparent;
+  transition:
+    padding-block var(--dur-base) var(--ease-out),
+    background var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out);
+}
+/* Flush to the top of the viewport once stuck. The 22px of air above the row
+   is right at the head of the sheet and wrong in a running strip: content
+   scrolled past uncovered in the gap above it. The box keeps its locked height
+   either way, so nothing below notices. */
+.hd[data-stuck="true"] {
+  padding-top: 0;
+}
+.hd[data-stuck="true"] .hd-row {
+  padding-block: 9px;
+  background: color-mix(in oklab, var(--paper) 78%, transparent);
+  backdrop-filter: blur(14px) saturate(1.6);
+  -webkit-backdrop-filter: blur(14px) saturate(1.6);
+  border-bottom-color: var(--rule);
+}
+/* Condensed: the Kannada name and the long form of the title go, the mark and
+   the name step down, and the title rule closes up against the row. Nothing is
+   removed that is a control. */
+.hd[data-stuck="true"] .hd-kn {
+  display: none;
+}
+.hd[data-stuck="true"] .hd-mark {
+  height: 21px;
+}
+.hd[data-stuck="true"] .hd-name {
+  font-size: 17px;
+}
+/* The drawing title and the north arrow go. They belong at the head of the
+   sheet, where they say what this sheet is; in a running strip they are a
+   second line of furniture over the reader's content, and what the reader
+   actually kept the header for is the nav and the controls. One line.
+
+   Collapsed rather than `display: none`. The rule is exactly the height of the
+   north arrow and never wraps, so the height is a known constant and can be
+   animated; switching it off instead made the strip jump from two rows to one
+   inside a transition that was otherwise smooth, which is the flicker. */
+.hd-rule {
+  height: 18px;
+  overflow: hidden;
+  transition:
+    height var(--dur-base) var(--ease-out),
+    opacity var(--dur-fast) var(--ease-out),
+    margin-top var(--dur-base) var(--ease-out);
+}
+.hd[data-stuck="true"] .hd-rule {
+  height: 0;
+  margin-top: 0;
+  opacity: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hd .hd-mark,
+  .hd .hd-name {
+    transition:
+      height var(--dur-base) var(--ease-out),
+      font-size var(--dur-base) var(--ease-out);
+  }
+}
+/* No backdrop-filter here. It is a compositing hint as much as an effect, and
+   on a browser without it the strip has to stay readable, so the ground goes
+   opaque instead of translucent. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .hd[data-stuck="true"] .hd-row {
+    background: var(--paper);
+  }
+}
+/* On a phone the name is what makes the strip wrap to two rows, and two rows
+   is a tenth of the viewport held permanently. The mark is the home link and
+   carries the identity on its own; the name is one scroll away. */
+@media (max-width: 640px) {
+  .hd[data-stuck="true"] .hd-name {
+    display: none;
+  }
 }
 .hd-row {
   display: flex;
@@ -757,17 +884,25 @@ h2.sec-label {
   justify-content: space-between;
   gap: 12px 20px;
   flex-wrap: wrap;
-  border: 1.5px solid var(--accent);
-  background: var(--accent-soft);
+  /* The same cell the title block below it is made of: one rule, the raised
+     ground, no fill. It used to be the only filled area on the sheet, on the
+     argument that the page's one request should be unmissable, and it read as
+     a banner pasted onto a drawing. The words carry the ink instead, which is
+     what the ink is for everywhere else here. */
+  border: 1px solid var(--rule);
+  background: var(--raise);
   padding: 16px 20px;
   margin-bottom: 8px;
   transition:
-    background var(--dur-fast) var(--ease-out),
-    color var(--dur-fast) var(--ease-out);
+    border-color var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out);
 }
+/* Hover takes the rule up to the ink and washes the ground, which is what
+   every other pressable thing on the sheet does. */
 .tb-say:hover,
 .tb-say:focus-visible {
-  background: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-soft);
 }
 .tb-say-l {
   font-size: 22px;
@@ -778,17 +913,8 @@ h2.sec-label {
 .tb-say-v {
   font-family: var(--f-mono);
   font-size: 13px;
-  /* --ink-3 measured 4.29:1 against this block's accent wash in the light run,
-     just under AA for text this size, in all six inks. One step up clears it
-     everywhere. */
-  color: var(--ink-2);
+  color: var(--accent);
   overflow-wrap: anywhere;
-}
-.tb-say:hover .tb-say-l,
-.tb-say:hover .tb-say-v,
-.tb-say:focus-visible .tb-say-l,
-.tb-say:focus-visible .tb-say-v {
-  color: var(--paper);
 }
 
 .tb-email {

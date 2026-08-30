@@ -70,118 +70,185 @@ export function SchematicHeader() {
   const on = (href: string) =>
     href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(href + "/");
 
+  /**
+   * Whether the header has left the top of the page.
+   *
+   * A sentinel rather than a scroll listener: a 1px box sits above the header,
+   * and the moment it leaves the viewport the header is stuck. That is one
+   * observer callback per crossing instead of a handler on every scroll frame,
+   * and it needs no thresholds to tune.
+   */
+  const [stuck, setStuck] = useState(false);
+  const sentinel = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    const el = sentinel.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([e]) => setStuck(!e.isIntersecting), { threshold: 0 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  /**
+   * The header's own box never changes size. Only what is drawn inside it does.
+   *
+   * A sticky element stays in flow, so a header that shrinks by 36px when it
+   * sticks pulls everything under it up by 36px at that exact moment. The first
+   * fix was a spacer below it driven by a ResizeObserver, and it was worse: the
+   * observer fires after each resize, so through the whole 260ms condense the
+   * content below sat a frame behind the header and juddered the entire way
+   * down. That is the flicker.
+   *
+   * So the outer box is locked to its natural height and the strip condenses
+   * inside it. Nothing below moves at all, there is no observer in the scroll
+   * path, and the dead area under the condensed strip is handed back to the
+   * page with `pointer-events` in chrome.css.
+   *
+   * Measured while unstuck, which is where the page starts and returns to.
+   */
+  const headerRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const h = headerRef.current;
+    if (!h) return;
+    const measure = () => {
+      if (h.dataset.stuck === "true") return;
+      h.style.setProperty("--hd-h", `${Math.round(h.getBoundingClientRect().height)}px`);
+    };
+    measure();
+    let rz = 0;
+    const onResize = () => {
+      window.clearTimeout(rz);
+      rz = window.setTimeout(measure, 150);
+    };
+    window.addEventListener("resize", onResize);
+    document.fonts?.ready.then(measure).catch(() => {});
+    return () => {
+      window.clearTimeout(rz);
+      window.removeEventListener("resize", onResize);
+    };
+  }, []);
+
   return (
-    <header className="hd">
-      <div className="hd-row">
-        <Link
-          href="/"
-          className="hd-brand"
-          ref={homeRef}
-          data-analytics="nav:header.home"
-          aria-label="Home"
-          onPointerEnter={() => fx?.tick()}
-          onClick={() => fx?.nav()}
-        >
-          <Mark className="hd-mark" />
-          <span className="hd-name">{identity.name}</span>
-          <span className="hd-kn" lang="kn">
-            ಗಣಪತಿ ವಿ ಎಸ್
-          </span>
-        </Link>
-
-        <nav className="hd-nav" aria-label="Site">
+    <>
+      <span className="hd-sentinel" ref={sentinel} aria-hidden="true" />
+      <header className="hd" data-stuck={stuck} ref={headerRef}>
+        <div className="hd-row">
           <Link
-            href="/blog"
-            ref={writingRef}
-            aria-current={on("/blog") ? "page" : undefined}
-            data-analytics="nav:header.writing"
+            href="/"
+            className="hd-brand"
+            ref={homeRef}
+            data-analytics="nav:header.home"
+            aria-label="Home"
+            onPointerEnter={() => fx?.tick()}
             onClick={() => fx?.nav()}
           >
-            writing
-          </Link>
-          <Link
-            href="/resume"
-            ref={resumeRef}
-            aria-current={on("/resume") ? "page" : undefined}
-            data-analytics="nav:header.resume"
-            onClick={() => fx?.nav()}
-          >
-            résumé
-          </Link>
-
-          <span className="hd-ctls">
-            {/* Below 640px the CSS hides every swatch but the active one. The
-                one that stays visible is a real button, so pressing it is what
-                opens the tray: no handler on the group, and the keyboard gets
-                the behaviour for free. Above 640px the attribute does nothing
-                and all six are always shown. */}
-            <span className="inks" role="group" aria-label="Ink" data-open={trayOpen}>
-              {INKS.map((i, n) => (
-                <InkSwatch
-                  key={i.id}
-                  id={i.id}
-                  label={i.label}
-                  n={n + 1}
-                  on={ink === i.id}
-                  pick={setInk}
-                  onPicked={() => setTrayOpen(ink === i.id)}
-                />
-              ))}
+            <Mark className="hd-mark" />
+            <span className="hd-name">{identity.name}</span>
+            <span className="hd-kn" lang="kn">
+              ಗಣಪತಿ ವಿ ಎಸ್
             </span>
+          </Link>
 
-            <button
-              type="button"
-              className="ctl"
-              ref={themeRef}
-              // Deliberately not "switch to dark" / "switch to light". The
-              // server does not know which paper the reader chose — the
-              // no-flash script stamps that before React sees the page — so a
-              // theme-dependent label is a guaranteed hydration mismatch, and a
-              // toggle that renames itself is worse to hear read out anyway.
-              aria-label="Switch the paper"
-              title="Paper · t"
-              onClick={(e) => {
-                // The origin is the middle of the control rather than the
-                // pointer, so a click and a keyboard activation of the same
-                // button are told apart by intent, not by a few pixels.
-                const r = e.currentTarget.getBoundingClientRect();
-                fx?.clack();
-                window.setTimeout(() => fx?.chime(), 80);
-                toggle({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
-              }}
+          <nav className="hd-nav" aria-label="Site">
+            <Link
+              href="/blog"
+              ref={writingRef}
+              aria-current={on("/blog") ? "page" : undefined}
+              data-analytics="nav:header.writing"
+              onClick={() => fx?.nav()}
             >
-              {/* Half the disc hatched: the drawing-office way to say "this
-                  side is in shadow", and it needs no sun or moon. */}
-              <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
-                <defs>
-                  <pattern
-                    id="hatch-theme"
-                    width="1.75"
-                    height="1.75"
-                    patternUnits="userSpaceOnUse"
-                    patternTransform="rotate(45)"
-                  >
-                    <line x1="0" y1="0" x2="0" y2="1.75" stroke="currentColor" strokeWidth="0.8" />
-                  </pattern>
-                </defs>
-                <circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" strokeWidth="1" />
-                <path d="M7 1.5 A5.5 5.5 0 0 1 7 12.5 Z" fill="url(#hatch-theme)" />
-              </svg>
-            </button>
+              writing
+            </Link>
+            <Link
+              href="/resume"
+              ref={resumeRef}
+              aria-current={on("/resume") ? "page" : undefined}
+              data-analytics="nav:header.resume"
+              onClick={() => fx?.nav()}
+            >
+              résumé
+            </Link>
 
-            <SoundToggle btnRef={soundRef} />
+            <span className="hd-ctls">
+              {/* Below 640px the CSS hides every swatch but the active one. The
+                  one that stays visible is a real button, so pressing it is what
+                  opens the tray: no handler on the group, and the keyboard gets
+                  the behaviour for free. Above 640px the attribute does nothing
+                  and all six are always shown. */}
+              <span className="inks" role="group" aria-label="Ink" data-open={trayOpen}>
+                {INKS.map((i, n) => (
+                  <InkSwatch
+                    key={i.id}
+                    id={i.id}
+                    label={i.label}
+                    n={n + 1}
+                    on={ink === i.id}
+                    pick={setInk}
+                    onPicked={() => setTrayOpen(ink === i.id)}
+                  />
+                ))}
+              </span>
+
+              <button
+                type="button"
+                className="ctl"
+                ref={themeRef}
+                // Deliberately not "switch to dark" / "switch to light". The
+                // server does not know which paper the reader chose — the
+                // no-flash script stamps that before React sees the page — so a
+                // theme-dependent label is a guaranteed hydration mismatch, and a
+                // toggle that renames itself is worse to hear read out anyway.
+                aria-label="Switch the paper"
+                title="Paper · t"
+                onClick={(e) => {
+                  // The origin is the middle of the control rather than the
+                  // pointer, so a click and a keyboard activation of the same
+                  // button are told apart by intent, not by a few pixels.
+                  const r = e.currentTarget.getBoundingClientRect();
+                  fx?.clack();
+                  window.setTimeout(() => fx?.chime(), 80);
+                  toggle({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
+                }}
+              >
+                {/* Half the disc hatched: the drawing-office way to say "this
+                    side is in shadow", and it needs no sun or moon. */}
+                <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+                  <defs>
+                    <pattern
+                      id="hatch-theme"
+                      width="1.75"
+                      height="1.75"
+                      patternUnits="userSpaceOnUse"
+                      patternTransform="rotate(45)"
+                    >
+                      <line
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1.75"
+                        stroke="currentColor"
+                        strokeWidth="0.8"
+                      />
+                    </pattern>
+                  </defs>
+                  <circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" strokeWidth="1" />
+                  <path d="M7 1.5 A5.5 5.5 0 0 1 7 12.5 Z" fill="url(#hatch-theme)" />
+                </svg>
+              </button>
+
+              <SoundToggle btnRef={soundRef} />
+            </span>
+          </nav>
+        </div>
+
+        <div className="hd-rule">
+          <span className="hd-title">
+            {drawingTitle(pathname)}
+            <span className="hd-title-full"> · {identity.name} · 2026</span>
           </span>
-        </nav>
-      </div>
-
-      <div className="hd-rule">
-        <span className="hd-title">
-          {drawingTitle(pathname)}
-          <span className="hd-title-full"> · {identity.name} · 2026</span>
-        </span>
-        <NorthArrow />
-      </div>
-    </header>
+          <NorthArrow />
+        </div>
+      </header>
+    </>
   );
 }
 
