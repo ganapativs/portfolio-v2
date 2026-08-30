@@ -13,63 +13,76 @@ import { useDrawOnFirstView } from "./useDrawOnFirstView";
  * the geometry.
  *
  * Each glyph is a technical symbol for what that layer does, not decoration: a
- * spec page carrying a brace pair, a multiplexer fanning one input to three
- * models, an integrated circuit with pins, runs measured against a threshold
- * with a pass tick, and a plug entering a socket. Drawn in a 1px non-scaling
- * stroke so they read as printed on the slab.
+ * ruled page, a one-to-three bus, an integrated circuit with pins, a checklist
+ * with two of three passing, and a plug entering a socket. Drawn in a 1px
+ * non-scaling stroke so they read as printed on the slab.
+ *
+ * Every stroke runs along one of the face's own two axes. That is the rule that
+ * makes them legible: the projection turns a horizontal into a line sloping
+ * down-right and a vertical into one sloping down-left, so a symbol built from
+ * those two directions reads as a rectangle lying on the surface, while one
+ * built from free angles and curves collapses into a scribble. The first two
+ * sets did exactly that.
  */
 const PARTS: { name: string; note: string; glyph: string[] }[] = [
   {
     name: "OpenAPI → docs",
     note: "The API documentation portal writes itself from the OpenAPI spec, and the assistant lives inside it. One source, two readers: a person and a model.",
-    // A page with a folded corner and ruled lines. The brace pair that was
-    // here first was more literally "a spec", and foreshortened into the slab
-    // the two braces closed up into something that read as a smile.
-    glyph: ["M-10 -12 H4 L10 -6 V12 H-10 Z", "M4 -12 V-6 H10", "M-6 -2 H6", "M-6 2 H6", "M-6 6 H0"],
+    // A ruled page. The spec goes in one end and a documentation site comes out
+    // the other, and a page of ruled lines is what that looks like from above.
+    glyph: ["M-11 -9 H11 V9 H-11 Z", "M-7 -4 H7", "M-7 0 H7", "M-7 4 H2"],
   },
   {
     name: "model router",
     note: "One question in, one model out. The router reads what is being asked and sends it to the model that should answer it, so nothing costs more than it needs to.",
-    // A multiplexer: one line in, a decision node, three lines out. The fan is
-    // kept narrow because the projection widens it.
+    // One line in, a node, a bus, three lines out. Manhattan routing, because a
+    // fan of free angles is the first thing the projection destroys.
     glyph: [
-      "M-14 0 H-4",
-      "M-4 0 A3 3 0 1 0 2 0 A3 3 0 1 0 -4 0",
-      "M2 0 H6 L14 -6",
-      "M6 0 H14",
-      "M2 0 H6 L14 6",
+      "M-15 0 H-7",
+      "M-7 -4 H-1 V4 H-7 Z",
+      "M-1 0 H4",
+      "M4 -9 V9",
+      "M4 -9 H15",
+      "M4 0 H15",
+      "M4 9 H15",
     ],
   },
   {
     name: "tools + skills",
     note: "The layer that goes and gets things. It reads Tracxn records on the assistant's behalf, and every skill is a separate testable unit rather than one enormous prompt.",
-    // An integrated circuit: a body with pins. A skill is a part you can pull
+    // An integrated circuit: a body and its pins. A skill is a part you can pull
     // out and test on its own, which is the whole point of the layer.
     glyph: [
       "M-8 -7 H8 V7 H-8 Z",
-      "M-8 -3.5 H-13 M-8 0 H-13 M-8 3.5 H-13",
-      "M8 -3.5 H13 M8 0 H13 M8 3.5 H13",
-      "M-4 -2 H4",
-      "M-4 2 H1",
+      "M-8 -4 H-14",
+      "M-8 0 H-14",
+      "M-8 4 H-14",
+      "M8 -4 H14",
+      "M8 0 H14",
+      "M8 4 H14",
     ],
   },
   {
     name: "eval harness",
     note: "Every prompt is versioned, and a version only ships when the evals pass. The logs are complete enough to answer, later, why a given answer came out the way it did.",
-    // Runs measured against a threshold, and a tick for the gate. Three clear
-    // it, one does not, which is what an eval suite actually looks like.
+    // A checklist, two of three passing. An eval suite is a list of cases and a
+    // verdict on each, and this is that list.
     glyph: [
-      "M-14 6 H14",
-      "M-14 -3 H6",
-      "M-11 6 V-1 M-6 6 V-6 M-1 6 V2 M4 6 V-5",
-      "M8 -6 L11 -3 L15 -10",
+      "M-14 -10 H-8 V-4 H-14 Z",
+      "M-12 -7 L-10.5 -5.5 L-9 -9",
+      "M-4 -7 H14",
+      "M-14 -3 H-8 V3 H-14 Z",
+      "M-12 0 L-10.5 1.5 L-9 -2",
+      "M-4 0 H14",
+      "M-14 4 H-8 V10 H-14 Z",
+      "M-4 7 H8",
     ],
   },
   {
     name: "MCP server",
     note: "Read-only connectors behind OAuth, added after launch, so a coding client can reach the API without anyone pasting a key. The team co-owns it now.",
     // A plug entering a socket.
-    glyph: ["M-14 -6 H-2 V6 H-14 Z", "M-2 -3 H3 M-2 3 H3", "M3 -7 H10 V7 H3 Z", "M10 0 H14"],
+    glyph: ["M-15 0 H-9", "M-9 -6 H-3 V6 H-9 Z", "M-3 -3 H2", "M-3 3 H2", "M2 -9 H14 V9 H2 Z"],
   },
 ];
 
@@ -150,17 +163,22 @@ export function Exploded() {
                       (-1, .284). Scaled 2.2x because a symbol foreshortened
                       into that plane loses most of its apparent height.
 
-                      The symbols themselves had to be redrawn for it. The first
-                      set was too finely detailed to survive the shear and the
-                      strokes collapsed into each other; these are five strokes
-                      each, spaced wide enough that the projection cannot close
-                      them up. */}
+                      2.6 rather than the 2.2 it started at: the face allows a
+                      projected half-extent of 47.5 units either way, and
+                      2.6 x 15 is 39, which fills the slab and still clears its
+                      edges.
+
+                      The symbols themselves had to be redrawn for it, twice.
+                      Free angles and curves do not survive the shear — they
+                      close up into a scribble — so every stroke now runs along
+                      one of the face's own two axes and reads as a figure lying
+                      on the surface. */}
                   <g
                     className="glyph"
-                    transform={`translate(${CX} ${y + 27}) matrix(2.2 .625 -2.2 .625 0 0)`}
+                    transform={`translate(${CX} ${y + 27}) matrix(2.6 .739 -2.6 .739 0 0)`}
                   >
                     {p.glyph.map((d) => (
-                      <path key={d} d={d} pathLength="1" />
+                      <path key={d} d={d} />
                     ))}
                   </g>
                 </g>
@@ -195,13 +213,17 @@ export function Exploded() {
         </div>
       </div>
 
+      {/* Keyed on the part, so the text remounts and replays `cap-in` on every
+          change. The slot itself transitions its height around it. */}
       <div className="xp-cap" aria-live="polite">
-        <b>{on < 0 ? "five layers" : PARTS[on].name}</b>
-        {on < 0
-          ? coarse
-            ? "Tap a layer to read what it does."
-            : "Point at a layer to read what it does."
-          : PARTS[on].note}
+        <div className="cap-in" key={on}>
+          <b>{on < 0 ? "five layers" : PARTS[on].name}</b>
+          {on < 0
+            ? coarse
+              ? "Tap a layer to read what it does."
+              : "Point at a layer to read what it does."
+            : PARTS[on].note}
+        </div>
       </div>
     </>
   );

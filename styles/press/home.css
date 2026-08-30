@@ -24,7 +24,10 @@
   line-height: 1.08;
   letter-spacing: -0.024em;
   text-wrap: balance;
-  max-width: 15ch;
+  /* Two lines, never three. The claim is the first thing on the sheet and a
+     three-line stack pushed the evidence under it below the fold. 22ch is the
+     measure at which this sentence breaks once at 42px and once at 30px. */
+  max-width: 22ch;
 }
 .intro-lede {
   color: var(--ink-2);
@@ -186,6 +189,17 @@
 .mechs > .panel {
   min-width: 0;
 }
+/* A plate is as tall as its neighbour, and the figure inside it takes the
+   difference. `margin-block: auto` on the drawing hands all the free space to
+   the margins either side of it, so the figure sits centred in the plate
+   rather than the plate ending in a hole under the last line of type. */
+.mechs > .panel,
+.mechs2 > .panel {
+  display: flex;
+  flex-direction: column;
+}
+/* `margin-block` is set on each figure's own rule below, after its
+   `margin-top`, so the auto is not overwritten by it. */
 .mechs2 {
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
@@ -207,6 +221,7 @@
   display: flex;
   gap: 10px;
   margin-top: 16px;
+  margin-block: auto;
 }
 .xp svg {
   width: 58%;
@@ -254,7 +269,7 @@
    reads as printed on the surface rather than as an icon dropped over it. */
 .xp .slab .glyph path {
   stroke: var(--ink-2);
-  stroke-width: 1.15;
+  stroke-width: 1.3;
   fill: none;
   vector-effect: non-scaling-stroke;
   transition: stroke var(--dur-fast) var(--ease-out);
@@ -290,16 +305,41 @@
   border-color: var(--rule);
   background: var(--accent-soft);
 }
-/* A fixed-height caption slot, so naming a part never reflows the panel. */
+/* The caption slot.
+   
+   A floor of 44px so short captions never collapse it, and a real height
+   transition for the ones that are taller than that: `interpolate-size:
+   allow-keywords` on :root (tokens.css) is what makes `height: auto`
+   animatable, so the slot grows and shrinks instead of snapping. Browsers
+   without it get today's instant resize, which is the honest fallback.
+
+   The text inside is remounted on every change (a React key), so `cap-in`
+   runs each time: without it a swap between two captions of the same height
+   read as a flicker rather than as a change. */
 .xp-cap,
 .tl-cap {
   min-height: 44px;
+  height: auto;
   margin-top: 14px;
   padding-top: 10px;
   border-top: 1px solid var(--rule-3);
   font-size: 13.5px;
   color: var(--ink-3);
   line-height: 1.5;
+  transition: height var(--dur-base) var(--ease-out);
+}
+.cap-in {
+  animation: cap-in var(--dur-base) var(--ease-out) both;
+}
+@keyframes cap-in {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 .xp-cap b,
 .tl-cap b {
@@ -313,21 +353,30 @@
 
 /* Draw-on-first-view: the assembly builds itself once, bottom slab up. */
 .willdraw .slab polygon,
-.willdraw .leader,
-.willdraw .glyph path {
+.willdraw .leader {
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
 }
 .willdraw[data-drawn="true"] .slab polygon,
-.willdraw[data-drawn="true"] .leader,
-.willdraw[data-drawn="true"] .glyph path {
+.willdraw[data-drawn="true"] .leader {
   transition: stroke-dashoffset 420ms var(--ease-out);
   stroke-dashoffset: 0;
 }
 .willdraw[data-drawn="true"] .slab polygon {
   transition-delay: calc(var(--i) * 70ms);
 }
-.willdraw[data-drawn="true"] .glyph path {
+/* The glyphs fade rather than draw, and that is not a style choice.
+   `pathLength="1"` normalises a dash pattern to the path's own length, but
+   `vector-effect: non-scaling-stroke` moves dash computation into screen
+   space, where `stroke-dasharray: 1` means one CSS pixel. The two together
+   printed every symbol as a field of 1px dashes: the reason the glyphs read
+   as scribbles rather than as figures. Opacity has no such interaction. */
+.willdraw .glyph {
+  opacity: 0;
+}
+.willdraw[data-drawn="true"] .glyph {
+  opacity: 1;
+  transition: opacity 320ms var(--ease-out);
   transition-delay: calc(140ms + var(--i) * 70ms);
 }
 .willdraw[data-drawn="true"] .leader {
@@ -335,9 +384,11 @@
   transition-duration: 280ms;
 }
 @media (prefers-reduced-motion: reduce) {
+  .willdraw .glyph {
+    opacity: 1;
+  }
   .willdraw .slab polygon,
-  .willdraw .leader,
-  .willdraw .glyph path {
+  .willdraw .leader {
     stroke-dasharray: none;
     stroke-dashoffset: 0;
   }
@@ -548,6 +599,9 @@
 
    Fixed height, not min-height: the tray draws a different eight on mount, and
    a box that measured its contents would jump as they swapped. */
+.spec {
+  animation: cap-in var(--dur-base) var(--ease-out) both;
+}
 .spec-chart {
   display: flex;
   align-items: center;
@@ -592,8 +646,12 @@
 .sgbfig {
   display: block;
   width: 100%;
+  /* Capped. The drawing is a detail callout, not a hero: left to fill a
+     500px plate it was 190px tall and outweighed the paragraph above it. */
+  max-width: 400px;
   height: auto;
   margin-top: 14px;
+  margin-block: auto;
   overflow: visible;
 }
 .sgb-tile {
@@ -698,6 +756,7 @@
 
 .spectrum {
   margin-top: 14px;
+  margin-block: auto;
 }
 /* The height is reserved, not measured. The library draws on the client only —
    it picks its widths at random, so it cannot be server-rendered — and a box
@@ -718,47 +777,6 @@
 .spectrum + .meta,
 .spectrum .chip {
   margin-top: 12px;
-}
-
-/* ---- fig. 3 · one honest press effect ------------------------------------ */
-
-.bttn-demo {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  align-self: flex-start;
-  margin: 14px 0 4px;
-  border: 1.5px solid var(--accent);
-  border-radius: var(--r-chip);
-  padding: 8px 20px;
-  font-family: var(--f-sans);
-  font-size: 13.5px;
-  font-weight: 600;
-  color: var(--accent);
-  transition:
-    color var(--dur-fast) var(--ease-out),
-    transform var(--dur-fast) var(--ease-out);
-}
-.bttn-demo::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: var(--accent);
-  z-index: -1;
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform var(--dur-fast) var(--ease-out);
-}
-.bttn-demo:hover,
-.bttn-demo:focus-visible {
-  color: var(--paper);
-}
-.bttn-demo:hover::before,
-.bttn-demo:focus-visible::before {
-  transform: scaleX(1);
-}
-.bttn-demo:active {
-  transform: translateY(2px);
 }
 
 /* ---- fold 3 · records ---------------------------------------------------- */

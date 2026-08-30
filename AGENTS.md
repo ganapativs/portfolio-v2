@@ -559,7 +559,9 @@ portrait ripple. **There is no third box radius. A drawing has no rounded
 corners.**
 
 **Motion**: `--dur-fast 140ms` hover and focus · `--dur-base 260ms` everything
-the reader caused · `--dur-ink 340ms` the coordinated ink tween. Easings:
+the reader caused · `--dur-ink 340ms` the coordinated ink tween · the palette
+sweep at 640ms + 300ms, which lives in `SweepProvider.tsx` rather than in a
+token because it belongs to the library that draws it. Easings:
 `--ease-out cubic-bezier(.22,1,.36,1)`, `--ease-in-out
 cubic-bezier(.65,0,.35,1)`. Direct manipulation has no duration at all, because
 the hand sets it. (`--dur-iris` and `--vt-r-now` are still declared in
@@ -599,7 +601,12 @@ Those two and nothing else, plus the inline ground colour and `colorScheme`.
 Replaces the old view-transition contract. **The clip-path iris is gone.**
 
 1. **Route nav** uses `<ViewTransition name="route">` in
-   `app/(press)/layout.tsx`, with its own quiet crossfade.
+   `app/(press)/layout.tsx`, with its own quiet crossfade. **The `root` group is
+   explicitly not animated** (`base.css`): everything outside the routed content
+   — header, measuring edge, title block — lands in `root`, and the API's
+   default crossfade dipped two identical headers through a pair of half-opaque
+   copies. It read as the ink bar under the G blinking out and back on every
+   navigation.
 2. **Both palette changes — theme and ink — go through `sweepApply()` in
    `lib/sweep.ts`**, which hands the state swap to glimm. glimm draws one WebGL
    band across the viewport and applies the change underneath it at the
@@ -622,11 +629,13 @@ Replaces the old view-transition contract. **The clip-path iris is gone.**
    rather than travelling.
 
 `SweepProvider`'s settings are all decisions, documented in the file:
-`sweepMs 520` / `outroMs 280` is the smallest setting where the band still reads
-as a pass rather than a flash; `waveAmount 0` and a tight band because this site
-is drawn with a straightedge; `brightness` and `peakAlpha` pulled down because
-at the library's defaults the band blew out to near-white on graphite, which is
-the one colour the palette does not contain.
+`sweepMs 640` / `outroMs 300` / `midpoint 0.42` is the one place the motion law
+is deliberately exceeded, because this is the whole sheet being re-inked rather
+than a control answering, and at 380ms the band was over before the eye found
+it; `waveAmount 0` and a tight band because this site is drawn with a
+straightedge; `brightness` and `peakAlpha` pulled down because at the library's
+defaults the band blew out to near-white on graphite, which is the one colour
+the palette does not contain.
 
 ---
 
@@ -652,6 +661,24 @@ the one colour the palette does not contain.
   group — `error.tsx`, `not-found.tsx` — mounts `<Sheet>` itself.
 - A new section wants `data-sec="<label>"` **and** an `id`, or the ruler will
   not tick it.
+- **A caption slot that swaps text keys its content and lets the slot animate
+  its height.** `interpolate-size: allow-keywords` is set on `:root` in
+  `tokens.css`; `.xp-cap` / `.tl-cap` transition `height`, and the inner
+  `.cap-in` element carries a React `key` so it remounts and replays its fade.
+  Without both halves the swap reads as a flicker: the height snaps and the
+  text cuts.
+- **Never combine `pathLength` with `vector-effect: non-scaling-stroke` on a
+  dash-drawn path.** `pathLength` normalises the dash pattern to the path's own
+  length, but `non-scaling-stroke` moves dash computation into screen space, so
+  `stroke-dasharray: 1` becomes one CSS pixel and the figure prints as a field
+  of 1px dashes. It is silent: the drawing simply looks like a scribble. Fig.
+  1's glyphs fade in instead (`.willdraw .glyph`, `home.css`).
+- **A glyph drawn on an isometric face is built from that face's two axes.**
+  The projection in `Exploded.tsx` turns a horizontal into a line sloping
+  down-right and a vertical into one sloping down-left. Rectangles and axis-
+  parallel runs read as figures lying on the surface; free angles and curves
+  close up into mush. Two sets of symbols were lost to this before the rule was
+  written down.
 - **The portrait renders a real `next/image` on the server and hides it only
   once the halftone canvas has actually drawn.** Keep it that way — a bare
   canvas has no `alt` and nothing for a crawler.

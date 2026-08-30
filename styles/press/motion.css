@@ -18,8 +18,8 @@
    cancels it, and it abandons itself if the tab is hidden.
 
    And one duration that is not a token at all: the palette sweep. A glimm band
-   crossing the whole sheet is 380ms plus a 200ms fade, which is longer than
-   anything else here by a factor of two. It is a full-sheet reveal rather than
+   crossing the whole sheet is 640ms plus a 300ms fade, which is longer than
+   anything else here by a factor of three. It is a full-sheet reveal rather than
    a control responding, it happens only when the reader changes the paper or
    the ink, and its timing lives in components/providers/SweepProvider.tsx
    because it belongs to the library that draws it.

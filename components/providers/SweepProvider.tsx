@@ -41,10 +41,11 @@ function houseEase(x: number) {
  * The defaults here are the restrained end of what the library offers, and
  * every one of them is a decision:
  *
- *   `sweepMs`/`outroMs` are short. The design's motion law caps everything the
- *   reader caused at 260ms and allows 500ms for a full-page reveal; 520 plus a
- *   280ms fade is the smallest setting where the band still reads as a pass
- *   over the sheet rather than a flash.
+ *   `sweepMs`/`outroMs` are the one place the motion law is deliberately
+ *   exceeded. Everything the reader caused is capped at 260ms, but this is not
+ *   a control responding: it is the whole sheet being re-inked, and 640 plus a
+ *   300ms fade is where the band stops reading as a flash and starts reading
+ *   as a pass. Shorter settings were tried and the sweep was simply missed.
  *
  *   `waveAmount: 0` and a tight band. The organic edge displacement is lovely
  *   and belongs on a different site. This one is drawn with a straightedge, so
@@ -63,12 +64,13 @@ function houseEase(x: number) {
 export function SweepProvider({ children }: { children: React.ReactNode }) {
   return (
     <GlimmProvider
-      sweepMs={380}
-      outroMs={200}
-      // The palette swaps at 0.35 of 380ms, so the ink has moved 133ms after
-      // the press. It used to be 234ms of a control that had visibly done
-      // nothing, which is a long time on the most-pressed control on the page.
-      midpoint={0.35}
+      sweepMs={640}
+      outroMs={300}
+      // The palette swaps at 0.42 of 640ms, so the ink has moved 269ms after
+      // the press: within the window where a control still feels answered,
+      // while the band itself takes long enough to read as a roller crossing
+      // the sheet. At 380ms it was over before the eye had found it.
+      midpoint={0.42}
       easing={houseEase}
       direction="ltr"
       bandTight={22}

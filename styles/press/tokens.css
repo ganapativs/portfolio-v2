@@ -43,6 +43,15 @@
   initial-value: #8f5c0c;
 }
 
+/* Lets `height: auto` take part in a transition, which is what the caption
+   slots under the figures need: they swap between captions of different
+   lengths, and a slot that snaps between two heights reads as a flicker. It
+   only does anything where a transition is actually declared, and it degrades
+   to the instant resize on browsers that do not have it. */
+:root {
+  interpolate-size: allow-keywords;
+}
+
 /* 2 — SURFACES ---------------------------------------------------------------
    Light is drawing paper: a warm off-white with the yellow of aged tracing
    stock, ruled in a dusty ochre-grey. Dark is graphite — a cool near-black with

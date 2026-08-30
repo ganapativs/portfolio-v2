@@ -157,6 +157,20 @@ kbd {
    Transitions API to do. What is left is the route swap.
    --------------------------------------------------------------------------- */
 
+/* The root snapshot is not animated, and that is the fix for a real bug.
+   React names the routed content `route`; everything else on the sheet — the
+   header, the measuring edge, the title block — falls into the `root` group,
+   which the API cross-fades by default. Two identical headers cross-fading
+   still dip through a pair of half-opaque copies, and the place you see it is
+   the ink bar under the G: it read as the mark blinking out and back on every
+   navigation. The header does not change between routes, so it should not
+   move. */
+::view-transition-old(root) {
+  display: none;
+}
+::view-transition-new(root) {
+  animation: none;
+}
 ::view-transition-group(route) {
   animation-duration: var(--dur-base);
 }

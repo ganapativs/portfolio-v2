@@ -278,8 +278,7 @@
   .hd,
   .tick-c,
   .fl,
-  .tblock,
-  .foot-pad,
+  .tb-wrap,
   .cv-topline,
   .skip-link {
     display: none !important;

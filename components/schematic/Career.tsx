@@ -88,8 +88,10 @@ export function Career() {
       </div>
 
       <div className="tl-cap" aria-live="polite">
-        <b>{cur.range}</b>
-        {cur.body}
+        <div className="cap-in" key={cur.range}>
+          <b>{cur.range}</b>
+          {cur.body}
+        </div>
       </div>
 
       <p className="materials">materials in current use · {MATERIALS.join(" · ")}</p>

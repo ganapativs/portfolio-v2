@@ -459,8 +459,12 @@ export function Specimens() {
 
   return (
     <div className="specimens" role="group" aria-label="Chart specimens">
+      {/* Keyed on the draw. The server renders a fixed eight and the mount
+          re-rolls them, which is the point — a different eight each load — but
+          as a hard swap it read as the page failing to settle. The tray fades
+          the new set in over one frame's worth of animation instead. */}
       {picks.map((s) => (
-        <span className="spec" key={s.id}>
+        <span className="spec" key={`${seed}-${s.id}`}>
           <span className="spec-chart">{s.node}</span>
           <span className="lbl">{s.id}</span>
         </span>

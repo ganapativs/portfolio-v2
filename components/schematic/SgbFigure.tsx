@@ -130,12 +130,14 @@ export function SgbFigure() {
       </svg>
 
       <div className="xp-cap" aria-live="polite">
-        <b>{cur ? cur.label : "general arrangement"}</b>
-        {cur
-          ? cur.note
-          : coarse
-            ? "Tap a part of the interface to read what it is."
-            : "Point at a part of the interface to read what it is."}
+        <div className="cap-in" key={on ?? "none"}>
+          <b>{cur ? cur.label : "general arrangement"}</b>
+          {cur
+            ? cur.note
+            : coarse
+              ? "Tap a part of the interface to read what it is."
+              : "Point at a part of the interface to read what it is."}
+        </div>
       </div>
     </>
   );
