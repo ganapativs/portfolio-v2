@@ -1,0 +1,57 @@
+{
+  // Cloudflare Workers deploy, through @opennextjs/cloudflare.
+  //
+  // Not the static-assets shape used by the microcharts docs site. That one
+  // static-exports to ./out and puts a small Worker in front, which works
+  // because those pages are pure HTML. This site is not exportable: it sets
+  // security headers and Cache-Control on nine paths, redirects /about and
+  // /work, rewrites /blog/<slug>.md onto a route handler, serves next/image in
+  // avif and webp, revalidates the GitHub star count daily, and answers
+  // /api/vitals at request time. `output: "export"` supports none of that, so
+  // Next runs on the Worker and the adapter maps the pieces onto Cloudflare.
+  //
+  //   pnpm cf:preview   build and run it locally in workerd
+  //   pnpm cf:deploy    build and ship it
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "meetguns",
+  "main": ".open-next/worker.js",
+
+  // Must be 2024-09-23 or later for the adapter. Kept at the workerd release
+  // that ships with the pinned wrangler so local preview and production agree.
+  "compatibility_date": "2026-08-28",
+  // `nodejs_compat` gives the Node built-ins the Next server expects.
+  // `global_fetch_strictly_public` makes fetch() from inside the Worker go out
+  // to the public internet and come back through the CDN, rather than looping
+  // straight back into this Worker. Without it a same-origin fetch bypasses
+  // the edge cache and burns a Worker invocation on itself.
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS",
+  },
+
+  // The Worker calls itself for cache revalidation, so it needs a binding to
+  // its own name. `name` above and this must stay in step.
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "meetguns",
+    },
+  ],
+
+  // The ISR cache. See open-next.config.ts for why R2 and not KV.
+  // Create it once with: pnpm wrangler r2 bucket create meetguns-inc-cache
+  "r2_buckets": [
+    {
+      "binding": "NEXT_INC_CACHE_R2_BUCKET",
+      "bucket_name": "meetguns-inc-cache",
+    },
+  ],
+
+  // Workers Logs. Off by default, and worth having on a site that has an
+  // error boundary and a vitals endpoint worth reading.
+  "observability": {
+    "enabled": true,
+  },
+}

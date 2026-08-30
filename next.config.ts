@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 import createMDX from "@next/mdx";
 import remarkGfm from "remark-gfm";
 import remarkSmartypants from "remark-smartypants";
@@ -131,3 +132,13 @@ const nextConfig: NextConfig = {
 };
 
 export default withMDX(nextConfig);
+
+/**
+ * Makes the Cloudflare bindings from wrangler.jsonc reachable in `next dev`,
+ * through `getCloudflareContext()`. Nothing here calls it yet. It is wired now
+ * because the alternative is discovering the gap the first time something does
+ * need a binding, and finding that it works in production and not locally.
+ *
+ * Dev only. It is a no-op in `next build` and in the Worker.
+ */
+initOpenNextCloudflareForDev();
