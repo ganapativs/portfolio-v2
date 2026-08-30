@@ -732,13 +732,29 @@
   fill: var(--accent);
 }
 /* South is the same ink as the ring, held back so north reads as north. A
-   compass needle is one shape in two weights, not two shapes. */
+   compass needle is one shape in two weights, not two shapes.
+   
+   Held back further on paper than on graphite. The two grounds are not
+   inversions of one another and neither are the inks on them: --ink-3 is a
+   mid grey either way, but on paper it darkens against the sheet and on
+   graphite it has to lift off it, so the same 0.45 that reads as a quiet
+   second half in light left the south needle almost gone in dark. */
 .north .tail {
   fill: currentColor;
   opacity: 0.45;
 }
+[data-theme="dark"] .north .tail {
+  opacity: 0.72;
+}
 .north .pivot {
   fill: currentColor;
+}
+/* The fixed north mark. Lighter than the ring, because it is a graduation on
+   the dial rather than the dial's edge. */
+.north .cardinal {
+  stroke: currentColor;
+  stroke-width: 1;
+  opacity: 0.55;
 }
 /* Nothing under the glass while the compass sits at the head of the sheet: the
    drawing is behind it there and should stay visible. It fills only once the

@@ -422,6 +422,11 @@ function NorthArrow() {
           prose ran straight through the glass. */}
       <circle className="dial" cx="9" cy="9" r="8" />
       <circle cx="9" cy="9" r="8" fill="none" stroke="currentColor" strokeWidth="1" />
+      {/* North on the sheet, which does not move. The needle swings against it,
+          which is the whole of what a compass is: a fixed mark and a moving
+          one. Without it the ring held a needle that pointed at the reader's
+          hand and at nothing else, and there was no north in the north arrow. */}
+      <path className="cardinal" d="M9 1.3 L9 2.9" />
       {/* Both halves are filled, and that is the fix rather than a preference.
           
           They have always been the same path mirrored about y=9, but the north
@@ -435,13 +440,21 @@ function NorthArrow() {
           construction. Weight is carried by the fill instead: the accent on
           north, the same ink as the ring held back on south.
           
+          Each half is a kite rather than a triangle, and that is the shape of
+          the thing. Both halves used to put their widest edge on the pivot, so
+          the needle was fattest in the middle and came to nothing at the ends:
+          an hourglass, not a needle. A compass needle is widest about a third
+          of the way out and tapers to a point, so the widest edge is at y=7 and
+          y=11, four fifths of the way to each tip, and both tips are sharp. The
+          halves stay exact mirrors about y=9.
+          
           The pivot is outside the needle group. It does not rotate, being on
           the axis, and it caps the seam where the two halves meet. */}
       <g className="needle" ref={needleRef}>
-        <path className="tip" d="M9 2.5 L11 9 L7 9 Z" />
-        <path className="tail" d="M9 15.5 L11 9 L7 9 Z" />
+        <path className="tip" d="M9 3.4 L10.85 7 L9 9 L7.15 7 Z" />
+        <path className="tail" d="M9 14.6 L10.85 11 L9 9 L7.15 11 Z" />
       </g>
-      <circle className="pivot" cx="9" cy="9" r="1.15" />
+      <circle className="pivot" cx="9" cy="9" r="1" />
     </svg>
   );
 }
