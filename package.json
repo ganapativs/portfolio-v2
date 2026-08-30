@@ -31,7 +31,7 @@
     "@base-ui/react": "^1.7.0",
     "@mdx-js/loader": "^3.1.1",
     "@mdx-js/react": "^3.1.1",
-    "@microcharts/react": "^0.11.0",
+    "@microcharts/react": "^0.18.1",
     "@next/mdx": "^16.3.3",
     "@types/mdx": "^2.0.14",
     "glimm": "^0.3.0",
@@ -59,17 +59,17 @@
     "oxlint": "^1.80.0",
     "simple-git-hooks": "^2.14.0",
     "tailwindcss": "^4.3.3",
-    "typescript": "^6.0.3"
+    "typescript": "^7.0.2"
   },
   "simple-git-hooks": {
     "pre-commit": "pnpm exec lint-staged"
   },
   "lint-staged": {
-    "*.{ts,tsx,js,jsx,mjs,cjs,json,jsonc}": [
+    "*.{ts,tsx,js,jsx,mjs,cjs}": [
       "oxfmt",
       "oxlint --fix --quiet"
     ],
-    "*.{md,mdx,css}": [
+    "*.{json,jsonc,md,mdx,css}": [
       "oxfmt"
     ]
   },
