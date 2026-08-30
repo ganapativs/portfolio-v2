@@ -293,8 +293,14 @@
 .hd {
   position: sticky;
   top: 0;
-  /* Above the sheet and its panels, below the sweep band at 60. */
-  z-index: 40;
+  /* Above the sheet, its panels *and* the sweep band at 60.
+     
+     The band is painted with the ink in play, and the bar under the G is that
+     same ink, so a theme flip washed the mark out and gave it back as the band
+     passed: it read as the underline blinking off and on. The band re-inks the
+     sheet; the control surface that caused it should stay legible while it
+     happens, so you can see the control you just pressed. */
+  z-index: 70;
   padding: 22px 0 0;
   /* Locked to the natural height measured in Header.tsx, so condensing the
      strip inside never moves a pixel of the page below it. */
@@ -887,7 +893,10 @@ h2.sec-label {
    tracks fills the block exactly at every size, and the values wrap inside
    their cell rather than being cut off. */
 .tblock {
-  border: 1.5px solid var(--rule-2);
+  /* The same rule every panel on the sheet is drawn with. It was 1.5px in
+     --rule-2, which made the one block at the foot of the page heavier than
+     any figure above it. */
+  border: 1px solid var(--rule);
   background: var(--rule-3);
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -944,35 +953,31 @@ h2.sec-label {
 .tb-contact-l .tb-l {
   margin-bottom: 0;
 }
-/* The ask sits on the ink, full width, immediately above the title block. It
-   is the only filled area on the sheet, which is what makes it the one thing
-   the reader cannot miss on the way out. */
+/* A cell of the block, spanning it, and the first one you read.
+
+   It was a filled slab sitting above the block, on the argument that the
+   page's one request should be unmissable, and it read as a banner pasted onto
+   a drawing. It is part of the record now, which is where a drawing puts who
+   to contact, and the grid's own 1px gap is the separator under it. The words
+   carry the ink, which is what the ink is for everywhere else here. */
 .tb-say {
+  grid-column: 1 / -1;
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 12px 20px;
   flex-wrap: wrap;
-  /* The same cell the title block below it is made of: one rule, the raised
-     ground, no fill. It used to be the only filled area on the sheet, on the
-     argument that the page's one request should be unmissable, and it read as
-     a banner pasted onto a drawing. The words carry the ink instead, which is
-     what the ink is for everywhere else here. */
-  border: 1px solid var(--rule);
   background: var(--raise);
   padding: 16px 20px;
-  margin-bottom: 8px;
-  transition:
-    border-color var(--dur-fast) var(--ease-out),
-    background var(--dur-fast) var(--ease-out);
+  transition: background var(--dur-fast) var(--ease-out);
 }
-/* Hover takes the rule up to the ink and washes the ground, which is what
-   every other pressable thing on the sheet does. */
+/* Hover washes the cell, which is what every other pressable row on the sheet
+   does. There is no border of its own to take up: the grid gap is the rule. */
 .tb-say:hover,
 .tb-say:focus-visible {
-  border-color: var(--accent);
   background: var(--accent-soft);
 }
+
 .tb-say-l {
   font-size: 22px;
   font-weight: 700;

@@ -88,14 +88,15 @@ export function TitleBlock() {
 
   return (
     <footer id="contact" data-sec="contact" className="tb-wrap">
-      {/* The page's one request, at the point where a convinced reader is
-          deciding what to do. It used to be a 14px link inside a metadata cell,
-          which is the wrong weight for the only thing the site is asking for. */}
-      <a className="tb-say" href={`mailto:${identity.email}`} data-analytics="mail:closing">
-        <span className="tb-say-l">Say hello</span>
-        <span className="tb-say-v">{identity.email}</span>
-      </a>
       <div className="tblock">
+        {/* The page's one request, and the first cell of the block rather than
+            a slab sitting above it. A title block is where a drawing records
+            who to contact, so this belongs inside it; the 1px grid gap that
+            separates every other cell is the separator under it. */}
+        <a className="tb-say" href={`mailto:${identity.email}`} data-analytics="mail:closing">
+          <span className="tb-say-l">Say hello</span>
+          <span className="tb-say-v">{identity.email}</span>
+        </a>
         <div className="tb-cell">
           <span className="tb-l">Made by</span>
           <span className="tb-v">{identity.name}</span>

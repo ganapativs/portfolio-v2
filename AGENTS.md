@@ -682,6 +682,12 @@ Replaces the old view-transition contract. **The clip-path iris is gone.**
    default crossfade dipped two identical headers through a pair of half-opaque
    copies. It read as the ink bar under the G blinking out and back on every
    navigation.
+   1b. **The header paints above the band.** `.hd` is `z-index: 70`, over the
+   band's 60. The band is painted with the ink in play and the bar under the G
+   is that same ink, so a theme flip washed the mark out and gave it back as
+   the band passed: it read as the underline blinking off and on. The band
+   re-inks the sheet; the control surface that caused it stays legible while it
+   happens.
 2. **Both palette changes — theme and ink — go through `sweepApply()` in
    `lib/sweep.ts`**, which hands the state swap to glimm. glimm draws one WebGL
    band across the viewport and applies the change underneath it at the

@@ -200,7 +200,7 @@
 .essay-title {
   margin: 0;
   font-weight: 700;
-  font-size: clamp(30px, calc(24px + 1.7vw), 46px);
+  font-size: clamp(30px, calc(24px + 1.6vw), 46px);
   line-height: 1.12;
   letter-spacing: -0.022em;
   text-wrap: balance;
@@ -245,7 +245,9 @@
   margin: clamp(28px, 4vh, 40px) 0 0;
   padding-left: 16px;
   border-left: 2px solid var(--accent);
-  font-size: clamp(18px, calc(16px + 0.4vw), 21px);
+  /* The same size as the writing index's lede. They are the same thing: the
+     sentence under the title that says what this is. */
+  font-size: clamp(17px, calc(15px + 0.4vw), 20px);
   line-height: 1.55;
   letter-spacing: -0.011em;
   color: var(--ink-2);
@@ -293,10 +295,12 @@
   font-size: clamp(19px, calc(17px + 0.4vw), 22px);
   line-height: 1.3;
 }
+/* No size of its own. At a flat 18px it was *smaller* than the 20px paragraph
+   underneath it on a wide screen, which is a heading that reads as a caption.
+   Weight and ink separate it instead. */
 .prose h4 {
   margin: clamp(26px, 3.5vh, 34px) 0 0.5em;
   font-weight: 600;
-  font-size: 18px;
   line-height: 1.35;
 }
 /* rehype-autolink-headings wraps the heading text in an anchor. Keep it
@@ -391,13 +395,19 @@
   color: var(--ink-3);
 }
 
-/* Pull quote — the brief sets it as large indented prose, not a bordered card. */
+/* An aside, at reading size.
+   
+   It was set as a pull quote, at up to 26px, which is the size of an h2 and a
+   third larger than the paragraph above it. The posts do not use blockquotes as
+   pull quotes: they use them as notes beside the argument, and a note that
+   outweighs its own section heading inverts the hierarchy of the page. It
+   inherits the prose size now and is marked by the rule and the darker ink,
+   which is enough to say aside without shouting it. */
 .prose blockquote {
   margin: clamp(36px, 5vh, 52px) 0;
   padding-left: clamp(14px, 2vw, 24px);
   border-left: 2px solid var(--accent);
-  font-size: clamp(21px, calc(18px + 0.6vw), 26px);
-  line-height: 1.44;
+  line-height: 1.6;
   color: var(--ink);
   text-wrap: pretty;
 }
@@ -424,7 +434,9 @@
   border-collapse: collapse;
   margin: clamp(28px, 4vh, 36px) 0;
   font-family: var(--f-sans);
-  font-size: 16px;
+  /* One step under the prose rather than a flat 16, so the gap between a table
+     and the paragraph beside it stays the same at every width. */
+  font-size: clamp(16px, calc(14px + 0.34vw), 18px);
 }
 .prose thead th {
   text-align: left;
