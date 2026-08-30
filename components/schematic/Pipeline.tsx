@@ -45,6 +45,23 @@ const NODE_TAG: Record<string, string> = {
 };
 
 /**
+ * Four sides down to the shortest form that still says the same thing, with
+ * the unit kept.
+ *
+ * This panel's whole claim is that it is reading the real computed style, so a
+ * row that says "0 0 0 0" is not a shorter way of writing the truth, it is a
+ * different value: 0 is a number, 0px is a length. It printed four bare
+ * numbers, and the size row printed two, and the panel quietly stopped being a
+ * readout and became a caption about one.
+ */
+function shorthand(top: string, right: string, bottom: string, left: string): string {
+  if (top === right && right === bottom && bottom === left) return top;
+  if (top === bottom && right === left) return `${top} ${right}`;
+  if (right === left) return `${top} ${right} ${bottom}`;
+  return `${top} ${right} ${bottom} ${left}`;
+}
+
+/**
  * Fig. 6 — the pipeline.
  *
  * One interface dragged through its own making: sketch → vectors → tokens →
@@ -478,23 +495,6 @@ export function Pipeline() {
       el.classList.toggle("ui-hi", el.dataset.node === n);
     }
   }, []);
-
-  /**
-   * Four sides down to the shortest form that still says the same thing, with
-   * the unit kept.
-   *
-   * This panel's whole claim is that it is reading the real computed style, so a
-   * row that says "0 0 0 0" is not a shorter way of writing the truth, it is a
-   * different value: 0 is a number, 0px is a length. It printed four bare
-   * numbers, and the size row printed two, and the panel quietly stopped being a
-   * readout and became a caption about one.
-   */
-  function shorthand(t: string, r: string, b: string, l: string): string {
-    if (t === r && r === b && b === l) return t;
-    if (t === b && r === l) return `${t} ${r}`;
-    if (r === l) return `${t} ${r} ${b}`;
-    return `${t} ${r} ${b} ${l}`;
-  }
 
   // ---- shipped stage: live computed reads ---------------------------------
   const inspEl = useRef<HTMLElement | null>(null);

@@ -117,6 +117,7 @@ Do not reintroduce these, and do not "restore" doc text describing them.
 | MDX             | @next/mdx ^16.2                | `remark-gfm`, `remark-smartypants`, `rehype-slug`, `rehype-autolink-headings`, `rehype-highlight`                                                                                                   |
 | Charts          | @microcharts/react ^0.11       | **No longer blog-only** — fig. 2 on the home sheet is a tray of them. Tokens bridged at `:root` in `styles/press/tokens.css` (`--mc-*`), not at `.prose`                                            |
 | Sweep           | glimm ^0.3                     | The WebGL band that carries every palette change. `GlimmProvider` is the outermost provider; see "Sweep contract"                                                                                   |
+| Lamp            | vgpu ^0.3                      | The WebGPU field under the cursor. Loaded only where `navigator.gpu` exists, through `next/dynamic`; the 2D `DitherField` is the path for everyone else. See "The lamp"                             |
 | Live specimen   | react-spectrum ^1.3            | His own 2019 package, running in fig. 4. **Imported by ESM file path** with a type shim at the repo root — see the trap below                                                                       |
 | Dialog          | @base-ui/react ^1.6            | One use: the `?` shortcut help sheet (`components/shortcuts/ShortcutHelp.tsx`)                                                                                                                      |
 | Fonts           | next/font                      | Hanken Grotesk + IBM Plex Mono from Google. Anek Kannada is **self-hosted and subsetted**. `@fontsource/hanken-grotesk` and `@fontsource/ibm-plex-mono` exist so the OG renderer can read raw files |
@@ -154,7 +155,8 @@ app/
   error.tsx          Renders <Sheet> itself: it lives outside the (press) group.
   not-found.tsx      Same.
 components/
-  schematic/         The design. Sheet, Header, Ruler, DitherField, TitleBlock, PageFX, Mark,
+  schematic/         The design. Sheet, Header, Ruler, Lamp (+ GpuLamp, DitherField), TitleBlock,
+                     PageFX, Mark, Caption,
                      Portrait, Exploded, Loupe, Specimens, SpectrumDemo, SgbFigure, Career,
                      PartsList, Pipeline, CopyEmail, Socials, EssayShell, PrintCV, and three
                      hooks: useDrawOnFirstView, useCoarsePointer, useReducedMotion
@@ -174,6 +176,7 @@ public/posts/<slug>/ Cover + inline imagery for each post.
 lib/
   ink.ts             The ink system: ids, labels, pitches, hex mirrors, storage keys
   sweep.ts           sweepApply() — the guarded glimm sweep every palette change goes through
+  lamp.wgsl.ts       The WGSL for the WebGPU light under the cursor. See "The lamp"
   posts.ts           Post metadata — outside the route tree so the pages and the feeds share it
   fonts.ts           The three faces
   mark.ts            The G, as raw path data — the one copy every renderer shares
@@ -663,6 +666,51 @@ for the pick, because two colours is the whole event. `themeBand()` in
 leaving, through the other five at their new values in tray order, to the same
 ink on the ground it arrives at: every ink is about to be repigmented for a
 different ground, and the band says so.
+
+---
+
+## The lamp
+
+The light under the cursor exists twice, and both are the same light.
+
+`components/schematic/Lamp.tsx` picks. Where `navigator.gpu` exists it
+`next/dynamic`s `GpuLamp`, which runs `lib/lamp.wgsl.ts` through vgpu; every
+other browser gets `DitherField`, the 2D canvas that was here first. A coarse
+pointer gets neither, because there is no cursor to light anything and either
+field costs a full-viewport backing store whether or not a frame is ever drawn.
+
+**The split is a bundle decision.** vgpu's browser runtime is 45 kB gzipped. It
+is a lazy chunk, requested after mount and only by browsers that can use it, so
+it is never part of anyone's first load. Keep it that way: importing anything
+from `vgpu` outside `GpuLamp.tsx` puts it back in the graph.
+
+**`navigator.gpu` is a promise of a request, not of a device.** `GpuLamp` takes
+an `onFail` and calls it when the adapter turns out not to be there. It must
+_not_ call it when the component simply unmounted first: React's development
+double-mount does exactly that, and treating it as a failure downgraded every
+dev session to the CPU path permanently.
+
+What the GPU one does that the 2D one cannot:
+
+- **The dot grows.** A halftone carries tone by varying dot size against a fixed
+  pitch. That is a coverage term per pixel: free on a GPU, unaffordable in a
+  per-cell CPU loop. The pitch stays 4px, so it reads as the same screen the
+  portrait is printed with.
+- **The pool stretches along the hand's travel**, so a carried lamp looks
+  carried.
+- **The sheet's frame takes a raking light.** The `.sheet` rectangle is read off
+  the DOM and passed in, so the drawing and the light finally know about each
+  other. Re-read on resize and on scroll.
+
+Everything else is the 2D field's discipline unchanged: DPR clamped to 2, the
+loop stops when the light has caught up and stopped fading, it pauses with the
+tab, it re-reads `--dither-dot` when the paper changes, and reduced motion turns
+it off.
+
+`pnpm-workspace.yaml` denies builds for `@vgpu/adapter-node` and `webgpu`. Those
+are vgpu's Node-side renderer and its native binding; nothing in this site's
+browser path touches them, and building a native module on every install for
+code that never runs is not a trade worth making.
 
 ---
 
