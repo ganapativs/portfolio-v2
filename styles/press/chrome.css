@@ -315,8 +315,13 @@
    rule under it is the width of the drawing like every other rule here. Drawn
    as a pseudo-element rather than a border for exactly that reason, and faded
    rather than switched, so the line never changes width as it arrives. */
-.hd-row {
+.hd-strip {
   position: relative;
+  /* A block formatting context, so the rule's negative bottom margin actually
+     shortens the strip. With padding-bottom at zero and no border, that margin
+     collapses straight out of the parent and does nothing, which is why the
+     ground kept running nine pixels past the line. */
+  display: flow-root;
   margin-inline: calc(var(--gutter) * -1);
   padding-inline: var(--gutter);
   padding-block: 0;
@@ -351,20 +356,7 @@
   inherits: false;
   initial-value: 1;
 }
-.hd-row::after {
-  content: "";
-  position: absolute;
-  left: var(--gutter);
-  right: var(--gutter);
-  bottom: 0;
-  height: 1px;
-  background: var(--rule);
-  opacity: 0;
-  transition: opacity var(--dur-base) var(--ease-out);
-}
-.hd[data-stuck="true"] .hd-row::after {
-  opacity: 1;
-}
+
 /* Flush to the top of the viewport once stuck. The 22px of air above the row
    is right at the head of the sheet and wrong in a running strip: content
    scrolled past uncovered in the gap above it. The box keeps its locked height
@@ -373,8 +365,9 @@
   padding-top: 0;
 }
 
-.hd[data-stuck="true"] .hd-row {
-  padding-block: 9px;
+.hd[data-stuck="true"] .hd-strip {
+  /* No padding under the rule: the rule is the strip's bottom edge. */
+  padding-block: 8px 0;
   background: color-mix(in oklab, var(--paper) 78%, transparent);
   --hd-blur: 14px;
   --hd-sat: 1.6;
@@ -402,29 +395,12 @@
    north arrow and never wraps, so the height is a known constant and can be
    animated; switching it off instead made the strip jump from two rows to one
    inside a transition that was otherwise smooth, which is the flicker. */
-.hd-rule {
-  height: 18px;
-  overflow: hidden;
-  /* Every part of the collapse on one duration. The opacity used to run at
-     --dur-fast while the height ran at --dur-base, so the title had already
-     vanished while the gap it left was still closing: one movement read as
-     two. */
-  transition:
-    height var(--dur-base) var(--ease-out),
-    opacity var(--dur-base) var(--ease-out),
-    margin-top var(--dur-base) var(--ease-out);
-}
-.hd[data-stuck="true"] .hd-rule {
-  height: 0;
-  margin-top: 0;
-  opacity: 0;
-}
 
 /* No backdrop-filter here. It is a compositing hint as much as an effect, and
    on a browser without it the strip has to stay readable, so the ground goes
    opaque instead of translucent. */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .hd[data-stuck="true"] .hd-row {
+  .hd[data-stuck="true"] .hd-strip {
     background: var(--paper);
   }
 }
@@ -614,13 +590,35 @@
   display: block;
 }
 
-/* The drawing title, on a hairline it interrupts. */
+/* The drawing title, on a hairline it interrupts, and the same hairline once
+   the header condenses.
+   
+   One element in two layouts rather than two states. The title shrinks to
+   nothing between the two hairlines, they grow into the space it leaves, and
+   the compass — which was sitting to the right of centre because the title was
+   taking up the left half — ends up dead centre of an unbroken rule. Scrolling
+   back opens it again and the title is revealed rather than faded in.
+   
+   The compass does not move by being animated. It moves because the two
+   hairlines are `flex: 1 1 12px` and equalise as the title between them goes,
+   which is why the whole thing travels on one interpolation. */
 .hd-rule {
+  --hd-rule-gap: 14px;
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: var(--hd-rule-gap);
   margin-top: 16px;
   min-width: 0;
+  transition:
+    margin-top var(--dur-base) var(--ease-out),
+    margin-bottom var(--dur-base) var(--ease-out);
+}
+.hd[data-stuck="true"] .hd-rule {
+  margin-top: 7px;
+  /* Half the rule's own height, pulled back, so the hairline sits exactly on
+     the ground's bottom edge rather than nine pixels above it. The compass
+     straddles that edge, which is what a survey mark on a rule does. */
+  margin-bottom: -9px;
 }
 .hd-rule::before,
 .hd-rule::after {
@@ -639,7 +637,27 @@
   text-transform: uppercase;
   min-width: 0;
   overflow: hidden;
-  text-overflow: ellipsis;
+  /* Centred and clipped rather than ellipsised, so the string closes in from
+     both ends and the middle of it is the last thing to go. An ellipsis
+     appearing halfway through the close would be a third state. */
+  max-width: 60ch;
+  text-align: center;
+  text-overflow: clip;
+  transition:
+    max-width var(--dur-base) var(--ease-out),
+    margin-inline-start var(--dur-base) var(--ease-out),
+    opacity var(--dur-base) var(--ease-out);
+}
+/* The negative margin is what centres the compass, and it has to be here.
+   A flex gap is applied between every pair of items, so a title collapsed to
+   zero width still leaves its two gaps behind: the compass ended up half a gap
+   right of centre. Pulling the start margin back by exactly one gap cancels
+   one of them, and because it is a margin it interpolates along with
+   everything else rather than snapping at the end. */
+.hd[data-stuck="true"] .hd-title {
+  max-width: 0;
+  margin-inline-start: calc(var(--hd-rule-gap) * -1);
+  opacity: 0;
 }
 /* The north arrow. Its needle points at the cursor, which is the only thing on
    the page that knows where the reader's hand is. */
@@ -647,6 +665,9 @@
   display: block;
   color: var(--ink-3);
   flex: none;
+  /* It straddles the strip's bottom edge once condensed, so half of it is over
+     the reader's content. It is a mark, not a control. */
+  pointer-events: none;
 }
 .north .needle {
   transform-origin: 9px 9px;

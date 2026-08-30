@@ -131,121 +131,133 @@ export function SchematicHeader() {
     <>
       <span className="hd-sentinel" ref={sentinel} aria-hidden="true" />
       <header className="hd" data-stuck={stuck} ref={headerRef}>
-        <div className="hd-row">
-          <Link
-            href="/"
-            className="hd-brand"
-            ref={homeRef}
-            data-analytics="nav:header.home"
-            aria-label="Home"
-            onPointerEnter={() => fx?.tick()}
-            onClick={() => fx?.nav()}
-          >
-            <Mark className="hd-mark" />
-            <span className="hd-name">{identity.name}</span>
-            <span className="hd-kn" lang="kn">
-              ಗಣಪತಿ ವಿ ಎಸ್
-            </span>
-          </Link>
-
-          <nav className="hd-nav" aria-label="Site">
+        {/* Row and rule are one strip: the ground and the blur belong to both,
+            or the rule sits below the blurred band with unblurred content
+            passing through the gap between them. */}
+        <div className="hd-strip">
+          <div className="hd-row">
             <Link
-              href="/blog"
-              ref={writingRef}
-              aria-current={on("/blog") ? "page" : undefined}
-              data-analytics="nav:header.writing"
+              href="/"
+              className="hd-brand"
+              ref={homeRef}
+              data-analytics="nav:header.home"
+              aria-label="Home"
+              onPointerEnter={() => fx?.tick()}
               onClick={() => fx?.nav()}
             >
-              writing
-            </Link>
-            <Link
-              href="/resume"
-              ref={resumeRef}
-              aria-current={on("/resume") ? "page" : undefined}
-              data-analytics="nav:header.resume"
-              onClick={() => fx?.nav()}
-            >
-              résumé
+              <Mark className="hd-mark" />
+              <span className="hd-name">{identity.name}</span>
+              <span className="hd-kn" lang="kn">
+                ಗಣಪತಿ ವಿ ಎಸ್
+              </span>
             </Link>
 
-            <span className="hd-ctls">
-              {/* Below 640px the CSS hides every swatch but the active one. The
+            <nav className="hd-nav" aria-label="Site">
+              <Link
+                href="/blog"
+                ref={writingRef}
+                aria-current={on("/blog") ? "page" : undefined}
+                data-analytics="nav:header.writing"
+                onClick={() => fx?.nav()}
+              >
+                writing
+              </Link>
+              <Link
+                href="/resume"
+                ref={resumeRef}
+                aria-current={on("/resume") ? "page" : undefined}
+                data-analytics="nav:header.resume"
+                onClick={() => fx?.nav()}
+              >
+                résumé
+              </Link>
+
+              <span className="hd-ctls">
+                {/* Below 640px the CSS hides every swatch but the active one. The
                   one that stays visible is a real button, so pressing it is what
                   opens the tray: no handler on the group, and the keyboard gets
                   the behaviour for free. Above 640px the attribute does nothing
                   and all six are always shown. */}
-              <span className="inks" role="group" aria-label="Ink" data-open={trayOpen}>
-                {INKS.map((i, n) => (
-                  <InkSwatch
-                    key={i.id}
-                    id={i.id}
-                    label={i.label}
-                    n={n + 1}
-                    on={ink === i.id}
-                    pick={setInk}
-                    onPicked={() => setTrayOpen(ink === i.id)}
-                  />
-                ))}
-              </span>
+                <span className="inks" role="group" aria-label="Ink" data-open={trayOpen}>
+                  {INKS.map((i, n) => (
+                    <InkSwatch
+                      key={i.id}
+                      id={i.id}
+                      label={i.label}
+                      n={n + 1}
+                      on={ink === i.id}
+                      pick={setInk}
+                      onPicked={() => setTrayOpen(ink === i.id)}
+                    />
+                  ))}
+                </span>
 
-              <button
-                type="button"
-                className="ctl"
-                ref={themeRef}
-                // Deliberately not "switch to dark" / "switch to light". The
-                // server does not know which paper the reader chose — the
-                // no-flash script stamps that before React sees the page — so a
-                // theme-dependent label is a guaranteed hydration mismatch, and a
-                // toggle that renames itself is worse to hear read out anyway.
-                aria-label="Switch the paper"
-                title="Paper · t"
-                onClick={(e) => {
-                  // The origin is the middle of the control rather than the
-                  // pointer, so a click and a keyboard activation of the same
-                  // button are told apart by intent, not by a few pixels.
-                  const r = e.currentTarget.getBoundingClientRect();
-                  fx?.clack();
-                  window.setTimeout(() => fx?.chime(), 80);
-                  toggle({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
-                }}
-              >
-                {/* Half the disc hatched: the drawing-office way to say "this
+                <button
+                  type="button"
+                  className="ctl"
+                  ref={themeRef}
+                  // Deliberately not "switch to dark" / "switch to light". The
+                  // server does not know which paper the reader chose — the
+                  // no-flash script stamps that before React sees the page — so a
+                  // theme-dependent label is a guaranteed hydration mismatch, and a
+                  // toggle that renames itself is worse to hear read out anyway.
+                  aria-label="Switch the paper"
+                  title="Paper · t"
+                  onClick={(e) => {
+                    // The origin is the middle of the control rather than the
+                    // pointer, so a click and a keyboard activation of the same
+                    // button are told apart by intent, not by a few pixels.
+                    const r = e.currentTarget.getBoundingClientRect();
+                    fx?.clack();
+                    window.setTimeout(() => fx?.chime(), 80);
+                    toggle({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
+                  }}
+                >
+                  {/* Half the disc hatched: the drawing-office way to say "this
                     side is in shadow", and it needs no sun or moon. */}
-                <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
-                  <defs>
-                    <pattern
-                      id="hatch-theme"
-                      width="1.75"
-                      height="1.75"
-                      patternUnits="userSpaceOnUse"
-                      patternTransform="rotate(45)"
-                    >
-                      <line
-                        x1="0"
-                        y1="0"
-                        x2="0"
-                        y2="1.75"
-                        stroke="currentColor"
-                        strokeWidth="0.8"
-                      />
-                    </pattern>
-                  </defs>
-                  <circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" strokeWidth="1" />
-                  <path d="M7 1.5 A5.5 5.5 0 0 1 7 12.5 Z" fill="url(#hatch-theme)" />
-                </svg>
-              </button>
+                  <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+                    <defs>
+                      <pattern
+                        id="hatch-theme"
+                        width="1.75"
+                        height="1.75"
+                        patternUnits="userSpaceOnUse"
+                        patternTransform="rotate(45)"
+                      >
+                        <line
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1.75"
+                          stroke="currentColor"
+                          strokeWidth="0.8"
+                        />
+                      </pattern>
+                    </defs>
+                    <circle
+                      cx="7"
+                      cy="7"
+                      r="5.5"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1"
+                    />
+                    <path d="M7 1.5 A5.5 5.5 0 0 1 7 12.5 Z" fill="url(#hatch-theme)" />
+                  </svg>
+                </button>
 
-              <SoundToggle btnRef={soundRef} />
+                <SoundToggle btnRef={soundRef} />
+              </span>
+            </nav>
+          </div>
+
+          <div className="hd-rule">
+            <span className="hd-title">
+              {drawingTitle(pathname)}
+              <span className="hd-title-full"> · {identity.name} · 2026</span>
             </span>
-          </nav>
-        </div>
-
-        <div className="hd-rule">
-          <span className="hd-title">
-            {drawingTitle(pathname)}
-            <span className="hd-title-full"> · {identity.name} · 2026</span>
-          </span>
-          <NorthArrow />
+            <NorthArrow />
+          </div>
         </div>
       </header>
     </>

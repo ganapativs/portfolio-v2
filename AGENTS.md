@@ -259,11 +259,22 @@ none` with `.hd > *` set back to `auto`, so the dead area under the condensed
   transition). The blur is a pair of registered custom properties now, present
   from the start at zero strength, and every part of the condense shares
   `--dur-base` and `--ease-out`.
-- **Two widths, deliberately.** The ground bleeds to the sheet's edges, because
-  a blur that stops mid-air is worse than no blur. The rule under it is the
-  width of the drawing, like every other rule here, so it is a pseudo-element
-  rather than a border and it fades rather than switching: as a bleeding border
-  it changed width as it arrived, and the line shot out sideways.
+- **The bottom line is the drawing title's own rule, morphing.** Not a second
+  line that appears. `.hd-title` collapses to zero width between the two
+  `flex: 1 1 12px` hairlines, they grow into the space it leaves, and the
+  compass — which sat right of centre because the title took the left half —
+  ends up dead centre of an unbroken rule. The compass is not animated; it
+  travels because the hairlines equalise, which is why the whole thing rides
+  one interpolation. Three details make it land: the collapsed title still
+  contributes a flex gap, so `margin-inline-start` is pulled back by exactly
+  one gap or the compass settles half a gap off centre; the strip is
+  `display: flow-root` or the rule's negative bottom margin collapses out of it
+  and the ground runs past the line; and the rule's `margin-bottom: -9px` is
+  half its own height, which puts the hairline exactly on the ground's bottom
+  edge with the compass straddling it.
+- **Two widths, deliberately.** The ground bleeds to the sheet's inner edge,
+  because a blur that stops mid-air is worse than no blur. The rule inside it
+  stays at the drawing's width, like every other rule here.
 
 It is translucent and blurred, which is a deliberate exception to the rule in
 `.impeccable.md` that nothing here is glass. It is tinted with the ground rather
