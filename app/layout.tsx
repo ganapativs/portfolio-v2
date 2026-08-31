@@ -52,14 +52,13 @@ export const metadata: Metadata = {
   // No `canonical` here — a layout-level canonical is inherited by every
   // segment that doesn't override it (including the 404 page, which would
   // then canonicalise to the homepage). Each page sets its own.
-  alternates: {
-    types: {
-      "application/rss+xml": [{ url: "/rss.xml", title: "meetguns blog" }],
-      // The curated plain-text map, advertised the same way the feed is, so an
-      // agent that reads <head> finds it without guessing the path.
-      "text/plain": [{ url: "/llms.txt", title: "meetguns for LLMs" }],
-    },
-  },
+  // No `alternates` here either, and the feed links are not in metadata at all.
+  // Next resolves `alternates` by replacement, not by merge
+  // (resolve-metadata.js: `newResolvedMetadata.alternates = resolveAlternates(...)`),
+  // so any page that sets its own `alternates.canonical` — which is every page,
+  // per the note above — dropped the two feed links with it. The only page that
+  // ever carried both was the 404, because it is the only one with no canonical
+  // of its own. They are plain <link> tags in <head> below instead.
   // Declared explicitly rather than left to the file conventions: the moment
   // an `icons` object exists, Next stops emitting the automatic <link> tags
   // for app/icon.tsx, app/apple-icon.tsx and app/favicon.ico, so everything
@@ -151,6 +150,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {GA_ENABLED && <script dangerouslySetInnerHTML={{ __html: gaStub }} />}
         <JsonLd data={[personSchema, websiteSchema]} />
         <link rel="author" href="/humans.txt" />
+        {/* Hand-written rather than routed through `alternates`, so they
+            survive on every page. See the note on the metadata export. */}
+        <link rel="alternate" type="application/rss+xml" title="meetguns blog" href="/rss.xml" />
+        {/* The curated plain-text map, advertised the same way the feed is, so
+            an agent reading <head> finds it without guessing the path. */}
+        <link rel="alternate" type="text/plain" title="meetguns for LLMs" href="/llms.txt" />
         {identity.social
           .filter((s) => s.kind !== "mail")
           .map((s) => (

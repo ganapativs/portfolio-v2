@@ -382,6 +382,17 @@ On top of that, and without any attribute: **any link leaving the origin** is
 reported as `outbound`, and any bare `mailto:` as a contact. Nothing else fires
 — this does not log every click on the page.
 
+**An external link with a `cta:` on it therefore reports twice**, once as its
+`cta` and once as `outbound`. That is deliberate and it is not symmetric with
+`mail:`, which sets `handledAsMail` and suppresses the second event: a contact
+is one act, while an outbound click is worth counting both as the named thing
+it is and in the outbound total. Do not "fix" the asymmetry without deciding
+which of the two numbers you want to change.
+
+**`href` is optional on `nav`.** Not every navigation is an anchor — the
+measuring edge's section ticks are buttons that scroll — and a required field
+had every tick reporting `link_url: ""`.
+
 Interactions that are not links report through `track()` directly, each from the
 one place that knows the truth: theme from `ThemeProvider`'s sync effect (which
 alone knows the value that won, and whether an origin means pointer or

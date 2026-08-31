@@ -106,7 +106,7 @@ function ClickCapture() {
         const href = declared?.getAttribute("href") ?? undefined;
         switch (kind) {
           case "nav":
-            track({ name: "nav", id, href: href ?? "" });
+            track({ name: "nav", id, href });
             break;
           case "cta":
             track({ name: "cta", id, href });

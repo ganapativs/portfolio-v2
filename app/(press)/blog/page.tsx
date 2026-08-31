@@ -8,9 +8,6 @@ export const metadata = pageMetadata({
   path: "/blog",
   description:
     "Notes on the bones of better software: engineering, libraries, the occasional deep dive. New posts arrive when there is something worth saying.",
-  alternates: {
-    types: { "application/rss+xml": [{ url: "/rss.xml", title: "meetguns blog" }] },
-  },
 });
 
 // Explicit UTC: the dates are date-only strings, which parse as UTC midnight.

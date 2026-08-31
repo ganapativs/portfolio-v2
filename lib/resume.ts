@@ -68,7 +68,13 @@ export const CAREER_YEARS = 13;
  *   page, drop `fork: true`, sum `stargazers_count`)
  *   registry.npmjs.org/-/v1/search?text=maintainer:ganapativs
  */
-export const PUBLIC_WORK = { repos: 38, stars: 2649, npm: 16 } as const;
+export const PUBLIC_WORK = {
+  repos: 38,
+  /** Everything on the account, forks of record included. */
+  reposIncludingForks: 194,
+  stars: 2649,
+  npm: 16,
+} as const;
 
 /** "2,600+" — rounded down to the hundred, so it is true for a while. */
 export const STARS_ROUNDED = `${(Math.floor(PUBLIC_WORK.stars / 100) * 100).toLocaleString("en-US")}+`;
@@ -382,4 +388,13 @@ export const speaking: Talk[] = [
   },
 ];
 
-export const lastUpdatedISO = new Date().toISOString().slice(0, 10);
+/**
+ * When the CV last actually changed. Typed, not computed.
+ *
+ * This was `new Date()`, evaluated at module load, so /resume printed the
+ * build date and every deploy claimed the CV had been revised. app/sitemap.ts
+ * already refuses to do that for `lastmod` on the grounds that a date moving
+ * on every deploy teaches crawlers to ignore it; the same argument applies to
+ * a line a reader can see. Edit this when the content changes.
+ */
+export const lastUpdatedISO = "2026-08-31";

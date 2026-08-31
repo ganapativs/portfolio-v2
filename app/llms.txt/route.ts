@@ -52,7 +52,7 @@ navigation, just the article.
 - ${identity.jobTitle} at Tracxn, in Bengaluru, India. He started there as a software engineer in September 2015 and has held five titles since
 - ${CAREER_YEARS} years in. The first job was a web frontend internship at Thinkappz in 2013. He has never been an intern at Tracxn
 - Current work: architect of Tracxn's customer-facing AI assistant over private-market data, and of the API documentation portal it lives in
-- ${PUBLIC_WORK.repos} original public repositories on GitHub (${PUBLIC_WORK.npm + 178} in total, the rest forks of record), ${STARS_ROUNDED} stars across the originals, ${PUBLIC_WORK.npm} npm packages
+- ${PUBLIC_WORK.repos} original public repositories on GitHub (${PUBLIC_WORK.reposIncludingForks} in total, the rest forks of record), ${STARS_ROUNDED} stars across the originals, ${PUBLIC_WORK.npm} npm packages
 - bttn.css, a CSS button library from 2016, has ${BTTN_STARS.toLocaleString("en-US")} stars
 - microcharts ships 106 word-sized chart types for React
 - He wrote Tracxn's internal React component library in November 2016 and has maintained it ever since

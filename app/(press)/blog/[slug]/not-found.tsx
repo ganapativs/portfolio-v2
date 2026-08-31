@@ -14,10 +14,10 @@ export default function PostNotFound() {
         The index has everything that is actually published.
       </p>
       <div className="doc-links">
-        <Link href="/blog" data-analytics="nav:404.writing">
+        <Link href="/blog" data-analytics="nav:post404.writing">
           all writing
         </Link>
-        <Link href="/" data-analytics="nav:404.home">
+        <Link href="/" data-analytics="nav:post404.home">
           home
         </Link>
       </div>

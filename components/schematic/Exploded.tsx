@@ -170,7 +170,12 @@ export function Exploded({ fig, body }: { fig: string; body: string }) {
           per load, and a reader who scrolled past it in a hidden tab never saw
           it; this is the same pass, on request, and it is where a reader would
           look to find out what they were looking at. */}
-      <button type="button" className="p-fig p-fig-replay" onClick={replay}>
+      <button
+        type="button"
+        className="p-fig p-fig-replay"
+        data-analytics="cta:figure.replay.assistant"
+        onClick={replay}
+      >
         {fig}
         <span className="sr-only"> — replay the drawing</span>
       </button>

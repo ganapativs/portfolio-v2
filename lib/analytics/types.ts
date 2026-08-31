@@ -11,7 +11,12 @@ import type { InkId } from "@/lib/ink";
  */
 export type AnalyticsEvent =
   /** In-site navigation the reader chose: dock, footer, teaser, index entry. */
-  | { name: "nav"; id: string; href: string }
+  /**
+   * `href` is optional because not every navigation is an anchor. The measuring
+   * edge's section ticks are buttons that scroll, so they have no href to read,
+   * and a required field meant every tick reported `link_url: ""`.
+   */
+  | { name: "nav"; id: string; href?: string }
   /** A content link that matters enough to be named — a project, a repo, a CV. */
   | { name: "cta"; id: string; href?: string }
   /** Any link that leaves the origin. Captured automatically. */

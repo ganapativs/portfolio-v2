@@ -96,7 +96,12 @@ export function EssayShell({ post, children }: { post: Post; children: React.Rea
           </h2>
           <div className="entries">
             {related.map((p, i) => (
-              <Link key={p.slug} className="entry" href={`/blog/${p.slug}`}>
+              <Link
+                key={p.slug}
+                className="entry"
+                href={`/blog/${p.slug}`}
+                data-analytics={`nav:essay.readnext.${p.slug}`}
+              >
                 <span className="entry-no">{String(i + 1).padStart(3, "0")}</span>
                 <span className="entry-main">
                   <h3 className="entry-title">{p.title}</h3>

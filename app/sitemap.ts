@@ -33,8 +33,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/blog": newestPost > SURFACE_UPDATED[""] ? newestPost : SURFACE_UPDATED[""],
   };
   const surfaces = Object.entries(surfaceDates).map(([path, date]) => ({
-    // Root serves at "/", so emit the trailing slash there to match.
-    url: path === "" ? `${SITE_URL}/` : `${SITE_URL}${path}`,
+    // No trailing slash on root. Every other surface that names the home page
+    // names it without one: the canonical, og:url, Person.url, WebSite.url and
+    // ProfilePage's @id are all `https://meetguns.com`. The sitemap was the
+    // only place emitting `https://meetguns.com/`, which is a second URL for
+    // the same page as far as a crawler is concerned.
+    url: `${SITE_URL}${path}`,
     lastModified: new Date(date),
     changeFrequency: (path === "/blog" ? "weekly" : "monthly") as "weekly" | "monthly",
     priority: PRIORITY[path] ?? 0.5,

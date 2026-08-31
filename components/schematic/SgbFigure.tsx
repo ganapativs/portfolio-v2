@@ -91,7 +91,12 @@ export function SgbFigure({ fig, body }: { fig: string; body: string }) {
 
   return (
     <>
-      <button type="button" className="p-fig p-fig-replay" onClick={replay}>
+      <button
+        type="button"
+        className="p-fig p-fig-replay"
+        data-analytics="cta:figure.replay.sgb"
+        onClick={replay}
+      >
         {fig}
         <span className="sr-only"> — replay the drawing</span>
       </button>
