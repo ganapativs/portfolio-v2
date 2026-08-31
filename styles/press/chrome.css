@@ -301,7 +301,10 @@
      sheet; the control surface that caused it should stay legible while it
      happens, so you can see the control you just pressed. */
   z-index: 70;
-  padding: 22px 0 0;
+  /* 24, measured: the frame line to the controls' top must equal the
+     controls' bottom to the title rule's hairline (16px margin + 9px into the
+     rule's box = 25). At 22 the strip sat 2px high and it showed. */
+  padding: 24px 0 0;
   /* Locked to the natural height measured in Header.tsx, so condensing the
      strip inside never moves a pixel of the page below it. */
   min-height: var(--hd-h, auto);
@@ -332,9 +335,16 @@
   padding-inline: var(--gutter);
   padding-block: 0;
   /* One duration and one curve for every part of the condense, so nothing in
-     the strip arrives before anything else. */
-  backdrop-filter: blur(var(--hd-blur)) saturate(var(--hd-sat));
+     the strip arrives before anything else.
+
+     ⚠️ The -webkit- line comes FIRST on purpose. The CSS minifier treats it as
+     an alias of the unprefixed property and keeps only the last declaration of
+     the pair — written the other way round, the build shipped -webkit- alone
+     and the strip lost its blur in every browser reading the standard name.
+     Verify in out/, not in this file: the built .hd-strip rule must carry
+     `backdrop-filter:blur(var(--hd-blur))` unprefixed. */
   -webkit-backdrop-filter: blur(var(--hd-blur)) saturate(var(--hd-sat));
+  backdrop-filter: blur(var(--hd-blur)) saturate(var(--hd-sat));
   transition:
     padding-block var(--dur-base) var(--ease-out),
     background var(--dur-base) var(--ease-out),
@@ -385,6 +395,16 @@
    is right at the head of the sheet and wrong in a running strip: content
    scrolled past uncovered in the gap above it. The box keeps its locked height
    either way, so nothing below notices. */
+/* A route change resets the scroll, and the un-stick that follows must be a
+   snap: the reader didn't scroll, so nothing should play the condense in
+   reverse for them. Header.tsx stamps this for ~two frames around a
+   navigation while it syncs the stuck state from the sentinel's real
+   position. The `*` covers the strip, the rule, the title and the brand —
+   every element the condense animates. */
+.hd[data-instant],
+.hd[data-instant] * {
+  transition: none !important;
+}
 .hd[data-stuck="true"] {
   padding-top: 0;
   /* Declared once and read twice: by the strip, and by the compass dial that
@@ -460,12 +480,6 @@
   align-items: center;
   gap: 14px;
   flex-wrap: wrap;
-}
-.hd-id {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
 }
 .hd-mark {
   display: block;
@@ -669,6 +683,10 @@
   display: flex;
   align-items: center;
   gap: var(--hd-rule-gap);
+  /* 16 balances the strip by the measure the eye actually takes: frame line
+     to the controls' top vs the controls' bottom to the hairline (which sits
+     9px into this rule's own 18px box). At 20 the strip read bottom-heavy and
+     it was called out. Unstuck only — the stuck strip overrides this to 0. */
   margin-top: 16px;
   min-width: 0;
   transition:
@@ -707,7 +725,10 @@
   font-family: var(--f-mono);
   font-size: 10px;
   letter-spacing: 0.14em;
-  color: var(--ink-3);
+  /* --ink-2, not --ink-3: at 10px this is the drawing's own title, and the
+     annotation grey measured 3.77:1 on paper — an AA failure on the one line
+     that names the sheet. */
+  color: var(--ink-2);
   white-space: nowrap;
   text-transform: uppercase;
   min-width: 0;
@@ -859,6 +880,12 @@
   text-align: left;
   cursor: pointer;
   transition: color var(--dur-fast) var(--ease-out);
+  /* 24px to the pointer (WCAG 2.5.8) while printing at the same 16px the
+     plain plate numbers do — the same pay-for-the-padding move as the ruler's
+     section ticks. */
+  padding-block: 4px;
+  /* 6px, not 10 − the .p-fig gap net of the 4px of padding above. */
+  margin-block: -4px 6px;
 }
 .p-fig-replay:hover,
 .p-fig-replay:focus-visible {

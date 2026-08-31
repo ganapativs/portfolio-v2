@@ -55,7 +55,7 @@ export function EssayShell({ post, children }: { post: Post; children: React.Rea
           share
         </a>
         <span aria-hidden="true">·</span>
-        {/* The markdown mirror of this page — see app/api/blog-md. */}
+        {/* The markdown mirror of this page — see scripts/gen-md.ts. */}
         <a href={`/blog/${post.slug}.md`} data-analytics="feed:markdown">
           .md
         </a>

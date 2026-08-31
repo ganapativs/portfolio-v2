@@ -64,6 +64,7 @@ export const posts: Post[] = [
     accent: "bottle",
     draft: false,
     cover: "cover.webp",
+    coverAspect: "2 / 1",
   },
   {
     slug: "introducing-react-spectrum",
@@ -75,6 +76,7 @@ export const posts: Post[] = [
     accent: "oxblood",
     draft: false,
     cover: "cover.png",
+    coverAspect: "2 / 1",
   },
   {
     slug: "babel-plugins-loose-mode-caveats",
@@ -86,7 +88,8 @@ export const posts: Post[] = [
     read: "2 min",
     accent: "amber",
     draft: false,
-    cover: "cover.jpg",
+    cover: "cover.webp",
+    coverAspect: "3 / 2",
   },
 ];
 // Newest first — sitemap, RSS and the blog index all treat published[0] as

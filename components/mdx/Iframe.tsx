@@ -25,7 +25,7 @@ export function Iframe({
         title={title ?? fallbackTitle(src)}
         loading="lazy"
         sandbox="allow-scripts allow-popups allow-forms"
-        style={{ width: "100%", height: "100%", border: 0, borderRadius: "var(--r-md)" }}
+        style={{ width: "100%", height: "100%", border: 0 }}
       />
     </div>
   );

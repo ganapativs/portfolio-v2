@@ -47,6 +47,66 @@
   initial-value: #2b6083;
 }
 
+/* The surfaces are registered for the same reason the accent is. A theme flip
+   used to swap all nine grounds in one frame at the band's midpoint while an
+   ink pick tweened, and the two read as different mechanisms: the pick was a
+   material change, the flip was a hard cut that felt abrupt and cluttered.
+   Registered and given the same 340ms as --accent, the whole palette now
+   travels together under the band — one tempo for every repigmentation. The
+   initial values are the light ramp, same policy as --accent above. */
+@property --paper {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #f5f3ec;
+}
+@property --raise {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #faf8f1;
+}
+@property --sunk {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #f0ede2;
+}
+@property --ink {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #1d1e1a;
+}
+@property --ink-2 {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #42433c;
+}
+@property --ink-3 {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #68695f;
+}
+@property --rule-3 {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #e6e1d2;
+}
+@property --rule {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #cfc9b6;
+}
+@property --rule-2 {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #98937f;
+}
+/* The dot grid rides the ground it is printed on, or the dots snap while the
+   paper underneath them fades. */
+@property --dither-dot {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: rgb(29 30 26 / 0.055);
+}
+
 /* 2 — SURFACES ---------------------------------------------------------------
    Light is drawing paper: a warm off-white with the yellow of aged tracing
    stock, ruled in a dusty ochre-grey. Dark is graphite — a cool near-black with
@@ -179,30 +239,31 @@
   --accent-soft: color-mix(in oklab, var(--accent) 10%, transparent);
   --accent-line: color-mix(in oklab, var(--accent) 45%, transparent);
 
-  /* The coordinated ink tween. One transition on the token itself, so every
-     consumer moves together. A pointer pick has the glimm band over the top of
-     it, so the tween is what the reader sees underneath the band rather than
-     something competing with it. See components/providers/SweepProvider.tsx. */
-  transition: --accent var(--dur-ink) var(--ease-out);
-}
+  /* The coordinated palette tween. One transition on the tokens themselves,
+     so every consumer moves together. A palette change has the glimm band
+     over the top of it, so the tween is what the reader sees underneath the
+     band rather than something competing with it. See SweepProvider.tsx.
 
-/* ...except when the paper changes under it.
-
-   The ground swaps in one frame at the band's midpoint; the ink took 340ms to
-   follow. Everywhere under the band that lag is invisible, but the header sits
-   above it (z-index 70 over 60, so the control that caused the flip stays
-   legible), and the bar under the G is painted in --accent. Flipping to
-   graphite therefore left the light-ground ink — oxblood at oklch(.46 …), 1.9:1
-   on #131417 — sitting on the dark ground for the whole tween, and the bar read
-   as gone. Going the other way it was a washed-out light-ground value on paper.
-
-   A theme flip is not an interpolation between two inks, it is the same ink
-   repigmented for a different ground, and the band is what carries it. So the
-   token snaps with everything else. ThemeProvider stamps data-repapering for
-   the one frame it takes to commit the swap, and the tween is back for the
-   next ink pick. */
-:root[data-repapering] {
-  transition: none;
+     The grounds share the accent's duration, and that is the whole point:
+     there used to be a data-repapering attribute whose job was to make the
+     accent SNAP on a theme flip, because the grounds snapped and an accent
+     tweening over an already-swapped ground printed the wrong ink on the
+     header for 340ms (the header paints above the band). With every token on
+     one clock, nothing can lag anything — the ink is repigmented as the paper
+     it sits on turns, which is what a re-inking looks like. Do not give any
+     of these its own duration. */
+  transition:
+    --accent var(--dur-ink) var(--ease-out),
+    --paper var(--dur-ink) var(--ease-out),
+    --raise var(--dur-ink) var(--ease-out),
+    --sunk var(--dur-ink) var(--ease-out),
+    --ink var(--dur-ink) var(--ease-out),
+    --ink-2 var(--dur-ink) var(--ease-out),
+    --ink-3 var(--dur-ink) var(--ease-out),
+    --rule-3 var(--dur-ink) var(--ease-out),
+    --rule var(--dur-ink) var(--ease-out),
+    --rule-2 var(--dur-ink) var(--ease-out),
+    --dither-dot var(--dur-ink) var(--ease-out);
 }
 
 /* 4 — TYPE, SPACE, MOTION --------------------------------------------------- */
@@ -239,9 +300,13 @@
   --r-chip: 2px;
   --r-point: 50%;
 
-  /* Motion */
+  /* Motion. One easing: everything here settles on the out-curve (houseEase
+     in useReducedMotion.ts is the same curve solved in JS). --ease-in-out was
+     declared beside it and referenced zero times — deleted rather than left
+     as a curve the site could be mistaken for using, the same policy as the
+     unused type scale. The one in-out motion (the pipeline's auto pass) owns
+     its curve in JS. */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
-  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   --dur-fast: 140ms;
   --dur-base: 260ms;
   --dur-ink: 340ms;
@@ -304,7 +369,6 @@
   --fw-medium: 500;
   --fw-semibold: 600;
   --lh-tight: 1.2;
-  --ring: 0 0 0 3px color-mix(in oklab, var(--accent) 35%, transparent);
   --t-micro: 10.5px;
   --t-overline: 10.5px;
   --t-caption: 12px;

@@ -20,7 +20,7 @@ import { ROLE_COPY, SUMMARY } from "./copy";
 export const metadata = pageMetadata({
   title: "Résumé",
   path: "/resume",
-  description: `Résumé of Ganapati V S. VP, Technology at Tracxn. ${CAREER_YEARS} years, four promotions. The AI assistant and docs portal, microcharts, and open source going back to 2013.`,
+  description: `Résumé of ${identity.name}. ${identity.jobTitle} at ${identity.worksFor.name}. ${CAREER_YEARS} years, four promotions. The AI assistant and docs portal, microcharts, and open source going back to 2013.`,
   ogType: "profile",
 });
 
@@ -43,7 +43,7 @@ export default async function ResumePage() {
 
       <section className="cv" id="resume" data-sec="résumé">
         <div className="cv-topline">
-          <span className="cv-stamp">Résumé · one or two sheets on print</span>
+          <span className="cv-stamp">Résumé · one or two sheets in print</span>
           <PrintCV />
         </div>
 

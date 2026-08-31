@@ -10,7 +10,7 @@ import {
 } from "react";
 import { useGlimm } from "glimm/react";
 import { sweepApply, type Band } from "@/lib/sweep";
-import { INKS, INK_HEX, INK_HEX_DARK, isInkId, DEFAULT_INK } from "@/lib/ink";
+import { INKS, INK_HEX_DARK, isInkId, DEFAULT_INK, SURFACE_HEX } from "@/lib/ink";
 import { track } from "@/lib/analytics";
 
 type Theme = "light" | "dark";
@@ -33,22 +33,25 @@ function readInitialTheme(): Theme {
 
 /**
  * What the band is painted with on a theme flip: the whole tray, passing over
- * the sheet, starting on the active ink as it is now and landing on the same
- * ink as it will be on the new ground.
+ * the sheet, led and closed by the active ink.
  *
  * An ink pick sweeps two colours because two colours is the whole event. A
  * paper change is not about one ink: every one of the six is about to be
- * repigmented for a different ground, and a band carrying all six says that.
- * The four in the middle are the other inks at their new values, in tray
- * order, so the pass is the same rising run the picker plays.
+ * repigmented for a different ground, and a band carrying all six says that —
+ * the same rising run the picker plays, in tray order.
  */
-function themeBand(next: "light" | "dark"): Band {
+function themeBand(): Band {
   const id = typeof document === "undefined" ? DEFAULT_INK : document.documentElement.dataset.ink;
   const key = isInkId(id) ? id : DEFAULT_INK;
-  const from = next === "dark" ? INK_HEX[key] : INK_HEX_DARK[key];
-  const to = next === "dark" ? INK_HEX_DARK[key] : INK_HEX[key];
-  const others = INKS.filter((i) => i.id !== key).map((i) => (next === "dark" ? i.darkHex : i.hex));
-  return { kind: "chain", hexes: [from, ...others, to] };
+  // Always the lit (dark-ground) values, whichever way the flip goes. The
+  // band is a translucent veil of light passing over the sheet, and light is
+  // lit: sweeping the light-ground pigments — which are dark — laid a muddy
+  // brown film over the paper (measured in a pinned-frame harness, not a
+  // guess). The active ink leads and closes the run, the other five cross in
+  // tray order between.
+  const active = INK_HEX_DARK[key];
+  const others = INKS.filter((i) => i.id !== key).map((i) => i.darkHex);
+  return { kind: "chain", hexes: [active, ...others, active] };
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
@@ -84,29 +87,22 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     pendingOrigin.current = null;
     const apply = () => {
       const root = document.documentElement;
-      // The ink snaps with the ground rather than tweening to catch up with it.
-      // See :root[data-repapering] in tokens.css for why — the header paints
-      // above the band, so a 340ms lag on --accent is visible there and only
-      // there. The getComputedStyle below flushes style while the flag is on,
-      // which is what commits the swap without a transition.
-      root.dataset.repapering = "";
+      // No data-repapering flag any more: the surface tokens are registered
+      // and tween on the same 340ms clock as --accent (see tokens.css), so the
+      // ink is repigmented as the ground turns and nothing can lag anything.
+      // The flag existed to force a snap when the grounds could not tween.
       root.dataset.theme = theme;
       root.style.colorScheme = theme;
-      // Mirror the ground from the token rather than duplicating its value: the
-      // canvas is painted from <html>, and the no-flash script wrote a literal
-      // there that this replaces.
-      root.style.backgroundColor = getComputedStyle(root).getPropertyValue("--paper").trim();
-      // A timer, not rAF: a hidden tab freezes rAF and the flag would stick,
-      // taking the tween off the next ink pick with it.
-      setTimeout(() => {
-        delete root.dataset.repapering;
-      }, 0);
+      // The literal from the hex mirror, not a getComputedStyle read: the
+      // token is mid-tween at this moment and would hand back the ground
+      // being left. The mirror is the sanctioned flat copy (sync mandate in
+      // AGENTS.md), and it is what the no-flash script writes too.
+      root.style.backgroundColor = SURFACE_HEX[theme].paper;
     };
     sweepApply(sweep, apply, {
-      // The band is the whole tray crossing the sheet, from the active ink on
-      // the ground it is leaving to the same ink on the ground it is arriving
-      // at. See themeBand above.
-      band: themeBand(theme),
+      // The band is the whole tray crossing the sheet, led and closed by the
+      // active ink. See themeBand above.
+      band: themeBand(),
       // Left to right on a pointer press, top to bottom from the keyboard. The
       // keyboard has no position on the page, and a different axis is a more
       // honest way to say so than a wipe pretending to start somewhere.

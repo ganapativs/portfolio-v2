@@ -11,33 +11,23 @@ import type { SweepFn, SweepHandle } from "glimm/react";
 export type Band = { kind: "pair"; hexes: [string, string] } | { kind: "chain"; hexes: string[] };
 
 /**
- * glimm's root module: the oklch maths behind both palette builders, and the
- * mesh shader the band is drawn with. 13.2 kB gzip, and it used to sit in the
- * root layout chunk on every route because three providers imported from it at
- * the top level -- so a reader who only ever read a blog post still paid for
- * the machinery that repigments the sheet.
+ * glimm's root module: the oklch maths behind both palette builders. It used
+ * to sit in the root layout chunk on every route because providers imported
+ * from it at the top level -- so a reader who only ever read a blog post
+ * still paid for the machinery that repigments the sheet.
  *
  * `glimm/react` carries its own copy of the colour helpers but does not export
- * them, so moving one import and not the others buys nothing: the module comes
- * back for whichever is left. All three go through here instead, and the fetch
- * happens on the first palette change.
+ * them, so a top-level import anywhere brings the module back. Everything goes
+ * through here instead, and the fetch happens on the first palette change.
+ * (The band itself is the library's default flat shader now — the mesh
+ * factory that once needed this module synchronously is gone; see
+ * SweepProvider.tsx.)
  */
-let glimm: typeof import("glimm") | null = null;
 let loading: Promise<typeof import("glimm")> | null = null;
 
 function loadGlimm() {
-  loading ??= import("glimm").then((m) => (glimm = m));
+  loading ??= import("glimm");
   return loading;
-}
-
-/**
- * The module if it is already here, for `SweepProvider`'s shaderFactory, which
- * glimm calls synchronously. It cannot be null in practice: the factory runs
- * from inside `sweep()`, and `sweepApply` below is the only caller of that,
- * after the load has resolved.
- */
-export function glimmNow() {
-  return glimm;
 }
 
 /**

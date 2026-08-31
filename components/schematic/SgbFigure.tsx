@@ -98,7 +98,7 @@ export function SgbFigure({ fig, body }: { fig: string; body: string }) {
         onClick={replay}
       >
         {fig}
-        <span className="sr-only"> — replay the drawing</span>
+        <span className="sr-only">: replay the drawing</span>
       </button>
       <svg
         ref={svgRef}

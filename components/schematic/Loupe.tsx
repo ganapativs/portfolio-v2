@@ -339,6 +339,11 @@ export function Loupe() {
           setDragFlag(false);
         }}
         onKeyDown={(e) => {
+          // A held arrow is a drag by another name: key-repeat arrives faster
+          // than the detail box's swap fade, so without the drag flag the box
+          // sat blank for the whole hold. A single press keeps its fade — the
+          // flag goes up only on repeat and comes down on release.
+          if (e.repeat) setDragFlag(true);
           if (e.key === "ArrowRight" || e.key === "ArrowDown") goTo(cur + 1);
           else if (e.key === "ArrowLeft" || e.key === "ArrowUp") goTo(cur - 1);
           else if (e.key === "Home") goTo(0);
@@ -346,6 +351,7 @@ export function Loupe() {
           else return;
           e.preventDefault();
         }}
+        onKeyUp={() => setDragFlag(false)}
       />
 
       <div className="lp-detail" ref={detailRef}>

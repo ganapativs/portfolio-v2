@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { useFX } from "@/components/providers/FXProvider";
 import { useCoarsePointer } from "./useCoarsePointer";
 import { useDrawOnFirstView } from "./useDrawOnFirstView";
 
@@ -156,19 +155,21 @@ export function Exploded({ fig, body }: { fig: string; body: string }) {
   // double render.
   const [{ on, dir }, setSel] = useState({ on: -1, dir: 1 });
   const coarse = useCoarsePointer();
-  const fx = useFX();
   const clearTid = useRef(0);
   const { ref: svgRef, replay } = useDrawOnFirstView<SVGSVGElement>();
 
   useEffect(() => () => window.clearTimeout(clearTid.current), []);
 
+  // No tick here: the labels are buttons and the slabs are in PageFX's
+  // delegated selector, so both get the generic hover cue — with the moved +
+  // scroll-settle gating this handler lacked, which had the stack ticking once
+  // per slab crossed on a scroll past a resting cursor.
   const enter = (i: number) => {
     window.clearTimeout(clearTid.current);
     if (i === on) return;
     // Down the stack, the note rises into place from below; up the stack it
     // drops in from above. The text travels the way the eye just did.
     setSel({ on: i, dir: i > on ? 1 : -1 });
-    fx?.tick();
   };
   // A short grace period, because moving from a slab to its own label leaves
   // both for a frame and the note would otherwise blink.
@@ -192,7 +193,7 @@ export function Exploded({ fig, body }: { fig: string; body: string }) {
         onClick={replay}
       >
         {fig}
-        <span className="sr-only"> — replay the drawing</span>
+        <span className="sr-only">: replay the drawing</span>
       </button>
       <div className="xp">
         <svg ref={svgRef} className="willdraw" viewBox={`0 0 ${W} ${H}`} aria-hidden="true">

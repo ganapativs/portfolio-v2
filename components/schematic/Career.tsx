@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { useFX } from "@/components/providers/FXProvider";
 import { ERAS, MATERIALS } from "@/app/(press)/content";
 import { Caption } from "./Caption";
 
@@ -24,7 +23,6 @@ const pct = (y: number) => 1.5 + ((y - Y0) / YSPAN) * 97;
 export function Career() {
   const [on, setOn] = useState(ERAS.length - 1);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const fx = useFX();
 
   // The axis is 720px wide and the panel is narrower than that on a phone, so
   // it opens scrolled to the left: a reader on a small screen saw a career that
@@ -35,16 +33,33 @@ export function Career() {
     if (!el) return;
     el.scrollLeft = el.scrollWidth - el.clientWidth;
   }, []);
+  // No tick here: the roles are real buttons, so PageFX's delegated hover cue
+  // already covers them — with the moved + scroll-settle gating this handler
+  // lacked, which had the timeline ticking once per role on a scroll past a
+  // resting cursor.
   const set = (i: number) => {
     if (i === on) return;
     setOn(i);
-    fx?.tick();
   };
   const cur = ERAS[on];
 
   return (
     <>
-      <div className="tl-scroll" ref={scrollRef}>
+      {/* Focusable (WCAG 2.1.1): on a phone this is a real horizontal
+          scrollport and Chrome does not make overflow containers focusable on
+          its own, so half the career was unreachable by keyboard. On desktop
+          nothing overflows and the tab stop is a harmless extra. */}
+      <div
+        className="tl-scroll"
+        ref={scrollRef}
+        // A scrollable region must be keyboard-focusable (axe
+        // scrollable-region-focusable; WCAG 2.1.1) — the sanctioned exception
+        // to the no-noninteractive-tabindex rule.
+        // oxlint-disable-next-line no-noninteractive-tabindex
+        tabIndex={0}
+        role="group"
+        aria-label="Career timeline, 2013 to now, scrollable"
+      >
         <div className="tl">
           <div className="tl-axis" />
           {Array.from({ length: 14 }, (_, i) => Y0 + i).map((y) => (

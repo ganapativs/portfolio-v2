@@ -30,21 +30,22 @@
   transition:
     color var(--dur-fast) var(--ease-out),
     border-color var(--dur-fast) var(--ease-out),
-    background var(--dur-fast) var(--ease-out);
+    background var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
 }
 .mcx-chip:hover {
   color: var(--fg-1);
   border-color: var(--accent);
 }
+/* The one press token, eased like every sibling control — this was a bare
+   0.96 with no transform in the transition list, the only press on the site
+   that snapped down and back. */
 .mcx-chip:active {
-  transform: scale(0.96);
+  transform: scale(var(--press));
 }
-.mcx-chip:focus-visible,
-.mcx-ops-svc:focus-visible,
-.codeblock-copy:focus-visible {
-  outline: none;
-  box-shadow: var(--ring);
-}
+/* No focus override here any more: these three used to swap the sheet's 2px
+   dashed outline for a soft --ring shadow, which gave a keyboard user two
+   different focus answers on one page. The global rule in base.css applies. */
 .mcx-chip[data-active] {
   color: var(--fg-1);
   background: var(--accent-soft);
@@ -135,6 +136,11 @@
   text-decoration: none;
   background: var(--accent-soft);
   border-color: color-mix(in oklab, var(--accent) 35%, var(--border-1));
+}
+/* --ink-2, not the annotation grey: at 10.5px on the accent wash the label
+   measured 4.28:1 on paper — the one AA miss on the site. */
+.mcx-tile--more .mcx-tile-label {
+  color: var(--ink-2);
 }
 .mcx-tile-more-figure {
   font-family: var(--font-display);

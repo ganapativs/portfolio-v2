@@ -13,7 +13,9 @@
   grid-template-columns: 1.1fr 0.9fr;
   gap: 48px;
   align-items: center;
-  padding: 44px 0 40px;
+  /* 36 down from 44: with the header's own rule 20px under the brand row, a
+     44px void before the H1 made the head of the sheet read bottom-heavy. */
+  padding: 36px 0 40px;
 }
 /* The one piece of display type on the sheet. The scale runs to 58px and the
    home page used to stop at 22, which made the drawing beautiful and mute. */
@@ -760,6 +762,13 @@
 .lp-stage[data-dragging="true"] .lp-line {
   transition: none;
 }
+/* The detail box is tied to the hand too. Its swap animation exists to lag
+   the lens's eased travel — during a drag the lens has no eased travel, so
+   the 117ms opacity hold was pure flicker as each word crossed, and under
+   key-repeat the box never reached full opacity at all. */
+.lp-stage[data-dragging="true"] .lp-detail > * {
+  animation: none;
+}
 .lp-lines {
   position: absolute;
   inset: 0;
@@ -1022,7 +1031,7 @@
    live with: the accent outline the rest of the sheet uses, on the group's own
    box rather than on the strokes inside it. */
 .sgb-hit:focus-visible {
-  outline: 1px dashed var(--accent);
+  outline: 2px dashed var(--accent);
   outline-offset: 3px;
 }
 .sgb-hit {

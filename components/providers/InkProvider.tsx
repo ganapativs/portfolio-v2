@@ -8,15 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
-import {
-  DEFAULT_INK,
-  INK_HEX,
-  INK_HEX_DARK,
-  INKS,
-  STORAGE_KEYS,
-  isInkId,
-  type InkId,
-} from "@/lib/ink";
+import { DEFAULT_INK, INK_HEX_DARK, INKS, STORAGE_KEYS, isInkId, type InkId } from "@/lib/ink";
 import { useFX } from "@/components/providers/FXProvider";
 import { useGlimm } from "glimm/react";
 import { sweepApply } from "@/lib/sweep";
@@ -88,10 +80,11 @@ export function InkProvider({ children }: { children: React.ReactNode }) {
     };
     if (from === ink) write();
     else {
-      const dark = document.documentElement.dataset.theme === "dark";
-      const hex = dark ? INK_HEX_DARK : INK_HEX;
+      // Always the lit (dark-ground) values, on either paper: the band is a
+      // veil of light, and the light-ground pigments are too dark to be one —
+      // they filmed the paper brown. Same rule as themeBand in ThemeProvider.
       sweepApply(sweep, write, {
-        band: { kind: "pair", hexes: [hex[from], hex[ink]] },
+        band: { kind: "pair", hexes: [INK_HEX_DARK[from], INK_HEX_DARK[ink]] },
         direction: origin ? "ltr" : "ttb",
       });
     }

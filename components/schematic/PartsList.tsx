@@ -1,5 +1,5 @@
 "use client";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { PARTS } from "@/app/(press)/content";
 
 /**
@@ -16,6 +16,28 @@ import { PARTS } from "@/app/(press)/content";
 export function PartsList() {
   const listRef = useRef<HTMLDivElement>(null);
   const barRef = useRef<HTMLSpanElement>(null);
+  // The same hover-vs-scroll gate PageFX runs for the sound layer, because
+  // this bar had the same bug its comments describe: scroll the list past a
+  // resting cursor and `pointerover` fires per row, so the rule ran itself
+  // down the list with nobody's hand on it — the one travelling element a
+  // scroll could start. A hover is a hover only if the hand moved, within a
+  // beat of the scroll settling.
+  const last = useRef({ x: -1, y: -1, scroll: 0 });
+  useEffect(() => {
+    const onMove = (e: PointerEvent) => {
+      last.current.x = e.clientX;
+      last.current.y = e.clientY;
+    };
+    const onScroll = () => {
+      last.current.scroll = performance.now();
+    };
+    document.addEventListener("pointermove", onMove, { passive: true });
+    window.addEventListener("scroll", onScroll, { passive: true, capture: true });
+    return () => {
+      document.removeEventListener("pointermove", onMove);
+      window.removeEventListener("scroll", onScroll, { capture: true });
+    };
+  }, []);
 
   return (
     <div
@@ -25,6 +47,13 @@ export function PartsList() {
         const row = (e.target as HTMLElement).closest?.<HTMLElement>(".prow");
         const bar = barRef.current;
         if (!row || !bar) return;
+        if (e.pointerType === "mouse") {
+          const moved = e.clientX !== last.current.x || e.clientY !== last.current.y;
+          last.current.x = e.clientX;
+          last.current.y = e.clientY;
+          if (!moved) return;
+          if (performance.now() - last.current.scroll < 140) return;
+        }
         bar.style.height = `${row.offsetHeight}px`;
         bar.style.transform = `translateY(${row.offsetTop}px)`;
         bar.style.opacity = "1";

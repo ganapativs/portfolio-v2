@@ -40,7 +40,9 @@ export const personSchema = {
     addressCountry: "IN",
   },
   sameAs: identity.social.filter((s) => s.kind !== "mail").map((s) => s.href),
-  email: `mailto:${identity.email}`,
+  // Plain text, like the URLs in sameAs — schema.org Person.email is Text,
+  // and the mailto: prefix was the odd one out that Google had to strip.
+  email: identity.email,
   nationality: { "@type": "Country", name: "India" },
   // The degree, from lib/resume.ts rather than restated — an alumniOf that
   // disagrees with the résumé page is worse than none.
@@ -159,7 +161,7 @@ export function blogPostingSchema(post: Post) {
  * The open-source catalogue, as an ordered list of code repositories.
  *
  * This is the one part of the site that an answer engine has no way to
- * reconstruct from prose: "55 public repos" is a number in a sentence, whereas
+ * reconstruct from prose: "38 original public repos" is a number in a sentence, whereas
  * this names the ones that matter, their repositories and their authorship in
  * a form that can be cited. Rendered on the home page, beside the parts list
  * that names them in words.
@@ -185,8 +187,11 @@ export function projectsSchema() {
         codeRepository: f.repo,
         url: f.repo,
         dateCreated: f.year,
-        programmingLanguage: "TypeScript",
-        license: "https://opensource.org/license/mit/",
+        // Per repo, from lib/resume.ts, checked against the GitHub API — a
+        // blanket "TypeScript" here once claimed bttn.css was TypeScript, and
+        // asserted a licence for a repo that carries none.
+        programmingLanguage: f.lang,
+        ...(f.license === "MIT" ? { license: "https://opensource.org/license/mit/" } : {}),
         author: PERSON_REF,
       },
     })),

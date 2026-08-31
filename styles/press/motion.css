@@ -3,7 +3,7 @@
 
    Nothing ships at opacity 0 waiting for a scroll to reveal it. Motion is
    reserved for things the reader caused — a hover, a drag, an ink pick, a route
-   swap — with three sanctioned exceptions, all of them one-shot and all of them
+   swap — with four sanctioned exceptions, all of them one-shot and all of them
    about the drawing drawing itself:
 
      the sheet frame ruling itself in, once, in the first 400ms of the page
@@ -18,11 +18,13 @@
    cancels it, and it abandons itself if the tab is hidden.
 
    And one duration that is not a token at all: the palette sweep. A glimm band
-   crossing the whole sheet is 640ms plus a 300ms fade, which is longer than
+   crossing the whole sheet is 800ms plus a 350ms fade, which is longer than
    anything else here by a factor of three. It is a full-sheet reveal rather than
    a control responding, it happens only when the reader changes the paper or
    the ink, and its timing lives in components/providers/SweepProvider.tsx
-   because it belongs to the library that draws it.
+   because it belongs to the library that draws it. Underneath it, both kinds of
+   palette change ride the one 340ms token tween in tokens.css — ink and paper
+   are the same mechanism at the same tempo.
    ============================================================================ */
 
 @media (prefers-reduced-motion: reduce) {

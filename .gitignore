@@ -50,3 +50,7 @@ next-env.d.ts
 .open-next
 .wrangler
 .dev.vars
+
+# agent worktrees + the kannada subsetter's scratch file
+.claude/worktrees/
+.cache-anek-kannada.woff2

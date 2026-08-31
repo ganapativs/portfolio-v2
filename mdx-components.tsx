@@ -38,6 +38,14 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
         </a>
       );
     },
+    // A wide table scrolls inside its own box (.table-scroll, essay.css); the
+    // page never scrolls sideways. No post carries a table today — this is the
+    // guard for the first one that does.
+    table: ({ children, ...rest }) => (
+      <div className="table-scroll">
+        <table {...rest}>{children}</table>
+      </div>
+    ),
     CanIUse,
     Iframe,
     ...components,

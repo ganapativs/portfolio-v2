@@ -489,7 +489,7 @@
   cursor: grabbing;
 }
 .ui-chart .g-h .hit:focus-visible {
-  outline: 1px dashed var(--accent);
+  outline: 2px dashed var(--accent);
   outline-offset: 2px;
 }
 .pipefig[data-stage="1"] .g-h .hit {

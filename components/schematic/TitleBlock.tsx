@@ -1,11 +1,10 @@
 "use client";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { KeysHint } from "./KeysHint";
 import { Socials } from "./Socials";
 import { useFX } from "@/components/providers/FXProvider";
-import { useShortcut } from "@/components/shortcuts/useShortcut";
 import { identity } from "@/lib/resume";
 
 /** Which sheet of the set this is. The title block of a drawing always says. */
@@ -53,20 +52,13 @@ function tenure(now: Date): string {
  */
 export function TitleBlock() {
   const pathname = usePathname();
-  const router = useRouter();
   const fx = useFX();
   const [clock, setClock] = useState("");
   const [since, setSince] = useState("");
 
-  // `r` lives with the link, so the Shift-hold hint floats over the real
-  // control. It moved down here with it.
-  const resumeRef = useShortcut<HTMLAnchorElement>({
-    id: "nav.resume",
-    keys: ["r"],
-    label: "Résumé",
-    group: "Navigate",
-    run: () => router.push("/resume"),
-  });
+  // No shortcut on this chip: the header carries the résumé link too now
+  // (owner's final call, 2026-09-01) and `r` lives up there, with the control
+  // its Shift-hold hint floats over. The registry refuses duplicate keys.
 
   useEffect(() => {
     // Minutes, not seconds. A ticking second hand in the corner of every page
@@ -139,13 +131,13 @@ export function TitleBlock() {
           </span>
           <span className="tb-contact-r">
             <KeysHint />
-            {/* The other sheet of the set. It was in the header beside
-                "writing", where it out-ranked the work it is a summary of; a
-                title block is where a drawing points at its related sheets. */}
+            {/* The other sheet of the set. The header carries the short way
+                to it too; this stays because a title block is where a drawing
+                points at its related sheets, and a reader at the foot is
+                exactly the reader looking for the next document. */}
             <Link
               href="/resume"
               className="tb-cv"
-              ref={resumeRef}
               aria-current={pathname === "/resume" ? "page" : undefined}
               data-analytics="nav:title-block.resume"
               onClick={() => fx?.nav()}
