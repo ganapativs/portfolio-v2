@@ -393,10 +393,15 @@
     content: " · ";
     color: var(--rule-2);
   }
+  /* 1.32, not 1.36. The bullets are the bulk of the sheet, so their leading is
+     the cheapest lever on total length, and the note above says to adjust the
+     print scale rather than the screen one when the length drifts. Measured at
+     the real A4 content box (178 x 265mm at 96dpi): this is what takes the CV
+     from spilling onto a third page to two with room to spare. */
   .cv-job li {
     margin-top: 1px;
     font-size: 9.5pt;
-    line-height: 1.36;
+    line-height: 1.32;
     max-width: none;
   }
   .cv-list {

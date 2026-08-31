@@ -7,7 +7,7 @@ export const metadata = pageMetadata({
   title: "Writing",
   path: "/blog",
   description:
-    "Notes on the bones of better software: engineering, libraries, the occasional deep dive. New posts arrive when there is something worth saying.",
+    "Engineering notes, mostly about libraries and the parts of the frontend that are harder than they look. New posts arrive when there is something worth saying.",
 });
 
 // Explicit UTC: the dates are date-only strings, which parse as UTC midnight.

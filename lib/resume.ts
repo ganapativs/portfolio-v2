@@ -90,7 +90,7 @@ export const STARS_ROUNDED = `${(Math.floor(PUBLIC_WORK.stars / 100) * 100).toLo
  */
 export const BIO =
   `Full-stack engineer with a design mind, ${CAREER_YEARS} years in, based in Bengaluru. ` +
-  `At Tracxn since 2015 and VP of Technology there now, still writing code most weeks.`;
+  `At Tracxn since 2015, VP of Technology now. I still write a lot of code.`;
 
 export const identity: Identity = {
   name: "Ganapati V S",

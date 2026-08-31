@@ -53,7 +53,7 @@ export const ERAS: readonly Era[] = [
     short: "tech lead",
     length: "4 yrs",
     range: "2016 - 2020 · Technology Lead",
-    body: "I wrote the internal React component library in November 2016. The team has built on it ever since, which makes it the most useful thing I have made and the least visible.",
+    body: "I wrote the internal React component library in November 2016. The team has built on it ever since. Nobody outside the company has seen it.",
   },
   {
     from: 2020,
@@ -61,7 +61,7 @@ export const ERAS: readonly Era[] = [
     short: "assoc. VP",
     length: "2 yrs",
     range: "2020 - 2022 · Associate VP",
-    body: "Multi-team architecture. Translating product asks into engineering work and getting things out of people's way. Most of it does not show up in commits.",
+    body: "Architecture across several teams. Turning product asks into engineering work, and getting out of people's way. Most of it does not show up in commits.",
   },
   {
     from: 2022,
@@ -258,5 +258,5 @@ export const SPECTRUM = {
   // 1.9 kB is the gzipped size of dist/react-spectrum.es.js, which is the
   // build this page actually loads. "No dependencies" was not true either:
   // React is a dependency, and saying so costs nothing.
-  body: "A small library that turns any string into a colourful text placeholder. It is 1.9 kB gzipped and needs nothing but React. What you see below is the real package, drawing in the ink you picked.",
+  body: "A small library that turns any string into a colourful text placeholder. It is 1.9 kB gzipped and needs nothing but React. The one below is the real package, drawing in the ink you picked.",
 } as const;

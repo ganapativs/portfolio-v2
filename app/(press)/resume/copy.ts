@@ -21,22 +21,22 @@
  */
 export const ROLE_COPY: Record<string, string[]> = {
   "Vice President, Technology": [
-    "Built the customer-facing AI assistant and the API documentation portal it runs in. The docs come from the OpenAPI spec. An intent router sends each question to the model that suits it. Behind that sit a tools and skills layer, server-side document export, versioned prompts under an eval harness, and logs complete enough to audit. Shipped and hardened since, alongside the engineering queue.",
-    "Designed the MCP server surface and shipped its first version. The connectors are read-only and sit behind OAuth, so AI coding clients reach the API without a pasted key. The team co-owns it now.",
-    "Wrote @microcharts/react on my own time. It gives 106 word-sized chart types with no runtime dependencies, 1-7 kB gzip each, accessible by default and safe in server components. The design, the code, the docs and the release were all mine.",
-    "Ran a performance program across the stack. It covered native image loading with DPR-aware URLs, compression on portal assets, render profiling, and a pass over scroll, re-renders and CSS.",
-    "Rewrote the PDF viewer in the internal component library. It has a new animation system, a vertical-scroll mode and new micro-interactions. Every document surface uses it.",
+    "Built the customer-facing AI assistant and the API documentation portal it runs in. The docs generate from the OpenAPI spec, and an intent router picks the model for each question. Behind that sit a tools and skills layer, server-side document export, versioned prompts under an eval harness and auditable logs.",
+    "Designed the MCP server surface and shipped its first version. Read-only connectors behind OAuth, so AI coding clients reach the API without a pasted key. The team co-owns it now.",
+    "Wrote @microcharts/react on my own time. 106 word-sized chart types, no runtime dependencies, 1-7 kB gzip each, accessible by default and safe in server components. Design, code, docs and release all mine.",
+    "Ran a performance program across the stack. Native image loading with DPR-aware URLs, compression on portal assets, render profiling, and a pass over scroll, re-renders and CSS.",
+    "Rewrote the PDF viewer in the internal component library, with a new animation system, a vertical-scroll mode and new micro-interactions. Every document surface uses it.",
     "Hardened the server-side PDF report pipeline. Wrote the team's Cursor and Claude Code rule packs, which set out how we use AI on the codebase.",
   ],
   "Senior Associate VP, Technology": [
-    "Owned the technical side across several engineering teams: architecture review, hiring loops and design partnerships.",
+    "Owned architecture review, hiring loops and design partnerships across several engineering teams.",
     "Wrote a custom AST codemod. It moved a foundational button component across a frontend eight years old.",
     "Built the browser-extension pipeline for Chrome and Firefox. Pushed through the Storybook and build-toolchain upgrades.",
   ],
   "Associate VP, Technology": [
     "Turned product strategy into engineering work across several teams. Owned the review queue and the escalation path.",
     "Kept the React Native app running through a major framework upgrade and the Apple App Site Association work. There was no dedicated mobile team.",
-    "Built sgb.vercel.app on my own time. It tracks the secondary market for India's Sovereign Gold Bonds. A Puppeteer scraper on a scheduled Lambda writes one JSON file to S3. A Next.js front end reads it and derives fair value, effective interest and cash-flow rate for each series. Live since 2021.",
+    "Built sgb.vercel.app on my own time, a tracker for the secondary market in India's Sovereign Gold Bonds. A Puppeteer scraper on a scheduled Lambda writes one JSON file to S3, and a Next.js front end derives fair value, effective interest and cash-flow rate per series. Live since 2021.",
   ],
   "Technology Lead": [
     "Created the internal React component library in November 2016 and have maintained it since. Every product surface is built on it.",
@@ -44,7 +44,7 @@ export const ROLE_COPY: Record<string, string[]> = {
     "Spoke at TinyConf 2 in Bangalore in 2019, on virtualised infinite scroll, drawing on react-delightful-scroller.",
   ],
   "Software Engineer": [
-    "Made the first commit on the original React, Reflux and Webpack frontend. Built the landing page, the dashboard, the masonry feeds, the sidebar, the signup flow and the theme system in four months.",
+    "Made the first commit on the original React, Reflux and Webpack frontend. Landing page, dashboard, masonry feeds, sidebar, signup flow and theme system in four months.",
     "Designed and shipped the iOS and Android app on React Native and Redux, as the only frontend engineer on it.",
   ],
   "UI/UX Engineer": [
@@ -54,4 +54,4 @@ export const ROLE_COPY: Record<string, string[]> = {
 };
 
 export const SUMMARY =
-  "Full-stack engineer with a design mind. I joined Tracxn in 2015 as a software engineer and I am VP of Technology there now. The work splits between the architecture and the people, so a week holds the frontend hiring loop, the review queue and whatever gets built next. Most weeks still have some code in them. The most recent build is the customer-facing AI assistant and the API documentation portal it runs in. On my own time I wrote @microcharts/react.";
+  "Full-stack engineer with a design mind. I joined Tracxn in 2015 as a software engineer and I am VP of Technology now. Most of the job is the team, the hiring and what we build next. I still write a lot of code. The most recent is the customer-facing AI assistant and the API documentation portal it runs in. On my own time I wrote @microcharts/react.";
