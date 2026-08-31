@@ -1,6 +1,5 @@
 import { ImageResponse } from "next/og";
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
+import { MONO_400_B64, SANS_400_B64, SANS_700_B64 } from "@/lib/og-fonts";
 import { INK_HEX, SURFACE_HEX, type InkId } from "@/lib/ink";
 import { MARK_BAR_PATH, MARK_G_PATH, MARK_VIEWBOX } from "@/lib/mark";
 
@@ -17,26 +16,41 @@ const INK_3 = SURFACE_HEX.light.ink3;
 const RULE = SURFACE_HEX.light.rule;
 const RULE_2 = SURFACE_HEX.light.rule2;
 
-// @fontsource ships the raw files; next/font keeps its copies inside the build
-// output where a render-time read cannot reach them.
-let sans400: Buffer | null = null;
-let sans700: Buffer | null = null;
-let mono400: Buffer | null = null;
+/**
+ * The three faces, decoded once per isolate.
+ *
+ * These used to be read off disk out of node_modules at render time.
+ * @fontsource ships the raw files and next/font keeps its copies inside the
+ * build output where a render-time read cannot reach them, so reading the
+ * package directly was the way to get at a woff. It worked under `next build`
+ * and `next start`, and it threw the moment the site moved to a Cloudflare
+ * Worker, which has no filesystem: every share card 500d on a cache miss.
+ *
+ * lib/og-fonts.ts carries the same bytes as base64, generated and committed by
+ * scripts/gen-og-fonts.mjs, so the bundler brings them along and one code path
+ * serves Node and the edge. Decoding is lazy and memoised because satori wants
+ * the bytes on every render and base64 of 47 kB is not free.
+ */
+let decoded: { sans400: ArrayBuffer; sans700: ArrayBuffer; mono400: ArrayBuffer } | null = null;
 
-async function getFonts() {
-  if (!sans400 || !sans700 || !mono400) {
-    const sans = join(process.cwd(), "node_modules", "@fontsource", "hanken-grotesk", "files");
-    const mono = join(process.cwd(), "node_modules", "@fontsource", "ibm-plex-mono", "files");
-    const [a, b, c] = await Promise.all([
-      readFile(join(sans, "hanken-grotesk-latin-400-normal.woff")),
-      readFile(join(sans, "hanken-grotesk-latin-700-normal.woff")),
-      readFile(join(mono, "ibm-plex-mono-latin-400-normal.woff")),
-    ]);
-    sans400 = a;
-    sans700 = b;
-    mono400 = c;
-  }
-  return { sans400, sans700, mono400 };
+/** Base64 to the ArrayBuffer satori's `data` takes. */
+function fromBase64(b64: string): ArrayBuffer {
+  // `atob` rather than `Buffer`: Buffer is a Node global the Worker provides
+  // only under nodejs_compat, and this needs no polyfill to work anywhere.
+  const bin = atob(b64);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  // Allocated here, so the backing store is a plain ArrayBuffer.
+  return out.buffer as ArrayBuffer;
+}
+
+function getFonts() {
+  decoded ??= {
+    sans400: fromBase64(SANS_400_B64),
+    sans700: fromBase64(SANS_700_B64),
+    mono400: fromBase64(MONO_400_B64),
+  };
+  return decoded;
 }
 
 type RenderArgs = {
@@ -68,7 +82,7 @@ export async function renderOG({
   footer = "meetguns.com",
   accent = "dustblue",
 }: RenderArgs) {
-  const fonts = await getFonts();
+  const fonts = getFonts();
   const ink = INK_HEX[accent];
 
   return new ImageResponse(

@@ -16,7 +16,7 @@
     "start": "next start",
     "cf:build": "opennextjs-cloudflare build",
     "cf:preview": "opennextjs-cloudflare preview",
-    "cf:deploy": "opennextjs-cloudflare deploy",
+    "cf:deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy && pnpm index:submit",
     "cf:typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
@@ -29,6 +29,7 @@
     "gen:favicon": "python3 scripts/gen-favicon.py",
     "gen:pwa-screenshots": "bash scripts/gen-pwa-screenshots.sh",
     "gen:kannada-subset": "python3 scripts/subset-kannada.py",
+    "gen:og-fonts": "node scripts/gen-og-fonts.mjs",
     "prepare": "simple-git-hooks || true"
   },
   "dependencies": {
