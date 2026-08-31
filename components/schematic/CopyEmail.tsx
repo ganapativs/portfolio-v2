@@ -53,13 +53,25 @@ export function CopyEmail() {
     keys: ["e"],
     label: "Copy my email",
     group: "Page",
+    // `copy` blips when the address lands. The generic tick would be a second
+    // note in front of it.
+    silent: true,
     run: copy,
   });
 
   useEffect(() => () => window.clearTimeout(tid.current), []);
 
   return (
-    <button type="button" className="chip" ref={ref} data-copied={copied} onClick={copy}>
+    <button
+      type="button"
+      className="chip"
+      ref={ref}
+      data-copied={copied}
+      // It blips when the address lands. The generic press/release would be
+      // two more notes on top of the one that means something.
+      data-cue="self"
+      onClick={copy}
+    >
       {/* Both strings are always here, stacked in one grid cell with the idle
           one hidden, so the chip is as wide as the longer of the two at rest
           and does not grow by 18px the instant it is pressed. `visibility`

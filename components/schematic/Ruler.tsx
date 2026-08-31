@@ -170,6 +170,8 @@ export function Ruler() {
             style={{ top: `${s.top}%` }}
             data-on={active === s.id}
             data-analytics={`nav:ruler.${s.id}`}
+            // `go` ticks. See the rule in PageFX.
+            data-cue="self"
             onClick={() => go(s.id)}
           >
             {s.label}

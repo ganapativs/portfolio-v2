@@ -109,10 +109,21 @@ export function PageFX() {
       }
       fx.tick();
     };
-    // The header's own controls play their own cues (a clack for the toggles, a
-    // pitched pluck for the inks), so the generic press/release would double up.
-    const isPlain = (el: HTMLElement | null | undefined) =>
-      !!el && !el.classList.contains("ctl") && !el.classList.contains("ink-sw");
+    /**
+     * A control that voices its own outcome does not also get the generic pair.
+     *
+     * The rule holds across the whole site and the control declares it, with
+     * `data-cue="self"` sitting beside the cue it plays. This was a hardcoded
+     * list of two classes here instead, and nothing kept it up to date: the
+     * copy chip, both "draw another" chips, the print button, the measuring
+     * edge's section ticks and the keys chip all played their own note *and*
+     * the generic press and release, so one click made three sounds.
+     *
+     * Read off the button rather than from a lookup, so a new self-voicing
+     * control is correct the moment it is written, the same way a new plain
+     * control is audible the moment it exists.
+     */
+    const isPlain = (el: HTMLElement | null | undefined) => !!el && el.dataset.cue !== "self";
     const onDown = (e: PointerEvent) => {
       const b = (e.target as HTMLElement | null)?.closest?.("button");
       if (isPlain(b)) fx.press();

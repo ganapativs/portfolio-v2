@@ -8,6 +8,8 @@ export function PrintCV() {
     <button
       type="button"
       className="cv-print"
+      // Plays `primary` and a haptic. See the rule in PageFX.
+      data-cue="self"
       onClick={() => {
         fx?.primary();
         fx?.haptic(8);

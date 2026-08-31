@@ -57,13 +57,23 @@ export function SchematicHeader() {
     keys: ["t"],
     label: "Switch the paper",
     group: "Theme",
-    run: () => toggle(),
+    // Clacks, the same as a press on the control. Without this the two paths
+    // to one action sounded different: a clack from the pointer, the registry's
+    // generic tick from the key.
+    silent: true,
+    run: () => {
+      fx?.clack();
+      toggle();
+    },
   });
   const soundRef = useShortcut<HTMLButtonElement>({
     id: "sound.toggle",
     keys: ["m"],
     label: fx?.soundOn ? "Mute" : "Unmute",
     group: "Sound",
+    // `toggleSound` confirms itself when it turns sound on. The generic tick
+    // landed on top of that confirmation.
+    silent: true,
     run: () => fx?.toggleSound(),
   });
 
@@ -142,7 +152,9 @@ export function SchematicHeader() {
               ref={homeRef}
               data-analytics="nav:header.home"
               aria-label="Home"
-              onPointerEnter={() => fx?.tick()}
+              // No onPointerEnter tick here. PageFX ticks every link and button
+              // on the page already, and a second one from the control itself
+              // only survived because `tick` is throttled to 80ms.
               onClick={() => fx?.nav()}
             >
               <Mark className="hd-mark" />
@@ -196,6 +208,8 @@ export function SchematicHeader() {
                   type="button"
                   className="ctl"
                   ref={themeRef}
+                  // Clacks. See the rule in PageFX.
+                  data-cue="self"
                   // Deliberately not "switch to dark" / "switch to light". The
                   // server does not know which paper the reader chose — the
                   // no-flash script stamps that before React sees the page — so a
@@ -208,8 +222,10 @@ export function SchematicHeader() {
                     // pointer, so a click and a keyboard activation of the same
                     // button are told apart by intent, not by a few pixels.
                     const r = e.currentTarget.getBoundingClientRect();
+                    // A switch thrown, which `clack` already is: two notes, 40ms
+                    // apart. The chime 80ms behind it made four tones for one
+                    // press, where the sound toggle beside it plays one.
                     fx?.clack();
-                    window.setTimeout(() => fx?.chime(), 80);
                     toggle({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
                   }}
                 >
@@ -296,6 +312,8 @@ function InkSwatch({
       type="button"
       ref={ref}
       className="ink-sw"
+      // InkProvider plucks this ink's own pitch. See the rule in PageFX.
+      data-cue="self"
       style={{ color: `var(--sw-${id})` }}
       aria-pressed={on}
       aria-label={`${label} ink`}
@@ -319,6 +337,9 @@ function SoundToggle({ btnRef }: { btnRef: React.RefObject<HTMLButtonElement | n
       type="button"
       ref={btnRef}
       className="ctl"
+      // `toggleSound` confirms itself when it turns sound on, and when it turns
+      // sound off there is nothing left to hear. See the rule in PageFX.
+      data-cue="self"
       aria-pressed={on}
       aria-label={on ? "Mute the drawing" : "Unmute the drawing"}
       title="Sound · m"

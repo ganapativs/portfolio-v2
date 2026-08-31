@@ -97,6 +97,8 @@ export function SpectrumDemo() {
         type="button"
         className="chip"
         data-analytics="cta:demo.react-spectrum"
+        // Plucks its own note. See the rule in PageFX.
+        data-cue="self"
         onClick={() => {
           setSeed((s) => s + 1);
           fx?.pluck(560);

@@ -486,6 +486,8 @@ export function Specimens() {
           type="button"
           className="chip"
           data-analytics="cta:demo.microcharts-specimens"
+          // Plucks its own note. See the rule in PageFX.
+          data-cue="self"
           onClick={() => {
             setSeed((s) => s + 1);
             fx?.pluck(620);

@@ -309,6 +309,32 @@ panels' hex-mesh cursor mask, and the sound layer (hover tick, button
 press/release). **Delegated on purpose** — a new control is audible the moment
 it exists rather than when someone remembers to wire it.
 
+**One action makes one sound, and a control that voices its own outcome does
+not also get a generic cue.** The rule has two enforcement points and both are
+declared by the control, never by a list kept somewhere else:
+
+- **Pointer: `data-cue="self"` on the button.** `PageFX` skips its generic
+  press/release for it. Put the attribute next to the cue the control plays.
+- **Keyboard: `silent: true` on the shortcut.** `ShortcutProvider` skips its
+  generic tick for it.
+
+This was a hardcoded `.ctl` / `.ink-sw` allowlist inside `PageFX` and nothing
+kept it current, so every self-voicing control added since made **three** sounds
+per click: the copy chip, both "draw another" chips, `PrintCV` and the measuring
+edge's section ticks all played their own note plus the generic press and
+release. The keyboard half had the same shape with `silent`, which only the six
+inks ever set: `e` was a tick in front of the copy blip, and `m` a tick in front
+of the unmute confirmation. The header's paper toggle was the loudest of them,
+playing `clack` **and** a `chime` 80 ms behind it — four tones for one press,
+beside a sound toggle that plays one.
+
+Two things follow. A plain button — one with no cue of its own, like
+`.p-fig-replay` or the keys chip — carries no attribute and correctly gets the
+press/release pair; do not tag a control that has nothing else to say. And a
+`tick` is throttled to 80 ms inside `FXProvider` while every other cue is not,
+so a duplicated tick hides and a duplicated anything-else does not. Do not read
+"it sounds fine" as "it fires once".
+
 ## Provider stack
 
 Root (`app/layout.tsx`) owns everything:
@@ -446,7 +472,9 @@ floats a hint like every other key.
 
 The registry refuses duplicate keys within a scope and warns in development.
 `silent: true` on a shortcut means it plays its own cue instead of the
-registry's generic tick — the six inks use it, because each plays its own pitch.
+registry's generic tick — the six inks, `e` (the copy blip), `t` (the paper
+clack) and `m` (the unmute confirmation). It is the keyboard half of the rule
+in "The sheet" above; `data-cue="self"` is the pointer half.
 
 ## Static files in `public/`
 
@@ -533,7 +561,7 @@ preloads are high priority and they compete with each other for the same pipe.
 | ---------- | ---------------------------------- | -------------------------------- |
 | `mg_theme` | `"light" \| "dark"`                | `ThemeProvider`, no-flash script |
 | `mg_ink`   | ink id from `lib/ink.ts`           | `InkProvider`, no-flash script   |
-| `mg_sound` | `"0"` muted, anything else unmuted | `FXProvider`                     |
+| `mg_sound` | `"1"` unmuted, anything else muted | `FXProvider`                     |
 
 Three keys. `mg_mode` is gone with the press runs. All reads and writes are
 wrapped in `try/catch` — storage may be unavailable.
@@ -859,6 +887,10 @@ different ground, and the band says so.
   group — `error.tsx`, `not-found.tsx` — mounts `<Sheet>` itself.
 - A new section wants `data-sec="<label>"` **and** an `id`, or the ruler will
   not tick it.
+- **A new button that plays its own cue wants `data-cue="self"`**, and a new
+  shortcut whose action plays its own cue wants `silent: true`. Without them the
+  control makes two or three sounds where it means to make one. See the rule
+  under "The sheet".
 - **A control is 24px to the pointer even when it is smaller than that on the
   page.** The ink chips are 16px painted with an inset `::after` and an 8px gap,
   so the 24px targets tile without overlapping; the ruler's section ticks pay
