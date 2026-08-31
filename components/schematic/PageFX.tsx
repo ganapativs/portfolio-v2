@@ -64,10 +64,17 @@ export function PageFX() {
      * link was a second control by the old test, which only caught an
      * identical match. Containment either way is the same control.
      */
-    const MOVE_GRACE_MS = 120;
-    let lastMove = 0;
-    const onPointerMove = () => {
-      lastMove = performance.now();
+    /** How long after a scroll stops before hovering is audible again. */
+    const SCROLL_SETTLE_MS = 140;
+    let lastX = -1;
+    let lastY = -1;
+    let lastScroll = 0;
+    const onPointerMove = (e: PointerEvent) => {
+      lastX = e.clientX;
+      lastY = e.clientY;
+    };
+    const onScroll = () => {
+      lastScroll = performance.now();
     };
 
     const onOver = (e: PointerEvent) => {
@@ -75,7 +82,22 @@ export function PageFX() {
       if (!t) return;
       const from = (e.relatedTarget as HTMLElement | null)?.closest?.(SEL);
       if (from && (from === t || from.contains(t) || t.contains(from))) return;
-      if (e.pointerType === "mouse" && performance.now() - lastMove > MOVE_GRACE_MS) return;
+      const moved = e.clientX !== lastX || e.clientY !== lastY;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      if (e.pointerType === "mouse") {
+        // Did the hand move, or did the page move under it? Position, not
+        // timing: `pointerover` fires before `pointermove` when a pointer
+        // enters an element, so a test for "was there a recent move" is
+        // order-dependent and drops the first hover after any pause. The
+        // coordinates cannot lie about it — scrolling delivers the pointer's
+        // unchanged position, and a hand delivers a new one.
+        if (!moved) return;
+        // Position alone is not enough on a trackpad, where a two-finger
+        // scroll drifts the pointer a pixel or two while the page travels, so
+        // the links going past read as movement. Wait for the scroll to stop.
+        if (performance.now() - lastScroll < SCROLL_SETTLE_MS) return;
+      }
       fx.tick();
     };
     // The header's own controls play their own cues (a clack for the toggles, a
@@ -91,11 +113,15 @@ export function PageFX() {
       if (isPlain(b)) fx.release();
     };
     document.addEventListener("pointermove", onPointerMove, { passive: true });
+    // Capture, on window: the career timeline and the code blocks are their own
+    // scrollports and their scroll events do not reach document by bubbling.
+    window.addEventListener("scroll", onScroll, { passive: true, capture: true });
     document.addEventListener("pointerover", onOver, { passive: true });
     document.addEventListener("pointerdown", onDown, { passive: true });
     document.addEventListener("pointerup", onUp, { passive: true });
     return () => {
       document.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("scroll", onScroll, { capture: true });
       document.removeEventListener("pointerover", onOver);
       document.removeEventListener("pointerdown", onDown);
       document.removeEventListener("pointerup", onUp);

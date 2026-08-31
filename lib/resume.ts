@@ -274,8 +274,8 @@ export const education: Education[] = [
     kind: "degree",
     title: "BE, Computer Science",
     org: "RNSIT, Bengaluru",
-    range: "2011: 2014",
-    detail: "College football team.",
+    range: "2011 - 2014",
+    detail: "Played for the college football team.",
     href: "https://www.rnsit.ac.in",
   },
   {

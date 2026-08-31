@@ -14,13 +14,13 @@ import { ReleaseConsole } from "@/components/mdx/microcharts/ReleaseConsole";
 
 Here's a sentence with a chart in it: signups climbed <span className="mc-inline"><Sparkline data={[3, 4, 4, 5, 7, 8, 11]} title="Signups per week" width={80} height={20} style={{ width: 80 }} /></span> since March, and deploys <span className="mc-inline"><SparkBar data={[4, 6, 2, 8, 5, 9, 3, 7]} title="Deploys per day" width={80} height={20} style={{ width: 80 }} /></span> kept their rhythm through all of it. Those are live: hover one, or click a point and the readout pins.
 
-That's the whole idea: charts that sit inside a sentence, a table cell, or a card, on the text baseline, without pushing the layout around. This post is about why I built [microcharts](https://microcharts.dev): an open-source library of 106 word-sized chart types for React: and the constraints behind it.
+That's the whole idea: charts that sit inside a sentence, a table cell, or a card, on the text baseline, without pushing the layout around. This post is about why I built [microcharts](https://microcharts.dev), an open-source library of 106 word-sized chart types for React, and the constraints behind it.
 
 ## The itch
 
-Every chart library I've used assumes the chart is the page. You reach for one because you need a small trend next to a revenue number, and you get axes, legends, a tooltip engine, a resize observer, and 40 kB of runtime before the first line is drawn. So in real products we give up and type "↑ 12%" instead.
+Every chart library I've used assumes the chart is the page. You reach for one because you need a small trend next to a revenue number, and you get axes, legends, a tooltip engine, a resize observer, and 40 kB of runtime before the first line is drawn. So in real products we give up and type ↑ 12% instead.
 
-But look where data actually lives in an interface: a table cell. A KPI card. An alert row that says error bursts are spiking <span className="mc-inline"><Seismogram data={[1, 2, 1, 3, 2, 6, 2, 1, 0, 2, 1, 4, 9, 3, 1, 2]} title="Error bursts" /></span> on one service. A match header where the win probability <span className="mc-inline"><WinProbWorm data={[50, 54, 48, 61, 58, 70, 66, 79, 74, 86, 90]} title="Win probability" /></span> tells the whole story. Tufte named this decades ago: the sparkline, a "data-word": and the web mostly built dashboards instead.
+But look where data actually lives in an interface: a table cell. A KPI card. An alert row that says error bursts are spiking <span className="mc-inline"><Seismogram data={[1, 2, 1, 3, 2, 6, 2, 1, 0, 2, 1, 4, 9, 3, 1, 2]} title="Error bursts" /></span> on one service. A match header where the win probability <span className="mc-inline"><WinProbWorm data={[50, 54, 48, 61, 58, 70, 66, 79, 74, 86, 90]} title="Win probability" /></span> tells the whole story. Tufte named this decades ago. He called it the sparkline, a "data-word". The web built dashboards instead.
 
 Here's a sampler of the catalog, rendered by the actual library:
 

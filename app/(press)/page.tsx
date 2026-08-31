@@ -3,12 +3,9 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Career } from "@/components/schematic/Career";
 import { CopyEmail } from "@/components/schematic/CopyEmail";
-import { Exploded } from "@/components/schematic/Exploded";
 import { PartsList } from "@/components/schematic/PartsList";
 import { Portrait } from "@/components/schematic/Portrait";
-import { SgbFigure } from "@/components/schematic/SgbFigure";
 import { Socials } from "@/components/schematic/Socials";
-import { SpectrumDemo } from "@/components/schematic/SpectrumDemo";
 
 /**
  * The three heavy figures load as their own chunks.
@@ -25,6 +22,13 @@ import { SpectrumDemo } from "@/components/schematic/SpectrumDemo";
  * guarantee (the sketch state in the markup equals the state the JS
  * initialises to), and the loupe's sentence is content.
  */
+const Exploded = dynamic(() => import("@/components/schematic/Exploded").then((m) => m.Exploded));
+const SgbFigure = dynamic(() =>
+  import("@/components/schematic/SgbFigure").then((m) => m.SgbFigure),
+);
+const SpectrumDemo = dynamic(() =>
+  import("@/components/schematic/SpectrumDemo").then((m) => m.SpectrumDemo),
+);
 const Loupe = dynamic(() => import("@/components/schematic/Loupe").then((m) => m.Loupe));
 const Pipeline = dynamic(() => import("@/components/schematic/Pipeline").then((m) => m.Pipeline));
 const Specimens = dynamic(() =>
@@ -212,7 +216,7 @@ export default async function HomePage() {
         <div className="panel">
           <h2 className="sec-label">Parts list</h2>
           <p className="meta">
-            {stars.repos} public repos · {stars.total.toLocaleString("en-US")} stars ·{" "}
+            {stars.repos} original public repos · {stars.total.toLocaleString("en-US")} stars ·{" "}
             {PUBLIC_WORK.npm} npm packages
           </p>
           <PartsList />

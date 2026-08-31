@@ -918,7 +918,25 @@
 .sgb-hit[data-on="true"] .sgb-bar {
   opacity: 1;
 }
-.sgbfig.willdraw .sgb-tile,
+/* The tile field is the setting out, so it is not hidden.
+   
+   Every stroke in this figure used to be dash-hidden until the observer fired,
+   which left the plate completely empty on arrival: the same hole fig. 1 has a
+   `.ghost` layer to fill. Fig. 3 needs no ghost, because it already contains
+   the thing a ghost would be. The 65 tiles are the field the detail is taken
+   from, and a field is what a draughtsman sets out first. They are drawn faint
+   from the first byte and come up to their own weight as the callout arrives.
+   
+   What still draws is the callout itself: the frame around the enlarged tile,
+   the leaders to it, the ring on the tile it came from, and the rule. That is
+   the part that is an act of drawing rather than a thing already on the sheet. */
+.sgbfig.willdraw .sgb-tile {
+  stroke: var(--rule-3);
+}
+.sgbfig.willdraw[data-drawn="true"] .sgb-tile {
+  transition: stroke 420ms var(--ease-out);
+  stroke: var(--rule-2);
+}
 .sgbfig.willdraw .sgb-ldr,
 .sgbfig.willdraw .sgb-pick,
 .sgbfig.willdraw .sgb-frame,
@@ -926,7 +944,6 @@
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
 }
-.sgbfig.willdraw[data-drawn="true"] .sgb-tile,
 .sgbfig.willdraw[data-drawn="true"] .sgb-ldr,
 .sgbfig.willdraw[data-drawn="true"] .sgb-pick,
 .sgbfig.willdraw[data-drawn="true"] .sgb-frame,
@@ -938,6 +955,10 @@
   .sgbfig.willdraw :is(.sgb-tile, .sgb-ldr, .sgb-pick, .sgb-rule, .sgb-frame) {
     stroke-dasharray: none;
     stroke-dashoffset: 0;
+  }
+  /* Nothing is being set out, so the field is at its own weight. */
+  .sgbfig.willdraw .sgb-tile {
+    stroke: var(--rule-2);
   }
 }
 

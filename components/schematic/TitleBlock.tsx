@@ -93,7 +93,7 @@ export function TitleBlock() {
             a slab sitting above it. A title block is where a drawing records
             who to contact, so this belongs inside it; the 1px grid gap that
             separates every other cell is the separator under it. */}
-        <a className="tb-say" href={`mailto:${identity.email}`} data-analytics="mail:closing">
+        <a className="tb-say" href={`mailto:${identity.email}`} data-analytics="mail:title-block">
           <span className="tb-say-l">Say hello</span>
           <span className="tb-say-v">{identity.email}</span>
         </a>
