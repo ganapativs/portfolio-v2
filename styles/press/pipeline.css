@@ -98,6 +98,19 @@
   pointer-events: none;
   overflow: visible;
 }
+/* Under the panels they connect, not over them.
+   
+   The wire layer is the last child of the stage and the three side panels come
+   before it, so with everything at `z-index: auto` the wires won on source
+   order and drew straight across the token swatches. A leader line crossing the
+   thing it leads to is backwards on a drawing: it should arrive at the edge and
+   stop. */
+.pipe-lay {
+  z-index: 0;
+}
+.pipe-side {
+  z-index: 1;
+}
 /* pathLength=1 on every measured line, so one dashoffset drives the draw. */
 .pipe-vec line {
   stroke: var(--accent);
@@ -766,11 +779,17 @@
   color: var(--ink);
   padding: 4px 0;
 }
+/* The emphasised rule weight, not the standard one. Two of the three swatches
+   carry a surface token, and a surface token is by definition close to the
+   ground it sits on: on graphite `--raise` is #191b1f against a #15171b stage,
+   so at `--rule` the chip had no edge and read as an empty box rather than as
+   a filled one. Line weight is how this design carries depth, so the fix is the
+   heavier line, not a fill that lies about the colour. */
 .tok .sw {
   width: 10px;
   height: 10px;
   border-radius: var(--r-chip);
-  border: 1px solid var(--rule);
+  border: 1px solid var(--rule-2);
   flex: none;
 }
 .tramp {

@@ -922,9 +922,15 @@ export function Pipeline() {
               <i className="sw" style={{ background: "var(--ink)" }} />
               --ink
             </div>
+            {/* --raise, not --paper. The swatch was always filled with
+                `var(--raise)` and wired to the card, whose surface is
+                `background: var(--raise)`, so the fill and the wire were right
+                and only the label was wrong. Naming the wrong token in a figure
+                whose whole subject is tokens wired to what they paint is the
+                one mistake this panel cannot make. */}
             <div className="tok" data-wire="card">
               <i className="sw" style={{ background: "var(--raise)" }} />
-              --paper
+              --raise
             </div>
             <div className="tramp">
               <span className="tr t1">
