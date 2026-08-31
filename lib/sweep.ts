@@ -1,4 +1,44 @@
-import type { SweepFn, SweepHandle, SweepOptions } from "glimm/react";
+import type { SweepFn, SweepHandle } from "glimm/react";
+
+/**
+ * How the band is coloured, as hexes rather than as a built palette.
+ *
+ * `accentPair` pins its two endpoints exactly and `accentChain` does not, so
+ * which of the two built it is part of the description. An ink pick is a pair,
+ * because the two inks either side of it are the whole event; a paper change is
+ * the chain of all six. See ThemeProvider.themeBand.
+ */
+export type Band = { kind: "pair"; hexes: [string, string] } | { kind: "chain"; hexes: string[] };
+
+/**
+ * glimm's root module: the oklch maths behind both palette builders, and the
+ * mesh shader the band is drawn with. 13.2 kB gzip, and it used to sit in the
+ * root layout chunk on every route because three providers imported from it at
+ * the top level -- so a reader who only ever read a blog post still paid for
+ * the machinery that repigments the sheet.
+ *
+ * `glimm/react` carries its own copy of the colour helpers but does not export
+ * them, so moving one import and not the others buys nothing: the module comes
+ * back for whichever is left. All three go through here instead, and the fetch
+ * happens on the first palette change.
+ */
+let glimm: typeof import("glimm") | null = null;
+let loading: Promise<typeof import("glimm")> | null = null;
+
+function loadGlimm() {
+  loading ??= import("glimm").then((m) => (glimm = m));
+  return loading;
+}
+
+/**
+ * The module if it is already here, for `SweepProvider`'s shaderFactory, which
+ * glimm calls synchronously. It cannot be null in practice: the factory runs
+ * from inside `sweep()`, and `sweepApply` below is the only caller of that,
+ * after the load has resolved.
+ */
+export function glimmNow() {
+  return glimm;
+}
 
 /**
  * The two controls the interrupt below needs. glimm exports the full
@@ -21,6 +61,9 @@ export function setSweepController(c: BandControls) {
 
 /** The sweep still crossing the sheet, if there is one. */
 let inFlight: { handle: SweepHandle; once: () => void } | null = null;
+
+/** Which press is the current one, so a stale fetch cannot start a second band. */
+let seq = 0;
 
 /**
  * Run a palette change inside a glimm sweep, with a guarantee that it runs.
@@ -48,7 +91,12 @@ let inFlight: { handle: SweepHandle; once: () => void } | null = null;
  * So an interrupted sweep is landed immediately, cancelled, and the band is
  * wound back to the start before the next one plays. Every press gets a pass.
  */
-export function sweepApply(sweep: SweepFn, apply: () => void, options?: SweepOptions) {
+export function sweepApply(
+  sweep: SweepFn,
+  apply: () => void,
+  options: { band: Band; direction: "ltr" | "ttb" },
+) {
+  const id = ++seq;
   const prev = inFlight;
   if (prev) {
     // The change it was carrying still has to happen, and now rather than on
@@ -66,13 +114,32 @@ export function sweepApply(sweep: SweepFn, apply: () => void, options?: SweepOpt
     ran = true;
     apply();
   };
-  const handle = sweep(once, options);
+  // Started before the module is asked for, so it covers the fetch as well as a
+  // frozen rAF. A press that never gets its band still gets its ink.
   const guard = window.setTimeout(once, 1600);
-  const settle = () => {
+  const land = () => {
+    once();
     window.clearTimeout(guard);
-    if (inFlight?.handle === handle) inFlight = null;
   };
-  handle.done.then(settle, settle);
-  inFlight = { handle, once };
-  return handle;
+
+  loadGlimm().then((g) => {
+    // A second press while the first was still fetching: that press owns the
+    // band now, and this one is already stale. The interrupt above could not
+    // catch it, because nothing was in flight yet to catch.
+    if (id !== seq) return land();
+    const { band, direction } = options;
+    const handle = sweep(once, {
+      palette:
+        band.kind === "pair"
+          ? g.accentPair(band.hexes[0], band.hexes[1])
+          : g.accentChain(band.hexes),
+      direction,
+    });
+    const settle = () => {
+      window.clearTimeout(guard);
+      if (inFlight?.handle === handle) inFlight = null;
+    };
+    handle.done.then(settle, settle);
+    inFlight = { handle, once };
+  }, land);
 }

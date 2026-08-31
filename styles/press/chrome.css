@@ -434,6 +434,18 @@
     background: var(--paper);
   }
 }
+/* A reader who has asked for less transparency gets the same opaque ground.
+   The header is the one translucent surface on the site, so this preference has
+   exactly one thing to turn off, and the fallback for it was already written
+   above -- it just was not wired to the preference as well as to the feature
+   query. */
+@media (prefers-reduced-transparency: reduce) {
+  .hd[data-stuck="true"] .hd-strip {
+    background: var(--paper);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
 /* On a phone the name is what makes the strip wrap to two rows, and two rows
    is a tenth of the viewport held permanently. The mark is the home link and
    carries the identity on its own; the name is one scroll away. */
@@ -597,10 +609,17 @@
 }
 .ink-sw:hover {
   border-color: var(--rule-2);
-  transform: translateY(-1px);
+}
+/* The lift only exists where a pointer can hover. On a touch screen `:hover`
+   sticks after the tap, so the swatch you just picked stayed raised until you
+   tapped something else. */
+@media (hover: hover) {
+  .ink-sw:hover {
+    transform: translateY(-1px);
+  }
 }
 .ink-sw:active {
-  transform: scale(0.88);
+  transform: scale(var(--press));
 }
 .ink-sw[aria-pressed="true"] {
   border-color: currentColor;
@@ -627,7 +646,7 @@
   background: var(--accent-soft);
 }
 .ctl:active {
-  transform: scale(0.94);
+  transform: scale(var(--press));
 }
 .ctl svg {
   display: block;
@@ -918,12 +937,30 @@ h2.sec-label {
   color: var(--ink);
   background: var(--accent-soft);
 }
+/* The one documented exception to --press. The chip is 236px wide, where the
+   token's 0.94 is 14px of travel and reads as the whole row flinching; every
+   other control it sits beside is icon-sized. */
 .chip:active {
   transform: scale(0.97);
 }
 .chip[data-copied="true"] {
   border-color: var(--accent);
   color: var(--accent);
+}
+/* The confirmation is stamped into a cell the resting label already fills, so
+   the chip cannot change size under the press that caused it. A grid cell is
+   as wide as its widest item; the idle string is hidden but still measured. */
+.cp-slot {
+  display: grid;
+  align-items: center;
+}
+.cp-slot > * {
+  grid-area: 1 / 1;
+  justify-self: start;
+  white-space: nowrap;
+}
+.cp-slot > [data-on="false"] {
+  visibility: hidden;
 }
 
 .socials {
@@ -953,7 +990,7 @@ h2.sec-label {
   background: var(--accent-soft);
 }
 .soc:active {
-  transform: scale(0.92);
+  transform: scale(var(--press));
 }
 
 /* ---- footer · the title block -------------------------------------------- */

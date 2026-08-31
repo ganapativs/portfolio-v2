@@ -44,3 +44,31 @@ export function useReducedMotion() {
 export function approach(k: number, dtMs: number) {
   return 1 - Math.pow(1 - k, dtMs / 16.667);
 }
+
+/**
+ * cubic-bezier(.22, 1, .36, 1) -- `--ease-out`, the one curve the site eases
+ * on -- solved for y at a given x by bisection. Twelve iterations is well past
+ * the precision any motion here can show.
+ *
+ * It lives beside `approach` because a rAF loop cannot read a CSS easing, and
+ * a second easing vocabulary for the handful of animations written in
+ * JavaScript is how a design system starts to come apart. Use `approach` for a
+ * follow with no end, and this for a move with a duration.
+ */
+const bezX = (t: number) =>
+  3 * t * (1 - t) * (1 - t) * 0.22 + 3 * t * t * (1 - t) * 0.36 + t * t * t;
+const bezY = (t: number) => 3 * t * (1 - t) * (1 - t) + 3 * t * t * (1 - t) + t * t * t;
+
+export function houseEase(x: number) {
+  let lo = 0;
+  let hi = 1;
+  let t = x;
+  for (let i = 0; i < 12; i++) {
+    const e = bezX(t) - x;
+    if (Math.abs(e) < 1e-4) break;
+    if (e > 0) hi = t;
+    else lo = t;
+    t = (lo + hi) / 2;
+  }
+  return bezY(t);
+}

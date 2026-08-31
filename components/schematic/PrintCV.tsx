@@ -15,7 +15,7 @@ export function PrintCV() {
         window.print();
       }}
     >
-      <span aria-hidden="true">↓</span> Print · save PDF
+      Print · save PDF
     </button>
   );
 }

@@ -1,5 +1,6 @@
 "use client";
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { useFX } from "@/components/providers/FXProvider";
 
 /**
@@ -14,9 +15,17 @@ import { useFX } from "@/components/providers/FXProvider";
  */
 export function PageFX() {
   const fx = useFX();
+  const pathname = usePathname();
 
   // Panel hex material.
+  //
+  // Only the home page has panels. This shell is mounted once for every route,
+  // so the résumé and every blog post were running a `closest(".panel")` on
+  // each pointermove for a mask nothing on the page could show. Re-checked per
+  // route rather than once at mount: effects run after the commit, so on a
+  // client navigation the new route's DOM is already there to look at.
   useEffect(() => {
+    if (!document.querySelector(".panel")) return;
     let pending = false;
     let last: { el: HTMLElement; x: number; y: number } | null = null;
     const onMove = (e: PointerEvent) => {
@@ -35,7 +44,7 @@ export function PageFX() {
     };
     document.addEventListener("pointermove", onMove, { passive: true });
     return () => document.removeEventListener("pointermove", onMove);
-  }, []);
+  }, [pathname]);
 
   // The sound layer.
   useEffect(() => {

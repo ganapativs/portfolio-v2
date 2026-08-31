@@ -9,8 +9,7 @@ import {
   useState,
 } from "react";
 import { useGlimm } from "glimm/react";
-import { accentChain } from "glimm";
-import { sweepApply } from "@/lib/sweep";
+import { sweepApply, type Band } from "@/lib/sweep";
 import { INKS, INK_HEX, INK_HEX_DARK, isInkId, DEFAULT_INK } from "@/lib/ink";
 import { track } from "@/lib/analytics";
 
@@ -43,24 +42,35 @@ function readInitialTheme(): Theme {
  * The four in the middle are the other inks at their new values, in tray
  * order, so the pass is the same rising run the picker plays.
  */
-function themeBand(next: "light" | "dark") {
+function themeBand(next: "light" | "dark"): Band {
   const id = typeof document === "undefined" ? DEFAULT_INK : document.documentElement.dataset.ink;
   const key = isInkId(id) ? id : DEFAULT_INK;
   const from = next === "dark" ? INK_HEX[key] : INK_HEX_DARK[key];
   const to = next === "dark" ? INK_HEX_DARK[key] : INK_HEX[key];
   const others = INKS.filter((i) => i.id !== key).map((i) => (next === "dark" ? i.darkHex : i.hex));
-  return accentChain([from, ...others, to]);
+  return { kind: "chain", hexes: [from, ...others, to] };
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>(readInitialTheme);
-  const isFirstSync = useRef(true);
+  // The theme currently painted on <html>. Seeded from state, which
+  // readInitialTheme has already read off the DOM, so at mount the two agree
+  // and the effect below has nothing to carry.
+  const painted = useRef<Theme>(theme);
   const pendingOrigin = useRef<{ x: number; y: number } | null>(null);
   const { sweep } = useGlimm();
 
-  // Keep the DOM and storage in step after an explicit toggle. The first pass is
-  // skipped because the no-flash script has already written these values, and
-  // rewriting on mount would clobber a choice made in another tab.
+  // Keep the DOM and storage in step after an explicit toggle. A pass where the
+  // DOM already carries this theme does nothing: the no-flash script has
+  // written these values, and rewriting on mount would clobber a choice made in
+  // another tab.
+  //
+  // The guard compares the painted value rather than counting passes. A
+  // `useRef(true)` flag flipped inside the effect is not StrictMode safe --
+  // React mounts, unmounts and mounts again, so the second pass read a flag the
+  // first had already cleared and swept the whole tray on every dev load, with
+  // a spurious `track({ name: "theme" })` behind it. `painted` is seeded during
+  // render instead, so both passes see it agreeing with `theme` and return.
   //
   // The swap itself is handed to glimm: its band crosses the viewport and the
   // new ground appears underneath it at the midpoint. This replaced a hand
@@ -68,10 +78,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   // what had happened. A band passing over the sheet is a press roller, which
   // is exactly the event.
   useEffect(() => {
-    if (isFirstSync.current) {
-      isFirstSync.current = false;
-      return;
-    }
+    if (painted.current === theme) return;
+    painted.current = theme;
     const origin = pendingOrigin.current;
     pendingOrigin.current = null;
     const apply = () => {
@@ -98,7 +106,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       // The band is the whole tray crossing the sheet, from the active ink on
       // the ground it is leaving to the same ink on the ground it is arriving
       // at. See themeBand above.
-      palette: themeBand(theme),
+      band: themeBand(theme),
       // Left to right on a pointer press, top to bottom from the keyboard. The
       // keyboard has no position on the page, and a different axis is a more
       // honest way to say so than a wipe pretending to start somewhere.

@@ -54,7 +54,12 @@ Stale agent rules lie. The pairs that actually break:
 - `app/**/page.tsx` route changes ⇆ this file's route map ⇆ `app/sitemap.ts` ⇆
   `app/llms.txt/route.ts`.
 - `next.config.ts` (headers, redirects, rewrites, experimental flags, image
-  config) ⇆ this file.
+  config) ⇆ this file. It also carries **`remarkImageSize`**, which stamps
+  intrinsic `width`/`height` onto local MDX images at compile time by reading
+  the PNG or WebP header. It is the CLS guard `ZoomImage` has always documented
+  and never received. It reads the file from `public/`, so **an MDX image path
+  that does not resolve silently loses its dimensions** rather than failing the
+  build: a wrong box is worse than none.
 - `lib/posts.ts` ⇆ the loader map in `app/(press)/blog/[slug]/page.tsx` (the
   build fails loudly if they drift).
 - `lib/resume.ts` `skills` ⇆ the `MATERIALS` list in `app/(press)/content.ts`
@@ -116,9 +121,11 @@ Do not reintroduce these, and do not "restore" doc text describing them.
 | Package manager | pnpm                           | `pnpm-lock.yaml` committed; never `npm`/`yarn`/`bun`                                                                                                                                                |
 | MDX             | @next/mdx ^16.3                | `remark-gfm`, `remark-smartypants`, `rehype-slug`, `rehype-autolink-headings`, `rehype-highlight`                                                                                                   |
 | Charts          | @microcharts/react ^0.18       | **No longer blog-only** — fig. 2 on the home sheet is a tray of them. Tokens bridged at `:root` in `styles/press/tokens.css` (`--mc-*`), not at `.prose`                                            |
-| Sweep           | glimm ^0.3                     | The WebGL band that carries every palette change. `GlimmProvider` is the outermost provider; see "Sweep contract"                                                                                   |
+| Sweep           | glimm ^0.3                     | The WebGL band that carries every palette change. `GlimmProvider` is the outermost provider; **its root module is imported dynamically** — see "Sweep contract"                                     |
 | Live specimen   | react-spectrum ^1.3            | His own 2019 package, running in fig. 4. **Imported by ESM file path** with a type shim at the repo root — see the trap below                                                                       |
 | Dialog          | @base-ui/react ^1.7            | One use: the `?` shortcut help sheet (`components/shortcuts/ShortcutHelp.tsx`)                                                                                                                      |
+| Image zoom      | medium-zoom ^1.1               | `components/mdx/ZoomImage.tsx`, essays only. It takes over the `<img>`, which is why the portrait and the MDX images are raw `<img>` and not `next/image`                                           |
+| Deploy          | @opennextjs/cloudflare ^1      | The site runs on **Cloudflare Workers**. `wrangler.jsonc` + `open-next.config.ts`; ship with `pnpm cf:deploy`. `export const runtime = "edge"` is refused by the adapter — do not add it anywhere   |
 | Fonts           | next/font                      | Hanken Grotesk + IBM Plex Mono from Google. Anek Kannada is **self-hosted and subsetted**. `@fontsource/hanken-grotesk` and `@fontsource/ibm-plex-mono` exist so the OG renderer can read raw files |
 | Browsers        | `browserslist` in package.json | Chrome/Edge 111, Firefox 128, Safari/iOS 16.4. Not arbitrary: the design is built on `oklch()`, `color-mix()` and `@property`, none of which exist below it                                         |
 
@@ -136,7 +143,7 @@ Do not reintroduce these, and do not "restore" doc text describing them.
   freezes `requestAnimationFrame` in a hidden tab: a reader who flipped the
   paper and immediately switched tabs came back to the old theme, because the
   band suspended before its midpoint and the swap never ran. `sweepApply()`
-  fires the change on whichever comes first, the midpoint or a 1.2 s timer, and
+  fires the change on whichever comes first, the midpoint or a 1.6 s timer, and
   makes `apply` idempotent. **Never call `sweep()` directly for a state change.**
 
 ---
@@ -160,7 +167,8 @@ components/
                      PartsList, Pipeline, CopyEmail, Socials, EssayShell, PrintCV, and three
                      hooks: useDrawOnFirstView, useCoarsePointer, useReducedMotion
                      (which also exports `approach`, the frame-rate-independent lerp every
-                     eased follow on the site uses — see "Motion" below)
+                     eased follow on the site uses, and `houseEase`, `--ease-out` solved in
+                     JS for the loops that cannot read a CSS easing — see "Motion" below)
   providers/         SweepProvider, ThemeProvider, FXProvider, InkProvider
   shortcuts/         ShortcutProvider, HintLayer, KeyGlyph, useShortcut, shortcuts.css, and
                      ShortcutHelp — a gate whose only job is to next/dynamic the real sheet
@@ -174,7 +182,8 @@ content/blog/<slug>/ MDX posts. Body in page.mdx. Metadata is in lib/posts.ts (N
 public/posts/<slug>/ Cover + inline imagery for each post.
 lib/
   ink.ts             The ink system: ids, labels, pitches, hex mirrors, storage keys
-  sweep.ts           sweepApply() — the guarded glimm sweep every palette change goes through
+  sweep.ts           sweepApply() — the guarded glimm sweep every palette change goes through,
+                     and the dynamic import that keeps glimm's root module off every route
   posts.ts           Post metadata — outside the route tree so the pages and the feeds share it
   fonts.ts           The three faces
   mark.ts            The G, as raw path data — the one copy every renderer shares
@@ -315,8 +324,19 @@ Root (`app/layout.tsx`) owns everything:
 ```
 
 `InkProvider` is inside `FXProvider` because a pick plays that ink's pitch.
-`SweepProvider` builds no WebGL context until the first sweep, so a reader who
-never touches the palette pays nothing for it.
+`SweepProvider` builds no WebGL context until the first sweep, and no longer
+pulls glimm's root module into the root chunk either, so a reader who never
+touches the palette really does pay nothing for it.
+
+**Neither provider may guard its mount with a `useRef(true)` flag flipped
+inside the effect.** StrictMode mounts, unmounts and mounts again, so the second
+pass reads a flag the first already cleared: `ThemeProvider` swept the whole
+six-ink tray and fired a `track({ name: "theme" })` on every dev page load, with
+the band arriving unprompted a beat after the paper. Both providers compare the
+value they are about to paint against the one already painted instead —
+`ThemeProvider` against a `painted` ref seeded during render, `InkProvider`
+against `painted.current` set in its hydration effect — which is idempotent and
+so cannot care how many times it runs.
 
 `app/(press)/layout.tsx` adds only `<Sheet>`, `<main id="main-content">` and
 `<ViewTransition name="route">`.
@@ -617,9 +637,17 @@ as it lightens. That is why the dark run reads as a different material rather
 than as the light run with the lamp off.
 
 `--rule-3 / --rule / --rule-2` are the three line weights — 0.75px faint, 1px
-standard, 1.5px emphasised. **Depth is line weight, never shadow.** There is not
-one `box-shadow` in the design, and `--shadow-sm` / `--shadow-xl` in the bridge
-block are literally `none`.
+standard, 1.5px emphasised. **Depth is line weight, never shadow.** `--shadow-sm`
+/ `--shadow-xl` in the bridge block are literally `none`.
+
+**No shadow is ever depth here, but the repo is not free of `box-shadow`.** Five
+rules use one, and every one of them draws a line rather than a lift: the
+loupe's crosshair arms are a single offset spread-zero shadow on one 1px element
+(`home.css`), the essay's zoomed figure and the microcharts demos ring
+themselves with `0 0 0 1px` instead of a border so nothing reflows, and the help
+sheet carries the one real shadow in the repo, which its own comment already
+flags as debt. This file used to claim the count was zero. Adding a blurred,
+offset shadow to lift something is still forbidden.
 
 ### The shared-component bridge
 
@@ -646,7 +674,18 @@ A drawing distinguishes what is written on it from what is measured on it, and
 the reader can tell which is which before reading either. `--f-serif` exists
 only as a bridge alias pointing at `--f-sans`; there is no serif on this site.
 
-**Scale**, ratio 1.25: `12 · 15 · 19 · 24 · 30 · 37 · 46 · 58` (`--t-1` … `--t-8`).
+**Scale**: there isn't one, as tokens. `--t-1` … `--t-8` were declared for a
+1.25 ratio (`12 · 15 · 19 · 24 · 30 · 37 · 46 · 58`) and referenced **zero
+times**, so they have been deleted rather than left as a scale the site could be
+mistaken for following. Every `font-size` here is a literal — 114 of them across
+24 distinct values, eight between 7px and 11.5px. If a scale is wanted, add it
+and convert the literals in the same change; do not re-declare the tokens and
+leave them unused.
+
+The `--t-micro / --t-overline / --t-caption / --t-small / --t-body / --t-h5 /
+--t-h4 / --t-h3 / --t-h2` aliases lower down are a different thing and are
+**live** — 28 references from `microcharts-demos.css` and `shortcuts.css`. They
+are part of the shared-component bridge below, not of the deleted scale.
 **Spacing**: `4 · 8 · 12 · 16 · 24 · 32 · 48 · 64 · 96 · 144` (`--s-1` … `--s-10`).
 **Measures**: `--w-sheet 1040px` the drawing, `--w-essay 760px` the reading
 measure, `--sheet-margin 24px`, `--gutter 32px`.
@@ -657,15 +696,20 @@ buttons, swatches, kbd. `--r-point 50%` is a point: the loupe, station dots, the
 portrait ripple. **There is no third box radius. A drawing has no rounded
 corners.**
 
+**Press**: `--press 0.94`, how far a control gives under a press. Four sibling
+controls used to press by four different amounts (0.88 / 0.92 / 0.94 / 0.97),
+which reads as four different mechanisms. `.chip` documents the one exception:
+it is 236px wide, where the token is 14px of travel.
+
 **Motion**: `--dur-fast 140ms` hover and focus · `--dur-base 260ms` everything
 the reader caused · `--dur-ink 340ms` the coordinated ink tween · the palette
 sweep at 640ms + 300ms, which lives in `SweepProvider.tsx` rather than in a
 token because it belongs to the library that draws it. Easings:
 `--ease-out cubic-bezier(.22,1,.36,1)`, `--ease-in-out
 cubic-bezier(.65,0,.35,1)`. Direct manipulation has no duration at all, because
-the hand sets it. (`--dur-iris` and `--vt-r-now` are still declared in
-`tokens.css` but only the dead `.vt-recolor-radial` block in `base.css` reads
-them; the sweep replaced that. Do not build on them.)
+the hand sets it. (`--dur-iris`, `--vt-r-now` and the `.vt-recolor-radial` block
+were the clip-path iris the sweep replaced. All three are gone; this file
+described them as "still declared" for a while after they were deleted.)
 
 ### The motion law (`styles/press/motion.css`)
 
@@ -726,6 +770,23 @@ Replaces the old view-transition contract. **The clip-path iris is gone.**
    midpoint. A circle opening from a control said "this control did it"; a band
    passing over the sheet says what actually happened, which is a roller laying
    down new ink.
+   2c. **`sweepApply` takes the band as hexes (`{ kind: "pair" | "chain",
+hexes }`), not as a built palette**, and builds it itself after the module
+   lands. `accentPair` pins its two endpoints exactly and `accentChain` does
+   not, which is why which builder to use is part of the description rather
+   than the caller's business.
+   2d. **glimm's root module is fetched on the first palette change, not
+   imported at the top of a provider.** It was three static imports —
+   `createMeshShader` in `SweepProvider`, `accentChain` in `ThemeProvider`,
+   `accentPair` in `InkProvider` — and it sat in the root layout chunk, 13.2 kB
+   gzip on every route, including routes with no palette control in reach.
+   **Moving one and not the others buys nothing**: `glimm/react` carries its own
+   copy of the colour helpers but does not export them, so the root module comes
+   back for whichever import is left. All three go through `lib/sweep.ts` now.
+   `SweepProvider`'s `shaderFactory` reads it via `glimmNow()`, which is safe
+   because glimm only calls that factory from inside `sweep()`, and `sweepApply`
+   awaits the module first. The 1.6 s guard timer starts before the fetch, so a
+   press whose band never arrives still gets its ink.
 3. **The band is painted with the ink in play.** A theme flip sweeps the active
    ink between its two grounds; an ink pick sweeps from the ink being replaced
    to the one replacing it, so the sweep _is_ the interpolation rather than
@@ -782,6 +843,12 @@ different ground, and the band says so.
   are caught by the existing `knip.json` `entry` glob.
 - Don't add new top-level dependencies casually. Check `package.json` and
   `knip.json` first.
+- **Images inside an MDX body are lossless WebP, not PNG.** `medium-zoom` needs a
+  raw `<img>`, so they cannot go through `next/image` and are served exactly as
+  committed — which meant they were the only images on the site not getting
+  avif/webp. `cwebp -lossless` is pixel-identical and was 75% smaller on the
+  three of them (329 kB → 81 kB); on screenshots it also beats `-q 88`. Post
+  covers stay PNG/JPG because they _do_ go through `next/image`.
 - For a new MDX post: drop `content/blog/<slug>/page.mdx`, add a row to
   `lib/posts.ts` (including its `accent`), add a loader to
   `app/(press)/blog/[slug]/page.tsx`. `generateStaticParams` throws at build
@@ -880,6 +947,56 @@ different ground, and the band says so.
   **one solid fill** is the only mark that reliably singles something out after
   the shear. Prototype glyph sets against the face before committing: a symbol
   that reads flat tells you nothing about how it reads on the slab.
+- **A glyph's hover story is transform-only.** Each stroke in `PARTS`
+  (`Exploded.tsx`) can carry an `act` class (`write`, `pop`, `part-*`, `plug`)
+  that home.css animates while the slab is on: scales and translates in the
+  glyph's local plane, which land on the face's axes after the projection. No
+  dash-draw here, ever — the pathLength trap below. One local unit is about 2px
+  on screen. The stack also parts at the hovered seam (`data-rel="above|below"`
+  on the slabs, written by React), and the hovered row's leader inks accent —
+  its draw-in transition keeps its delay inside the shorthand, because a bare
+  `transition-delay` would sit on the hover stroke change too.
+- **A slab's hit target never moves; its drawing does.** Each slab is a static
+  `.hit` hexagon (pointer-events: fill, nothing painted) plus a `.lift` group
+  holding everything visible, pointer-inert, that the hover transforms move. A
+  slab that was its own hit target lifted out from under a pointer on its edge
+  and oscillated: enter, lift, leave, drop, enter. Style slab polygons through
+  `.lift polygon`, never bare `polygon` — at `[data-on] polygon` specificity
+  the accent stroke out-ranks `.hit`'s `stroke: none` and inks the invisible
+  hexagon.
+- **Fig. 6 is a figure like the rest and carries `fig. 6 · the pipeline` plus an
+  `<h2>`.** It had the plate label alone, so the largest drawing on the sheet was
+  the only one absent from the document outline. It sits outside `.panel`, so
+  `.pipe-head h2` restates `.panel h2` rather than inheriting it.
+- **A control that swaps its own label reserves the wider string rather than
+  resizing.** The copy chip grew 17.6px under the press that confirmed it. Both
+  strings sit in one `.cp-slot` grid cell now with the idle one `visibility:
+hidden` — the same reserve-don't-animate move as the `.xp-note` slots, and for
+  the same reason: `visibility` holds the space while leaving the accessibility
+  tree, so the button has exactly one accessible name at a time.
+- **Direct manipulation covers everything tied to the hand, not just the thing
+  under it.** The loupe killed its own transition while dragging and its two
+  leader lines did not, so they eased 260ms behind it for the whole drag. The
+  flag is `data-dragging` on `.lp-stage`, not on `.loupe`, because the tangents
+  are in a sibling element. Anything that follows a drag goes in that selector.
+- **A box that cross-fades its contents needs a `key`, not just a keyframe.**
+  `.lp-detail > *` animates `lp-swap`, but React reused the same two nodes, so
+  it replayed only on the chart↔word branch change: for 16 of the 17 stops the
+  box swapped at t=0 while the lens travelled. The children are keyed on the
+  current stop.
+- **Every pointer capture needs `onPointerCancel` as well as `onPointerUp`.**
+  The browser can take a captured pointer away — a system gesture, a context
+  menu, a touch becoming a scroll — and the loupe stayed latched in drag.
+- **A drag reads the offset it was grabbed at.** The pipeline's pen handles set
+  the control point to the pointer position, so a grab anywhere but the exact
+  centre teleported the curve on the first move.
+- **Overlapping hit shapes are resolved by distance, not by paint order.** The
+  two pen handles are `r="11"` with centres 13.3px apart, so they overlap by
+  about 9px and the one painted second took every press in that band — `c1` was
+  unreachable through most of its own area. `onHandleDown` picks the nearer
+  centre. ⚠️ **This does not make them pass WCAG 2.5.8**: the criterion wants
+  24px circles that do not intersect, and 13.3px apart cannot give that without
+  moving the handles in the drawing. That is a design decision, not a bug fix.
 - **A caption slot is not a live region.** `Caption` takes an `id` and the
   controls that drive it point at it with `aria-describedby`, so it is read once
   on focus. As `aria-live="polite"` a figure with five parts announced five
@@ -947,9 +1064,11 @@ different ground, and the band says so.
   and `-1` from above. Fig. 1 sets it to the direction the pointer moved along
   the stack, so the note arrives the way the eye did. Fig. 3 does the same along
   its three parts. Every other slot leaves it unset and gets the old rise.
-- **The portrait renders a real `next/image` on the server and hides it only
-  once the halftone canvas has actually drawn.** Keep it that way — a bare
-  canvas has no `alt` and nothing for a crawler.
+- **The portrait renders a real `<img>` on the server and hides it only once the
+  halftone canvas has actually drawn.** Keep it that way — a bare canvas has no
+  `alt` and nothing for a crawler. It is a raw `<img>` and **not** `next/image`,
+  for the reason set out in the comment at `Portrait.tsx:476`; this file called
+  it a `next/image` for a while and the comment was the half that was right.
 - Numbers on the page are checked and, where the résumé also states them, pulled
   from `lib/resume.ts` rather than retyped. Do not add a number you cannot
   verify.
@@ -1001,8 +1120,46 @@ a heavy client component to the home page, put it behind `next/dynamic` too, or
 every other route pays for it.
 
 Measured first-load JS, gzip, excluding the `noModule` polyfill nothing at the
-browserslist floor fetches: `/` 216 kB, `/blog` 159 kB, `/resume` 218 kB, a
-blog post 223 kB.
+browserslist floor fetches: **`/` 220 kB · `/resume` 164 kB · `/blog` 163 kB ·
+a blog post 227 kB · 404 163 kB.** Measure it by summing the gzip of every
+`<script src>` in the prerendered HTML under `.next/server/app/`; Next no longer
+prints the table.
+
+### The home-page chunk leak, and how it was closed
+
+`/resume` and `/_not-found` used to ship ~57 kB gzip of home-page chunks and
+render none of it. Two things about it were misdiagnosed for a long time, so
+they are written down.
+
+**It was never about the home page's own imports.** Putting the figures behind
+`next/dynamic` moved 0.2 kB, because the figures were not what those routes were
+pulling. `next/link`'s code lives in the shared chunk `9417`, which every route
+already loads — nothing was ever duplicated.
+
+**It was the client-reference manifest listing a chunk _group_ where one file
+was needed.** For a route whose own page entry does not contain `next/link`, the
+manifest resolves `link.js` against the home page's entrypoint, and then names
+every file in that group — `5498` (the chart library), `9042` (the syntax
+highlighter), `6521`, `app/(press)/page` — as the requirement for loading it.
+`/blog` never leaked because `blog/page.tsx` imports `Link` itself, so its own
+entry satisfies the module.
+
+So the fix, on both routes, was to stop referencing `link.js` from a route whose
+entry does not carry it:
+
+- **`/resume`** now uses `<Link href="/">` for the `meetguns.com` line instead of
+  `<a href={SITE_URL}>`. That was a real bug on its own — an internal navigation
+  doing a full page load — and it puts `next/link` in the route's own entry.
+  **221.6 → 164.3 kB.**
+- **`app/not-found.tsx`** uses plain `<a>` for its three ways out. A 404 is a dead
+  end the reader is leaving; prefetching three routes from it buys nothing, and a
+  full page load out of a broken URL is the honest cost of not shipping the whole
+  home page to render three words. **219.9 → 162.6 kB.**
+
+⚠️ **A route's manifest still _lists_ home-page modules it never references** —
+`/resume` names fourteen. That is harmless: listed is not loaded. Only a module
+the route actually renders pulls its group in. Diagnose from the `<script>` tags
+in the built HTML, not from the manifest's module list.
 
 ## What NOT to do
 

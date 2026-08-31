@@ -266,9 +266,25 @@
 }
 .xp .slab {
   cursor: pointer;
+}
+/* Hover cannot be allowed to move its own hit target. The pointer talks to the
+   static `.hit` hexagon alone; the visible slab lives in `.lift`, which is
+   pointer-inert and free to move. Without the split, a pointer resting on a
+   slab's edge lifted the slab out from under itself and it oscillated: enter,
+   lift, leave, drop, enter. */
+.xp .slab .hit {
+  fill: none;
+  stroke: none;
+  pointer-events: fill;
+}
+.xp .slab .lift {
+  pointer-events: none;
   transition: transform var(--dur-fast) var(--ease-out);
 }
-.xp .slab polygon {
+/* Scoped under .lift, not bare `polygon`: the .hit hexagon is also a polygon
+   in this slab, and at `.xp .slab[data-on] polygon` specificity the hover
+   accent out-ranked .hit's stroke: none and inked the invisible target. */
+.xp .slab .lift polygon {
   fill: var(--raise);
   stroke: var(--ink);
   stroke-width: 1.4;
@@ -283,10 +299,21 @@
   opacity: 0;
   transition: opacity var(--dur-fast) var(--ease-out);
 }
-.xp .slab[data-on="true"] {
+.xp .slab[data-on="true"] .lift {
   transform: translateY(-4px);
 }
-.xp .slab[data-on="true"] polygon {
+/* The stack opens at the hovered seam. Everything above the hovered layer is
+   stacked on it, so lifting the layer carries them up with it and a little
+   further; everything below settles by 2px. The hovered slab sits in the gap
+   that opens. The deltas are small on purpose — the exploded view is already
+   apart, this is it breathing at the point of interest. */
+.xp .slab[data-rel="above"] .lift {
+  transform: translateY(-6px);
+}
+.xp .slab[data-rel="below"] .lift {
+  transform: translateY(2px);
+}
+.xp .slab[data-on="true"] .lift polygon {
   stroke: var(--accent);
 }
 .xp .slab[data-on="true"] .hatch {
@@ -297,6 +324,12 @@
   stroke-width: 1;
   stroke-dasharray: 3 3;
   fill: none;
+  transition: stroke var(--dur-fast) var(--ease-out);
+}
+/* The hovered row's leader carries the ink, so the tie between the slab and
+   its label is drawn rather than implied. */
+.xp .leader[data-on="true"] {
+  stroke: var(--accent);
 }
 /* Each slab carries one drawn glyph on its top face, projected into the same
    isometric as the slab. vector-effect keeps it a 1px line at any scale, so it
@@ -329,6 +362,90 @@
 }
 .xp .slab[data-on="true"] .glyph path.solid {
   fill: var(--accent);
+}
+/* The hover micro-stories.
+
+   Each glyph acts out its own note once per hover, in the glyph's own plane:
+   a translate or scale in local coordinates lands on the face's two axes after
+   the projection, so the motion lies on the slab the way the symbol does. All
+   of it is transform-only — a dash-draw is unavailable here for the pathLength
+   × non-scaling-stroke reason above — and all of it is reader-caused, so it is
+   inside the motion law. One local unit is about 2px on screen.
+
+   `write` redraws a line left to right (the page writing itself, the question
+   arriving at the router). `pop` lands a mark (the picked model, the tick);
+   when a `write` precedes it in the same glyph it waits for the line, which is
+   the router's story: question in, then the decision. `part-*` pulls the four
+   skills apart while the pointer holds them. `plug` slides the connector
+   toward the port. */
+@keyframes xp-write {
+  from {
+    transform: scaleX(0);
+  }
+}
+@keyframes xp-pop {
+  from {
+    transform: scale(0.6);
+  }
+}
+.xp .slab .glyph path.write,
+.xp .slab .glyph path.pop {
+  transform-box: fill-box;
+}
+.xp .slab .glyph path.write {
+  transform-origin: left center;
+}
+.xp .slab .glyph path.pop {
+  transform-origin: center;
+}
+.xp .slab[data-on="true"] .glyph path.write {
+  animation: xp-write 240ms var(--ease-out) backwards;
+}
+.xp .slab[data-on="true"] .glyph path.write + path.write {
+  animation-delay: 120ms;
+}
+.xp .slab[data-on="true"] .glyph path.pop {
+  animation: xp-pop 220ms var(--ease-out) backwards;
+}
+.xp .slab[data-on="true"] .glyph path.write ~ path.pop {
+  animation-delay: 200ms;
+}
+.xp .slab .glyph path.part-tl,
+.xp .slab .glyph path.part-tr,
+.xp .slab .glyph path.part-bl,
+.xp .slab .glyph path.part-br {
+  transition:
+    stroke var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+.xp .slab[data-on="true"] .glyph path.part-tl {
+  transform: translate(-1px, -1px);
+}
+.xp .slab[data-on="true"] .glyph path.part-tr {
+  transform: translate(1px, -1px);
+}
+.xp .slab[data-on="true"] .glyph path.part-bl {
+  transform: translate(-1px, 1px);
+}
+.xp .slab[data-on="true"] .glyph path.part-br {
+  transform: translate(1px, 1px);
+}
+.xp .slab .glyph path.plug {
+  transition:
+    stroke var(--dur-fast) var(--ease-out),
+    transform var(--dur-base) var(--ease-out);
+}
+.xp .slab[data-on="true"] .glyph path.plug {
+  transform: translateX(1.5px);
+}
+/* The keyframes carry delays, which the global reduced-motion rule does not
+   zero — a 0.01ms animation 200ms out would blink the mark 200ms late. Under
+   reduced motion the stories simply do not run; the hover state (accent,
+   hatch) still changes. */
+@media (prefers-reduced-motion: reduce) {
+  .xp .slab .glyph path {
+    animation: none !important;
+  }
 }
 .xp-labels {
   position: relative;
@@ -489,8 +606,14 @@
   opacity: 0;
   transition: opacity 320ms var(--ease-out) calc(var(--i) * 70ms + 140ms);
 }
+/* The delay and duration live inside the shorthand rather than as their own
+   declarations, because `transition-delay` applies to every property in the
+   list: as a bare declaration it also sat on the hover stroke change above,
+   and the leader answered a pointer 300ms late, forever. */
 .willdraw[data-drawn="true"] .leader {
-  transition: stroke-dashoffset 420ms var(--ease-out);
+  transition:
+    stroke-dashoffset 280ms var(--ease-out) 300ms,
+    stroke var(--dur-fast) var(--ease-out);
   stroke-dashoffset: 0;
 }
 .willdraw[data-drawn="true"] .slab polygon:not(.ghost) {
@@ -513,10 +636,6 @@
   opacity: 1;
   transition: opacity 320ms var(--ease-out);
   transition-delay: calc(140ms + var(--i) * 70ms);
-}
-.willdraw[data-drawn="true"] .leader {
-  transition-delay: 300ms;
-  transition-duration: 280ms;
 }
 @media (prefers-reduced-motion: reduce) {
   .willdraw .glyph {
@@ -632,7 +751,13 @@
   width: 6px;
   box-shadow: 66px 0 0 var(--accent);
 }
-.loupe[data-dragging="true"] {
+/* Direct manipulation has no duration: while the hand is on the lens, both the
+   lens and the two tangents tied to it follow it exactly. The flag is on the
+   stage because the tangents are in a sibling element -- on the lens alone it
+   reached only the lens, and the lines eased 260ms behind the hand for the
+   whole drag. */
+.lp-stage[data-dragging="true"] .loupe,
+.lp-stage[data-dragging="true"] .lp-line {
   transition: none;
 }
 .lp-lines {
@@ -897,8 +1022,8 @@
    live with: the accent outline the rest of the sheet uses, on the group's own
    box rather than on the strokes inside it. */
 .sgb-hit:focus-visible {
-  outline: 1.5px solid var(--accent);
-  outline-offset: 2px;
+  outline: 1px dashed var(--accent);
+  outline-offset: 3px;
 }
 .sgb-hit {
   cursor: pointer;

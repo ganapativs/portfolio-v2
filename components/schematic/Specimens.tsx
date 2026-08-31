@@ -491,7 +491,7 @@ export function Specimens() {
             fx?.pluck(620);
           }}
         >
-          draw another
+          draw another eight
         </button>
       </span>
     </div>

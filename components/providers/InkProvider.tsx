@@ -19,7 +19,6 @@ import {
 } from "@/lib/ink";
 import { useFX } from "@/components/providers/FXProvider";
 import { useGlimm } from "glimm/react";
-import { accentPair } from "glimm";
 import { sweepApply } from "@/lib/sweep";
 import { track } from "@/lib/analytics";
 
@@ -92,7 +91,7 @@ export function InkProvider({ children }: { children: React.ReactNode }) {
       const dark = document.documentElement.dataset.theme === "dark";
       const hex = dark ? INK_HEX_DARK : INK_HEX;
       sweepApply(sweep, write, {
-        palette: accentPair(hex[from], hex[ink]),
+        band: { kind: "pair", hexes: [hex[from], hex[ink]] },
         direction: origin ? "ltr" : "ttb",
       });
     }

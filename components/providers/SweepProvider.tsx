@@ -1,34 +1,9 @@
 "use client";
-import { createMeshShader } from "glimm";
 import { GlimmProvider } from "glimm/react";
-import { setSweepController } from "@/lib/sweep";
-
-/**
- * cubic-bezier(.22, 1, .36, 1), the one curve the rest of the site eases on,
- * solved for y at a given x by bisection. Twelve iterations is well past the
- * precision a sweep this long can show.
- *
- * glimm takes an easing function as well as a name, and its named set does not
- * contain this curve. A second easing vocabulary for one element is how a
- * design system starts to come apart, so the curve is solved here instead.
- */
-const bezX = (t: number) =>
-  3 * t * (1 - t) * (1 - t) * 0.22 + 3 * t * t * (1 - t) * 0.36 + t * t * t;
-const bezY = (t: number) => 3 * t * (1 - t) * (1 - t) + 3 * t * t * (1 - t) + t * t * t;
-
-function houseEase(x: number) {
-  let lo = 0;
-  let hi = 1;
-  let t = x;
-  for (let i = 0; i < 12; i++) {
-    const e = bezX(t) - x;
-    if (Math.abs(e) < 1e-4) break;
-    if (e > 0) hi = t;
-    else lo = t;
-    t = (lo + hi) / 2;
-  }
-  return bezY(t);
-}
+import { glimmNow, setSweepController } from "@/lib/sweep";
+// glimm takes an easing function as well as a name, and its named set does not
+// contain this curve. Shared with the rAF-driven motion in the figures.
+import { houseEase } from "@/components/schematic/useReducedMotion";
 
 /**
  * The mesh band, rather than the flat one.
@@ -53,9 +28,15 @@ function houseEase(x: number) {
  * Left off: sparkles and curlWake, which are lovely and belong to a different
  * site; noiseEdge, which fights the straight leading edge; cameraSweep, which
  * moves the whole plane and made the fixed sheet frame look loose.
+ *
+ * `createMeshShader` is reached through `glimmNow()` rather than imported at
+ * the top of this file, because that import put glimm's whole root module in
+ * the root layout chunk on every route. glimm calls this factory
+ * synchronously, from inside `sweep()`, and `sweepApply` awaits the module
+ * before it sweeps -- so by the time anything calls this, it is here.
  */
 const meshFactory: Parameters<typeof GlimmProvider>[0]["shaderFactory"] = (opts) =>
-  createMeshShader({
+  glimmNow()?.createMeshShader({
     ...opts,
     elevation: 0.24,
     ideas: {
@@ -65,7 +46,7 @@ const meshFactory: Parameters<typeof GlimmProvider>[0]["shaderFactory"] = (opts)
       bloom: 1,
       asymmetricSwell: 0.6,
     },
-  });
+  }) ?? null;
 
 /**
  * The sweep that carries a palette change.

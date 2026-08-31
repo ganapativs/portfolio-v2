@@ -43,10 +43,24 @@
   gap: 12px;
   margin-bottom: 12px;
 }
+.pipe-head {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
 .pipe-figlbl {
   font-family: var(--f-mono);
   font-size: 10.5px;
   color: var(--ink-3);
+}
+/* Set as `.panel h2` is, because it is the same thing: this figure sits outside
+   the panels and so cannot inherit their rule. */
+.pipe-head h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 .pipe-note {
   font-family: var(--f-mono);
@@ -571,12 +585,15 @@
   border-radius: var(--r-chip);
   opacity: var(--o-ink);
   transition:
-    filter var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out),
     transform var(--dur-fast) var(--ease-out);
 }
+/* A deeper ink, not a brighter one. `filter: brightness(1.08)` was the closest
+   thing to a glow anywhere in the repo, and a drawing office does not have a
+   light source: pressure lays down more pigment. */
 .pipefig[data-stage="4"] .ui-btn:hover .fill,
 .pipefig[data-stage="4"] .ui-btn:focus-visible .fill {
-  filter: brightness(1.08);
+  background: color-mix(in oklab, var(--accent) 88%, var(--ink));
 }
 .pipefig[data-stage="4"] .ui-btn:active .fill {
   transform: translateY(1px);

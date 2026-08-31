@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useFX } from "@/components/providers/FXProvider";
 import { CHART, STAGES, STAGE_NOTE } from "@/app/(press)/content";
 import { useCoarsePointer } from "./useCoarsePointer";
-import { useReducedMotion } from "./useReducedMotion";
+import { houseEase, useReducedMotion } from "./useReducedMotion";
 import { CAREER_YEARS, identity, STARS_ROUNDED } from "@/lib/resume";
 
 const SNS = "http://www.w3.org/2000/svg";
@@ -483,7 +483,16 @@ export function Pipeline() {
       { threshold: 0.35 },
     );
     io.observe(fig);
-    return () => io.disconnect();
+    return () => {
+      io.disconnect();
+      // The effect that starts this loop is the one that has to stop it. A
+      // sibling effect below happens to cancel the same handle on unmount, so
+      // this was not leaking there -- but a re-run (a `reduced` flip, a new
+      // `render` identity) left the old chain rescheduling itself alongside the
+      // new observer, two passes writing the same scrubber position.
+      cancelAnimationFrame(auto.current);
+      auto.current = 0;
+    };
   }, [render, reduced]);
 
   // ---- markup stage: dom tree ⇆ element highlight --------------------------
@@ -575,9 +584,12 @@ export function Pipeline() {
     }
     const t0 = performance.now();
     const step = (now: number) => {
-      const p = Math.min((now - t0) / 320, 1);
-      const q = p - 1;
-      const e = 1 + 2.70158 * q * q * q + 1.70158 * q * q;
+      // 260ms on the house out-curve. This was 320ms on an easeOutBack, which
+      // was the only easing on the site outside --ease-out/--ease-in-out and
+      // the only one anywhere that overshot: the handles sprang past the curve
+      // they were returning to and came back. The rest of the drawing settles.
+      const p = Math.min((now - t0) / 260, 1);
+      const e = houseEase(p);
       cur.current = {
         c1: [f1[0] + (DEF.c1[0] - f1[0]) * e, f1[1] + (DEF.c1[1] - f1[1]) * e],
         c2: [f2[0] + (DEF.c2[0] - f2[0]) * e, f2[1] + (DEF.c2[1] - f2[1]) * e],
@@ -595,8 +607,15 @@ export function Pipeline() {
   };
 
   const onHandleDown = (e: React.PointerEvent<SVGCircleElement>) => {
-    const key = e.currentTarget.dataset.h as "c1" | "c2" | undefined;
-    if (!key) return;
+    const at = toVB(e.clientX, e.clientY);
+    // Which handle this press belongs to is decided by distance, not by which
+    // circle the browser happened to hit. The two hit areas are r=11 with their
+    // centres 13.3px apart, so they overlap by about 9px, and in that overlap
+    // the one painted second won every time -- c1 was unreachable through most
+    // of its own area. Nearest-centre splits the overlap down the middle
+    // instead, and each handle keeps a half it can be grabbed by.
+    const sq = (c: number[]) => (c[0] - at[0]) ** 2 + (c[1] - at[1]) ** 2;
+    const key: "c1" | "c2" = sq(cur.current.c1) <= sq(cur.current.c2) ? "c1" : "c2";
     // A grab interrupts the spring home, rather than fighting it.
     cancelAnimationFrame(bendRaf.current);
     bendRaf.current = 0;
@@ -605,9 +624,13 @@ export function Pipeline() {
       el.setPointerCapture(e.pointerId);
     } catch {}
     fx?.press();
+    // Where inside the handle it was taken hold of. Without it the handle
+    // snapped its centre onto the pointer on the first move, so a grab near the
+    // edge teleported the curve before the hand had gone anywhere.
+    const off: [number, number] = [cur.current[key][0] - at[0], cur.current[key][1] - at[1]];
     const move = (ev: PointerEvent) => {
       const p = toVB(ev.clientX, ev.clientY);
-      cur.current[key] = [cl(p[0], 30, 262), cl(p[1], -24, 88)];
+      cur.current[key] = [cl(p[0] + off[0], 30, 262), cl(p[1] + off[1], -24, 88)];
       renderCurve();
     };
     const up = () => {
@@ -684,7 +707,14 @@ export function Pipeline() {
   return (
     <div className="pipefig" ref={figRef} data-stage="0">
       <div className="pipe-top">
-        <span className="pipe-figlbl">fig. 6 · the pipeline</span>
+        {/* The plate number and the figure's name, the same pair every other
+            figure on the sheet carries. This was the label alone, so the
+            largest drawing on the page was the one absent from the document
+            outline: a reader moving by heading went straight past it. */}
+        <div className="pipe-head">
+          <span className="pipe-figlbl">fig. 6 · the pipeline</span>
+          <h2>Sketch to shipped</h2>
+        </div>
         {/* Keyed on the stage so it replays `cap-in`: the note is a different
               sentence at every position, and swapped in place it reads as a
               flicker rather than as a caption changing. */}

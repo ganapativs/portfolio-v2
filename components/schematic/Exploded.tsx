@@ -24,7 +24,14 @@ import { useDrawOnFirstView } from "./useDrawOnFirstView";
  * built from free angles and curves collapses into a scribble. The first two
  * sets did exactly that.
  */
-type Stroke = { d: string; solid?: boolean; dash?: boolean };
+/**
+ * `act` is the stroke's part in the glyph's hover story: a class the CSS
+ * animates when the slab is on. Transform-only — scale and translate in the
+ * glyph's own plane — because a dash-draw is off the table here (see the
+ * pathLength × non-scaling-stroke note in home.css). One local unit lands as
+ * about 2px on screen after the projection and the viewBox scale.
+ */
+type Stroke = { d: string; solid?: boolean; dash?: boolean; act?: string };
 
 const PARTS: { name: string; note: string; glyph: Stroke[] }[] = [
   {
@@ -35,8 +42,9 @@ const PARTS: { name: string; note: string; glyph: Stroke[] }[] = [
     glyph: [
       { d: "M-12 -13 H5 L12 -6 V13 H-12 Z" },
       { d: "M5 -13 V-6 H12" },
-      { d: "M-7 0 H7" },
-      { d: "M-7 6 H2" },
+      // The two rules write themselves on hover: the page writes itself.
+      { d: "M-7 0 H7", act: "write" },
+      { d: "M-7 6 H2", act: "write" },
     ],
   },
   {
@@ -46,9 +54,11 @@ const PARTS: { name: string; note: string; glyph: Stroke[] }[] = [
     // are dashed, which is the drawing convention for a thing that is there but
     // not taken. A decision, drawn as a decision.
     glyph: [
-      { d: "M-16 0 H-4" },
+      // On hover the question comes in first, then the decision lands: the
+      // input line writes, and the model it picked pops in after it.
+      { d: "M-16 0 H-4", act: "write" },
       { d: "M-4 -14 H14 V-6 H-4 Z", dash: true },
-      { d: "M-4 -4 H14 V4 H-4 Z", solid: true },
+      { d: "M-4 -4 H14 V4 H-4 Z", solid: true, act: "pop" },
       { d: "M-4 6 H14 V14 H-4 Z", dash: true },
     ],
   },
@@ -58,10 +68,12 @@ const PARTS: { name: string; note: string; glyph: Stroke[] }[] = [
     // Four parts on a grid. A skill is a part you can pull out and test on its
     // own, which is the whole point of the layer.
     glyph: [
-      { d: "M-14 -14 H-2 V-2 H-14 Z" },
-      { d: "M2 -14 H14 V-2 H2 Z" },
-      { d: "M-14 2 H-2 V14 H-14 Z" },
-      { d: "M2 2 H14 V14 H2 Z" },
+      // On hover the four parts pull apart, which is the note acted out: a
+      // skill is a part you can take out on its own.
+      { d: "M-14 -14 H-2 V-2 H-14 Z", act: "part-tl" },
+      { d: "M2 -14 H14 V-2 H2 Z", act: "part-tr" },
+      { d: "M-14 2 H-2 V14 H-14 Z", act: "part-bl" },
+      { d: "M2 2 H14 V14 H2 Z", act: "part-br" },
     ],
   },
   {
@@ -72,7 +84,8 @@ const PARTS: { name: string; note: string; glyph: Stroke[] }[] = [
     // cross is the half that makes the tick mean anything.
     glyph: [
       { d: "M-15 -13 H-1 V1 H-15 Z" },
-      { d: "M-12 -6 L-9 -3 L-4 -10" },
+      // The tick pops on hover: the eval registering a pass.
+      { d: "M-12 -6 L-9 -3 L-4 -10", act: "pop" },
       { d: "M1 -1 H15 V13 H1 Z" },
       { d: "M4 2 L12 10" },
       { d: "M12 2 L4 10" },
@@ -86,11 +99,13 @@ const PARTS: { name: string; note: string; glyph: Stroke[] }[] = [
     // anyway: this is the metaphor its own documentation opens with, that MCP
     // is a USB-C port for AI applications. So a port with the tongue in it, and
     // a plug on a lead going in.
+    // The plug — lead, body and both prongs — slides toward the port on hover.
+    // The connector connecting, which is the whole layer in one gesture.
     glyph: [
-      { d: "M-16 0 H-11" },
-      { d: "M-11 -7 H-3 V7 H-11 Z" },
-      { d: "M-3 -3 H2" },
-      { d: "M-3 3 H2" },
+      { d: "M-16 0 H-11", act: "plug" },
+      { d: "M-11 -7 H-3 V7 H-11 Z", act: "plug" },
+      { d: "M-3 -3 H2", act: "plug" },
+      { d: "M-3 3 H2", act: "plug" },
       { d: "M2 -11 H16 V11 H2 Z" },
       { d: "M7 -4 H12 V4 H7 Z", solid: true },
     ],
@@ -202,12 +217,32 @@ export function Exploded({ fig, body }: { fig: string; body: string }) {
                 <g
                   className="slab"
                   data-on={on === i}
+                  // Which side of the hovered layer this slab is on. The CSS
+                  // opens the stack at that seam: above rides up, below
+                  // settles, and the hovered slab lifts into the gap.
+                  data-rel={on < 0 || on === i ? undefined : i < on ? "above" : "below"}
                   style={{ ["--i" as string]: i }}
                   onPointerEnter={() => enter(i)}
                   onPointerLeave={leave}
                   onClick={() => enter(i)}
                 >
-                  {/* The setting-out line.
+                  {/* The hit area, and it does not move.
+
+                      The visible slab lifts on hover, and a slab that is its
+                      own hit target lifts out from under a pointer resting on
+                      its edge: leave fires, it drops back onto the pointer,
+                      enter fires, forever. So the pointer talks only to this
+                      static hexagon — the slab's full footprint, top face plus
+                      depth — and everything that moves sits in `.lift` with
+                      pointer-events off. Hover is then a function of where the
+                      pointer is on the paper, never of where the drawing
+                      happens to be mid-motion. */}
+                  <polygon
+                    className="hit"
+                    points={`${CX},${y} ${CX + HALF_W},${m} ${CX + HALF_W},${m + DEPTH} ${CX},${b + DEPTH} ${CX - HALF_W},${m + DEPTH} ${CX - HALF_W},${m}`}
+                  />
+                  <g className="lift">
+                    {/* The setting-out line.
                       
                       The slab's own outline, faint and undashed, present from
                       the first byte of HTML and rubbed out once the inked line
@@ -217,20 +252,20 @@ export function Exploded({ fig, body }: { fig: string; body: string }) {
                       its dash offset and the faces are hidden by fill-opacity,
                       so there is nothing left to see. A drawing is set out in
                       pencil before it is inked, so that is what is there. */}
-                  <polygon className="ghost" points={top} />
-                  <polygon
-                    className="side"
-                    points={`${CX - HALF_W},${m} ${CX},${b} ${CX},${b + DEPTH} ${CX - HALF_W},${m + DEPTH}`}
-                    pathLength="1"
-                  />
-                  <polygon
-                    className="side"
-                    points={`${CX},${b} ${CX + HALF_W},${m} ${CX + HALF_W},${m + DEPTH} ${CX},${b + DEPTH}`}
-                    pathLength="1"
-                  />
-                  <polygon points={top} pathLength="1" />
-                  <polygon className="hatch" points={top} />
-                  {/* Projected into the slab's own plane, so the symbol lies
+                    <polygon className="ghost" points={top} />
+                    <polygon
+                      className="side"
+                      points={`${CX - HALF_W},${m} ${CX},${b} ${CX},${b + DEPTH} ${CX - HALF_W},${m + DEPTH}`}
+                      pathLength="1"
+                    />
+                    <polygon
+                      className="side"
+                      points={`${CX},${b} ${CX + HALF_W},${m} ${CX + HALF_W},${m + DEPTH} ${CX},${b + DEPTH}`}
+                      pathLength="1"
+                    />
+                    <polygon points={top} pathLength="1" />
+                    <polygon className="hatch" points={top} />
+                    {/* Projected into the slab's own plane, so the symbol lies
                       on the face rather than being pasted over it. The matrix
                       is the face's geometry, not a guess; see GS and GK above.
 
@@ -239,21 +274,22 @@ export function Exploded({ fig, body }: { fig: string; body: string }) {
                       internal detail: what reads is four strokes or fewer, wide
                       apart, and one solid mark where something has to be
                       singled out. */}
-                  <g
-                    className="glyph"
-                    transform={`translate(${CX} ${m}) matrix(${GS} ${-GK} ${GS} ${GK} 0 0)`}
-                  >
-                    {p.glyph.map((g) => (
-                      <path
-                        key={g.d}
-                        d={g.d}
-                        className={g.solid ? "solid" : g.dash ? "dash" : undefined}
-                      />
-                    ))}
+                    <g
+                      className="glyph"
+                      transform={`translate(${CX} ${m}) matrix(${GS} ${-GK} ${GS} ${GK} 0 0)`}
+                    >
+                      {p.glyph.map((g) => {
+                        const cls = [g.solid && "solid", g.dash && "dash", g.act]
+                          .filter(Boolean)
+                          .join(" ");
+                        return <path key={g.d} d={g.d} className={cls || undefined} />;
+                      })}
+                    </g>
                   </g>
                 </g>
                 <path
                   className="leader"
+                  data-on={on === i}
                   d={`M${CX + HALF_W + 2} ${m} L${W - 4} ${m}`}
                   pathLength="1"
                 />

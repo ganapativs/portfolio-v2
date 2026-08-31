@@ -394,15 +394,36 @@ function NorthArrow() {
         last = 0;
       }
     };
+    // The compass's own box, cached. This was measured on every pointermove,
+    // which is a forced layout per mouse event for a box that only moves when
+    // the page scrolls or the window resizes.
+    let box: DOMRect | null = null;
+    const forget = () => {
+      box = null;
+    };
     const onMove = (e: PointerEvent) => {
-      const r = el.getBoundingClientRect();
+      const r = (box ??= el.getBoundingClientRect());
       target = Math.atan2(e.clientX - (r.left + 9), -(e.clientY - (r.top + 9)));
-      if (!raf && !document.hidden && !reduced.current) raf = requestAnimationFrame(frame);
+      // Reduced motion means the needle does not travel. It does not mean the
+      // needle stops working: it was dead under the preference, pointing north
+      // whatever the pointer did, because nothing ever started the loop and the
+      // loop bailed anyway. It snaps to the bearing instead, which is the same
+      // thing Ruler.tsx does with its active tick.
+      if (reduced.current) {
+        ang = target;
+        g.style.transform = `rotate(${ang}rad)`;
+        return;
+      }
+      if (!raf && !document.hidden) raf = requestAnimationFrame(frame);
     };
     window.addEventListener("pointermove", onMove, { passive: true });
+    window.addEventListener("scroll", forget, { passive: true });
+    window.addEventListener("resize", forget);
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("scroll", forget);
+      window.removeEventListener("resize", forget);
     };
   }, [reduced]);
 

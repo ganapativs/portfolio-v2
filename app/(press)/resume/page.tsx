@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PrintCV } from "@/components/schematic/PrintCV";
 import {
   CAREER_YEARS,
@@ -59,9 +60,14 @@ export default async function ResumePage() {
               </a>
             </div>
             <div>
-              <a href={SITE_URL} data-analytics="cta:resume.site">
+              {/* A <Link>, not an <a href={SITE_URL}>. It is an internal
+                  navigation and was doing a full page load to reach a route
+                  the client already has. It also puts `next/link` in this
+                  route's own entry graph -- see the note in AGENTS.md about
+                  the home-page chunks this route used to drag along. */}
+              <Link href="/" data-analytics="cta:resume.site">
                 meetguns.com
-              </a>
+              </Link>
             </div>
             <div>
               <a href="https://github.com/ganapativs" data-analytics="cta:resume.github">
@@ -184,7 +190,7 @@ export default async function ResumePage() {
               </div>
             ))}
 
-            <h2 className="cv-h2">Languages</h2>
+            <h2 className="cv-h2">Spoken languages</h2>
             <div className="cv-block cv-item-note">English, Hindi, Kannada.</div>
           </div>
         </div>

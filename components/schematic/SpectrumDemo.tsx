@@ -102,7 +102,7 @@ export function SpectrumDemo() {
           fx?.pluck(560);
         }}
       >
-        draw another
+        draw another palette
       </button>
     </div>
   );

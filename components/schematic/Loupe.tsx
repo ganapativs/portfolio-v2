@@ -225,6 +225,9 @@ export function Loupe() {
     });
     return best;
   };
+  const setDragFlag = (on: boolean) => {
+    if (stageRef.current) stageRef.current.dataset.dragging = String(on);
+  };
   const localOf = (e: React.PointerEvent) => {
     const base = stageRef.current?.getBoundingClientRect();
     return { x: e.clientX - (base?.left ?? 0), y: e.clientY - (base?.top ?? 0) };
@@ -295,7 +298,11 @@ export function Loupe() {
           measure();
           dragging.current = true;
           moved.current = false;
-          e.currentTarget.dataset.dragging = "true";
+          // On the stage rather than on the lens: the two leader lines are in a
+          // sibling element, and they were still easing over 260ms while the
+          // lens itself followed the hand exactly, so they trailed behind it
+          // for the whole drag.
+          setDragFlag(true);
           try {
             e.currentTarget.setPointerCapture(e.pointerId);
           } catch {}
@@ -318,11 +325,18 @@ export function Loupe() {
           // next word every single time.
           if (!dragging.current) return;
           dragging.current = false;
-          e.currentTarget.dataset.dragging = "false";
+          setDragFlag(false);
           if (moved.current) return;
           const i = wordAt(e.clientX, e.clientY);
           if (i >= 0 && i !== cur) goTo(i);
           else goTo((cur + 1) % WORDS.length);
+        }}
+        // Without this the lens stays latched: the browser can take a captured
+        // pointer away -- a system gesture, a context menu, a touch turning into
+        // a scroll -- and then pointerup never comes.
+        onPointerCancel={() => {
+          dragging.current = false;
+          setDragFlag(false);
         }}
         onKeyDown={(e) => {
           if (e.key === "ArrowRight" || e.key === "ArrowDown") goTo(cur + 1);
@@ -396,7 +410,13 @@ export function Loupe() {
             </svg>
           </div>
         ) : (
-          <>
+          /* Keyed on the word, or React reuses these two nodes and the
+             `lp-swap` animation on `.lp-detail > *` never restarts. It fired
+             only when the branch above flipped, so for 16 of the 17 stops the
+             box swapped at t=0 while the lens was still travelling -- which is
+             precisely the behaviour the comment on that keyframe says it
+             fixed. */
+          <Fragment key={cur}>
             <div className="lp-word">
               {WORDS[cur]}
               <span className="lp-hair" style={{ bottom: "0.148em" }} />
@@ -407,7 +427,7 @@ export function Loupe() {
               <br />
               baseline
             </span>
-          </>
+          </Fragment>
         )}
       </div>
 

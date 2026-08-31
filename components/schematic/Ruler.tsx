@@ -124,10 +124,23 @@ export function Ruler() {
   useEffect(() => {
     if (secs.length === 0) return;
     const io = new IntersectionObserver(
+      // Whichever section fills more of the band wins, not whichever the
+      // observer happened to report last. A fast scroll delivers two entries in
+      // one callback and last-wins made the tick depend on array order, so the
+      // marker could land on the section being left rather than the one being
+      // entered.
+      //
+      // Overlap height rather than `intersectionRatio`: the ratio is measured
+      // against each target's own height, so a short section scores 1.0 while a
+      // tall one filling the whole band scores 0.05, and the ruler would point
+      // at the smaller of the two.
       (entries) => {
+        let best: IntersectionObserverEntry | null = null;
         for (const e of entries) {
-          if (e.isIntersecting) setActive(e.target.id);
+          if (!e.isIntersecting) continue;
+          if (!best || e.intersectionRect.height > best.intersectionRect.height) best = e;
         }
+        if (best) setActive(best.target.id);
       },
       { rootMargin: "-33% 0px -60% 0px" },
     );

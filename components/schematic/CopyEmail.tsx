@@ -60,17 +60,25 @@ export function CopyEmail() {
 
   return (
     <button type="button" className="chip" ref={ref} data-copied={copied} onClick={copy}>
-      {copied ? (
-        <span>copied · {identity.email}</span>
-      ) : coarse ? (
-        // No keyboard on the other side of the glass, and on a phone this is
-        // the only contact affordance above the footer.
-        <span>tap to copy my email</span>
-      ) : (
-        <span>
-          press <kbd>E</kbd> to copy my email
-        </span>
-      )}
+      {/* Both strings are always here, stacked in one grid cell with the idle
+          one hidden, so the chip is as wide as the longer of the two at rest
+          and does not grow by 18px the instant it is pressed. `visibility`
+          rather than `opacity`: the hidden string keeps its space but leaves
+          the accessibility tree and the selection, so the button has one
+          accessible name at a time. Same pattern as the reserved note slots on
+          figs. 1 and 3. */}
+      <span className="cp-slot">
+        <span data-on={copied}>copied · {identity.email}</span>
+        {coarse ? (
+          // No keyboard on the other side of the glass, and on a phone this is
+          // the only contact affordance above the footer.
+          <span data-on={!copied}>tap to copy my email</span>
+        ) : (
+          <span data-on={!copied}>
+            press <kbd>E</kbd> to copy my email
+          </span>
+        )}
+      </span>
     </button>
   );
 }

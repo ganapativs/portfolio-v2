@@ -67,8 +67,16 @@ export function DitherField() {
     let raf = 0;
     let last = 0;
 
+    // What the last frame actually painted, so this one can clear that box
+    // instead of the whole viewport. The light covers a 910px square at most
+    // and the canvas is the full window, so clearing everything was wiping
+    // several times the area it was about to draw into, every frame, at
+    // whatever the display's refresh rate happens to be.
+    let dirty: [number, number, number, number] | null = null;
+
     const draw = () => {
-      c.clearRect(0, 0, W, H);
+      if (dirty) c.clearRect(dirty[0], dirty[1], dirty[2], dirty[3]);
+      dirty = null;
       c.fillStyle = dot;
       if (a <= 0.02) return;
       const bx = cx;
@@ -81,6 +89,9 @@ export function DitherField() {
       const j0 = Math.max(0, Math.floor((by - R) / CELL));
       const j1 = Math.min(Math.ceil(H / CELL), Math.ceil((by + R) / CELL));
       const s2 = 2 * sigma * sigma;
+      // The cell grid the loops below cover, plus one dot so the last column
+      // and row are fully erased next time.
+      dirty = [i0 * CELL, j0 * CELL, (i1 - i0) * CELL + DOT, (j1 - j0) * CELL + DOT];
       for (let j = j0; j < j1; j++) {
         const y = j * CELL;
         const dy = y - by;
@@ -103,6 +114,9 @@ export function DitherField() {
       cv.height = H * d;
       c.setTransform(d, 0, 0, d, 0, 0);
       dot = getComputedStyle(root).getPropertyValue("--dither-dot").trim();
+      // Setting width/height blanks the canvas, so there is nothing left to
+      // clear and a stale dirty box would point at the old dimensions.
+      dirty = null;
       draw();
     };
 

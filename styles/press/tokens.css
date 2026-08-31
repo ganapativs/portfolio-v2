@@ -216,15 +216,10 @@
      narrow. Correct setting wins; the cut is 9.7 kB either way. */
   --f-kannada: var(--font-anek-kannada), var(--font-hanken), sans-serif;
 
-  /* Type scale, ratio 1.25 — 12 · 15 · 19 · 24 · 30 · 37 · 46 · 58 */
-  --t-1: 12px;
-  --t-2: 15px;
-  --t-3: 19px;
-  --t-4: 24px;
-  --t-5: 30px;
-  --t-6: 37px;
-  --t-7: 46px;
-  --t-8: 58px;
+  /* How far a control gives under a press. One value, because four sibling
+     controls pressing by four different amounts (0.88 / 0.92 / 0.94 / 0.97)
+     reads as four different mechanisms. `.chip` documents its own exception. */
+  --press: 0.94;
 
   /* Spacing — 4 · 8 · 12 · 16 · 24 · 32 · 48 · 64 · 96 · 144 */
   --s-1: 4px;
