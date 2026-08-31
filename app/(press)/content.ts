@@ -161,7 +161,7 @@ export const PARTS: readonly Part[] = [
   },
   {
     name: "react-spectrum",
-    spec: "text placeholders from any string",
+    spec: "colourful text placeholders · React only",
     year: "2019",
     href: "https://github.com/ganapativs/react-spectrum",
   },
@@ -258,5 +258,5 @@ export const SPECTRUM = {
   // 1.9 kB is the gzipped size of dist/react-spectrum.es.js, which is the
   // build this page actually loads. "No dependencies" was not true either:
   // React is a dependency, and saying so costs nothing.
-  body: "A small library that turns any string into a colourful text placeholder. It is 1.9 kB gzipped and needs nothing but React. The one below is the real package, drawing in the ink you picked.",
+  body: "A small library that lays out a paragraph of colourful text placeholders from a palette and a few shape rules. It is 1.9 kB gzipped and needs nothing but React. The one below is the real package, drawing in the ink you picked.",
 } as const;

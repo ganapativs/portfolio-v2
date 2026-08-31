@@ -216,7 +216,7 @@ export const flagships: Flagship[] = [
     stars: 318,
     year: "2019",
     repo: "https://github.com/ganapativs/react-spectrum",
-    blurb: "Generate colourful text placeholders, from any string.",
+    blurb: "Generate colourful text placeholders from a palette and a few shape rules.",
   },
   {
     name: "preact-redux-autocompete",

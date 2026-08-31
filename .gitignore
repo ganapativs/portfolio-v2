@@ -17,6 +17,9 @@
 /.next/
 /out/
 
+# generated markdown mirrors (scripts/gen-md.ts, run by the dev/build scripts)
+/public/blog/
+
 # production
 /build
 

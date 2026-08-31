@@ -860,6 +860,7 @@ export function Pipeline() {
                   className="hit h-g1"
                   r="11"
                   data-h="c1"
+                  role="button"
                   tabIndex={-1}
                   aria-label="Bend the curve into the 2019 jump"
                   onPointerDown={onHandleDown}
@@ -869,6 +870,7 @@ export function Pipeline() {
                   className="hit h-g2"
                   r="11"
                   data-h="c2"
+                  role="button"
                   tabIndex={-1}
                   aria-label="Bend the curve out of the 2019 jump"
                   onPointerDown={onHandleDown}

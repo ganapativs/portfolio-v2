@@ -10,6 +10,10 @@
     "module": "esnext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
+    // scripts/gen-md.ts runs under plain node (native type stripping), so its
+    // imports are relative with explicit .ts extensions. Legal only with this
+    // flag, which itself is legal only because noEmit is on.
+    "allowImportingTsExtensions": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
     "incremental": true,

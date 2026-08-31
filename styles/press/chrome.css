@@ -1126,6 +1126,69 @@ h2.sec-label {
   font-size: 11px;
   padding: 4px 9px;
 }
+/* A link, not a chip: bare at rest, and it takes a box under the pointer the
+   same way the marks beside it do — transparent border to --rule, the accent
+   wash, the accent ink, --press on the way down. It is in their row, so it
+   answers the way they do. The 30px floor keeps the target over 24px and
+   centres the balloon on the chip's cap line. */
+.tb-cv {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 30px;
+  padding-inline: 8px;
+  /* Optical, not geometric. The row's 14px gap is measured between boxes, and
+     the marks that follow carry 7.5px of their own inset inside a 28px target,
+     so the space you see on the right of the word was 30.5px against 23px on
+     the left of the balloon. Their inset is pulled back here, where the thing
+     being aligned is, and the two gaps read the same. */
+  margin-inline-end: -7px;
+  border: 1px solid transparent;
+  border-radius: var(--r-chip);
+  font-family: var(--f-mono);
+  font-size: 11px;
+  color: var(--ink-3);
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+/* The balloon. A drawing points at another sheet with a reference in a circle,
+   so that is what this is: the one circle in the title block that is a circle
+   because the drawing office draws it that way. --r-point, the same radius as
+   the loupe and the station dots. Its ring is a drawn line at rest and takes
+   the ink with the rest of the control. */
+.cv-balloon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  flex: none;
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r-point);
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+/* No resting state for the current page. The marks beside it do not mark
+   themselves either, and a permanently washed box in the corner of the résumé
+   is a highlight nobody asked for. The attribute stays for the screen reader. */
+.tb-cv:hover,
+.tb-cv:focus-visible {
+  color: var(--accent);
+  border-color: var(--rule);
+  background: var(--accent-soft);
+}
+.tb-cv:hover .cv-balloon,
+.tb-cv:focus-visible .cv-balloon {
+  border-color: currentColor;
+}
+.tb-cv:active {
+  transform: scale(var(--press));
+}
 .tb-contact .socials {
   gap: 2px;
 }

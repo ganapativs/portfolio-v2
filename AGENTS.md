@@ -53,8 +53,12 @@ Stale agent rules lie. The pairs that actually break:
   stylesheet is parsed — **⇆ the print palette in `styles/press/resume.css`**.
 - `app/**/page.tsx` route changes ⇆ this file's route map ⇆ `app/sitemap.ts` ⇆
   `app/llms.txt/route.ts`.
-- `next.config.ts` (headers, redirects, rewrites, experimental flags, image
-  config) ⇆ this file. It also carries **`remarkImageSize`**, which stamps
+- `next.config.ts` (experimental flags, image config, `output: "export"`) ⇆
+  this file. Headers and redirects are **not** in it any more — `output:
+"export"` ignores `headers()`/`redirects()`/`rewrites()` silently, so they
+  live in `public/_headers` and `public/_redirects` (Cloudflare parses both at
+  deploy) and the `.md` rewrite became real files from `scripts/gen-md.ts`.
+  It still carries **`remarkImageSize`**, which stamps
   intrinsic `width`/`height` onto local MDX images at compile time by reading
   the PNG or WebP header. It is the CLS guard `ZoomImage` has always documented
   and never received. It reads the file from `public/`, so **an MDX image path
@@ -65,8 +69,10 @@ Stale agent rules lie. The pairs that actually break:
 - `lib/resume.ts` `skills` ⇆ the `MATERIALS` list in `app/(press)/content.ts`
   (throws at module load if a name is renamed).
 - **Every number about the public work comes from `PUBLIC_WORK` in
-  `lib/resume.ts`**, and the star total and repo count are read live through
-  `lib/github.ts` where a page can await it. Four surfaces used to print
+  `lib/resume.ts`**, and the star total and repo count are read through
+  `lib/github.ts` where a page can await it (baked in at build), then refreshed
+  in the browser by `components/LiveStars.tsx` — both ends share the one fetch
+  in `lib/stars.ts`. Four surfaces used to print
   hand-typed copies and they were wrong: 55 repos (it is 38 original, 194
   including forks) and 15 npm packages (16). The comment in `resume.ts` carries
   the two API calls that verify them.
@@ -110,24 +116,24 @@ Do not reintroduce these, and do not "restore" doc text describing them.
 
 ## Stack snapshot
 
-| Slot            | Version                        | Notes                                                                                                                                                                                               |
-| --------------- | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Next.js         | 16.3.3                         | App Router, **`--webpack` build** (not Turbopack), MDX via `@next/mdx`                                                                                                                              |
-| React           | 19.2.8                         | `<ViewTransition>` from `react`. 16.3 turns view transitions on with no config; the flag is gone                                                                                                    |
-| TypeScript      | ^7                             | strict, `target: ES2017`, `moduleResolution: bundler`, `@/*` → repo root                                                                                                                            |
-| Tailwind CSS    | ^4                             | CSS-only config (no `tailwind.config.*`)                                                                                                                                                            |
-| Linter          | oxlint ^1.80                   | Rust-based; do NOT add ESLint                                                                                                                                                                       |
-| Formatter       | oxfmt ^0.65                    | Rust-based; do NOT add Prettier                                                                                                                                                                     |
-| Package manager | pnpm                           | `pnpm-lock.yaml` committed; never `npm`/`yarn`/`bun`                                                                                                                                                |
-| MDX             | @next/mdx ^16.3                | `remark-gfm`, `remark-smartypants`, `rehype-slug`, `rehype-autolink-headings`, `rehype-highlight`                                                                                                   |
-| Charts          | @microcharts/react ^0.18       | **No longer blog-only** — fig. 2 on the home sheet is a tray of them. Tokens bridged at `:root` in `styles/press/tokens.css` (`--mc-*`), not at `.prose`                                            |
-| Sweep           | glimm ^0.3                     | The WebGL band that carries every palette change. `GlimmProvider` is the outermost provider; **its root module is imported dynamically** — see "Sweep contract"                                     |
-| Live specimen   | react-spectrum ^1.3            | His own 2019 package, running in fig. 4. **Imported by ESM file path** with a type shim at the repo root — see the trap below                                                                       |
-| Dialog          | @base-ui/react ^1.7            | One use: the `?` shortcut help sheet (`components/shortcuts/ShortcutHelp.tsx`)                                                                                                                      |
-| Image zoom      | medium-zoom ^1.1               | `components/mdx/ZoomImage.tsx`, essays only. It takes over the `<img>`, which is why the portrait and the MDX images are raw `<img>` and not `next/image`                                           |
-| Deploy          | @opennextjs/cloudflare ^1      | The site runs on **Cloudflare Workers**. `wrangler.jsonc` + `open-next.config.ts`; ship with `pnpm cf:deploy`. `export const runtime = "edge"` is refused by the adapter — do not add it anywhere   |
-| Fonts           | next/font                      | Hanken Grotesk + IBM Plex Mono from Google. Anek Kannada is **self-hosted and subsetted**. `@fontsource/hanken-grotesk` and `@fontsource/ibm-plex-mono` exist so the OG renderer can read raw files |
-| Browsers        | `browserslist` in package.json | Chrome/Edge 111, Firefox 128, Safari/iOS 16.4. Not arbitrary: the design is built on `oklch()`, `color-mix()` and `@property`, none of which exist below it                                         |
+| Slot            | Version                        | Notes                                                                                                                                                                                                                                             |
+| --------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Next.js         | 16.3.3                         | App Router, **`--webpack` build** (not Turbopack), MDX via `@next/mdx`                                                                                                                                                                            |
+| React           | 19.2.8                         | `<ViewTransition>` from `react`. 16.3 turns view transitions on with no config; the flag is gone                                                                                                                                                  |
+| TypeScript      | ^7                             | strict, `target: ES2017`, `moduleResolution: bundler`, `@/*` → repo root                                                                                                                                                                          |
+| Tailwind CSS    | ^4                             | CSS-only config (no `tailwind.config.*`)                                                                                                                                                                                                          |
+| Linter          | oxlint ^1.80                   | Rust-based; do NOT add ESLint                                                                                                                                                                                                                     |
+| Formatter       | oxfmt ^0.65                    | Rust-based; do NOT add Prettier                                                                                                                                                                                                                   |
+| Package manager | pnpm                           | `pnpm-lock.yaml` committed; never `npm`/`yarn`/`bun`                                                                                                                                                                                              |
+| MDX             | @next/mdx ^16.3                | `remark-gfm`, `remark-smartypants`, `rehype-slug`, `rehype-autolink-headings`, `rehype-highlight`                                                                                                                                                 |
+| Charts          | @microcharts/react ^0.18       | **No longer blog-only** — fig. 2 on the home sheet is a tray of them. Tokens bridged at `:root` in `styles/press/tokens.css` (`--mc-*`), not at `.prose`                                                                                          |
+| Sweep           | glimm ^0.3                     | The WebGL band that carries every palette change. `GlimmProvider` is the outermost provider; **its root module is imported dynamically** — see "Sweep contract"                                                                                   |
+| Live specimen   | react-spectrum ^1.3            | His own 2019 package, running in fig. 4. **Imported by ESM file path** with a type shim at the repo root — see the trap below                                                                                                                     |
+| Dialog          | @base-ui/react ^1.7            | One use: the `?` shortcut help sheet (`components/shortcuts/ShortcutHelp.tsx`)                                                                                                                                                                    |
+| Image zoom      | medium-zoom ^1.1               | `components/mdx/ZoomImage.tsx`, essays only. It takes over the `<img>`, which is why the portrait and the MDX images are raw `<img>` and not `next/image`                                                                                         |
+| Deploy          | Workers static assets          | **`output: "export"`** → `out/`, served by Cloudflare Workers static assets. No worker script, no OpenNext, no R2. `wrangler.jsonc` is assets-only; headers/redirects live in `public/_headers` + `public/_redirects`; ship with `pnpm cf:deploy` |
+| Fonts           | next/font                      | Hanken Grotesk + IBM Plex Mono from Google. Anek Kannada is **self-hosted and subsetted**. `@fontsource/hanken-grotesk` and `@fontsource/ibm-plex-mono` exist so the OG renderer can read raw files                                               |
+| Browsers        | `browserslist` in package.json | Chrome/Edge 111, Firefox 128, Safari/iOS 16.4. Not arbitrary: the design is built on `oklch()`, `color-mix()` and `@property`, none of which exist below it                                                                                       |
 
 ### Two dependency traps
 
@@ -188,13 +194,16 @@ lib/
   fonts.ts           The three faces
   mark.ts            The G, as raw path data — the one copy every renderer shares
   icon-png.tsx       markPng(size, {maskable}) — every PNG icon the site serves
-  github.ts          Live star counts for the résumé (ISR)
+  stars.ts           The raw GitHub star fetch — shared by the build and the browser
+  github.ts          Build-time star counts + the hand-checked fallback
   analytics/         track() + the GA4 adapter. See "Analytics".
   jsonld.tsx (.tsx, not .ts), metadata.ts, og.tsx, resume.ts
 fonts/               Self-hosted faces + their licence. Currently one: the Anek
                      Kannada name cut (scripts/subset-kannada.py).
-scripts/             gen-favicon.py · gen-pwa-screenshots.sh · subset-kannada.py ·
-                     submit-index.mjs. All manual; all outputs committed.
+scripts/             gen-md.ts (markdown mirrors, run by dev/build, output
+                     gitignored) · gen-favicon.py · gen-pwa-screenshots.sh ·
+                     subset-kannada.py · submit-index.mjs (the rest manual,
+                     outputs committed).
 styles/
   press.css          Entry point — the only global stylesheet. Import order IS cascade order.
   press/             tokens · base · chrome · home · pipeline · essay ·
@@ -216,9 +225,9 @@ Unchanged from the previous design except that **every page now renders inside
 | `/`                                            | `app/(press)/page.tsx`                                       | Home — the subject, six figures, parts list, revisions. **Absorbed /about and /work.**                                               |
 | `/blog`                                        | `app/(press)/blog/page.tsx`                                  | Index of `published` posts                                                                                                           |
 | `/blog/<slug>`                                 | `app/(press)/blog/[slug]/page.tsx`                           | `generateStaticParams` from `published`; loaders are a hardcoded slug→import map                                                     |
-| `/blog/<slug>.md`                              | `app/api/blog-md/[slug]/route.ts` + a rewrite in next.config | The post as plain markdown. Static; imports and ESM exports stripped, prose left alone                                               |
+| `/blog/<slug>.md`                              | `scripts/gen-md.ts` → `public/blog/<slug>.md`                | The post as plain markdown, generated by the `dev`/`build` scripts (gitignored). Imports and ESM exports stripped, prose left alone  |
 | `/resume`                                      | `app/(press)/resume/page.tsx`                                | CV from `lib/resume.ts`, two columns, print stylesheet                                                                               |
-| `/about`, `/work`                              | `next.config.ts` redirects                                   | **308 → `/#about`, `/#work`.** Do not re-add these as pages                                                                          |
+| `/about`, `/work`                              | `public/_redirects`                                          | **308 → `/#subject`, `/#work`.** Do not re-add these as pages                                                                        |
 | `/sitemap.xml`                                 | `app/sitemap.ts`                                             | `/`, `/resume`, `/blog` + every published post. No `/about`, `/work`                                                                 |
 | `/robots.txt`                                  | `app/robots.ts`                                              | Allow all except `/api/`; sitemap pointer. The AI crawlers are also allowed **by name** — see the comment there for why              |
 | `/manifest.webmanifest`                        | `app/manifest.ts`                                            | PWA shell: five icons, two screenshots, two shortcuts (Writing, Résumé)                                                              |
@@ -228,7 +237,6 @@ Unchanged from the previous design except that **every page now renders inside
 | `/favicon.ico`                                 | `public/favicon.ico`                                         | Committed 16/32/48 raster for legacy probes + Google's SERP favicon. **In `public/`, not `app/`** — see the note in `app/layout.tsx` |
 | `/rss.xml`                                     | `app/rss.xml/route.ts`                                       | RSS 2.0 feed of `published` posts                                                                                                    |
 | `/llms.txt`                                    | `app/llms.txt/route.ts`                                      | Curated plain-text site map for AI systems; links each post's `.md` mirror                                                           |
-| `/api/vitals`                                  | `app/api/vitals/route.ts`                                    | Receives next/web-vitals beacons. **No `runtime = "edge"`** — the adapter refuses it and Workers are already the edge                |
 | `/opengraph-image*`                            | `app/**/opengraph-image.tsx`                                 | Per-route OG cards, all through `lib/og.tsx`. Home `dustblue`, blog and résumé `bottle`                                              |
 | `error`                                        | `app/error.tsx`                                              | Root error boundary. Outside the (press) group, so it mounts `<Sheet>` itself                                                        |
 | `not-found`                                    | `app/not-found.tsx`, `app/(press)/blog/[slug]/not-found.tsx` | 404 (`robots: { index: false }`). The global one also mounts `<Sheet>` itself                                                        |
@@ -367,9 +375,11 @@ so cannot care how many times it runs.
 `app/(press)/layout.tsx` adds only `<Sheet>`, `<main id="main-content">` and
 `<ViewTransition name="route">`.
 
-Plus `<WebVitals />` outside the providers; reports CLS/FCP/LCP/TTFB/INP to
-`/api/vitals` **and** to GA4 as one event per metric (CLS scaled ×1000 — GA4
-rounds `value` to an integer and would otherwise record 0 every time).
+Plus `<WebVitals />` outside the providers; reports CLS/FCP/LCP/TTFB/INP to GA4
+as one event per metric (CLS scaled ×1000 — GA4 rounds `value` to an integer
+and would otherwise record 0 every time). It used to POST the same payload to
+`/api/vitals` as well; the static export has no server to receive it and the
+duplicate carried nothing GA4 wasn't already given.
 
 Plus `<Analytics />` outside the providers. See below.
 
@@ -417,12 +427,12 @@ a deploy.
 Add `data-analytics="<kind>:<id>"`. One delegated listener on `document`
 (`ClickCapture`) reads it — there is no per-control `onClick`.
 
-| Kind    | Use for                             | Example                                          |
-| ------- | ----------------------------------- | ------------------------------------------------ |
-| `nav:`  | in-site navigation the reader chose | `nav:header.writing`, `nav:home.revision.<slug>` |
-| `cta:`  | a named content link                | `cta:project.microcharts`, `cta:part.<name>`     |
-| `feed:` | a machine-readable surface          | `feed:rss`, `feed:llms`, `feed:markdown`         |
-| `mail:` | a mailto worth naming               | `mail:title-block`, `mail:resume`                |
+| Kind    | Use for                             | Example                                        |
+| ------- | ----------------------------------- | ---------------------------------------------- |
+| `nav:`  | in-site navigation the reader chose | `nav:header.writing`, `nav:title-block.resume` |
+| `cta:`  | a named content link                | `cta:project.microcharts`, `cta:part.<name>`   |
+| `feed:` | a machine-readable surface          | `feed:rss`, `feed:llms`, `feed:markdown`       |
+| `mail:` | a mailto worth naming               | `mail:title-block`, `mail:resume`              |
 
 On top of that, and without any attribute: **any link leaving the origin** is
 reported as `outbound`, and any bare `mailto:` as a contact. Nothing else fires
@@ -459,7 +469,7 @@ real control.
 | ------- | ---------------------- | ------------------------------------- |
 | `h`     | home                   | `schematic/Header.tsx`                |
 | `b`     | writing                | `schematic/Header.tsx`                |
-| `r`     | résumé                 | `schematic/Header.tsx`                |
+| `r`     | résumé                 | `schematic/TitleBlock.tsx`            |
 | `t`     | switch the paper       | `schematic/Header.tsx`                |
 | `m`     | mute / unmute          | `schematic/Header.tsx`                |
 | `1`–`6` | pick an ink            | `InkSwatch` in `Header.tsx`           |
@@ -467,8 +477,9 @@ real control.
 | `?`     | the help sheet         | `shortcuts/ShortcutHelp.tsx`          |
 | `Esc`   | close the help sheet   | `shortcuts/ShortcutHelp.tsx`          |
 
-There is no `0` and no `w`/`a`. The résumé now has a real header link, so `r`
-floats a hint like every other key.
+There is no `0` and no `w`/`a`. `r` is registered on the résumé chip in the
+title block, not in the header — the key lives with the control it floats its
+hint over, so moving the link moved the shortcut.
 
 The registry refuses duplicate keys within a scope and warns in development.
 `silent: true` on a shortcut means it plays its own cue instead of the
@@ -482,7 +493,13 @@ in "The sheet" above; `data-cue="self"` is the pointer half.
 rel="author">` in `app/layout.tsx`), `BingSiteAuth.xml`, IndexNow key
 `mgindexnow7k2p9xq4m8n1w5e3r6t.txt`, `brand/` (wordmark, logo, monogram +
 `screenshot-wide.png` / `screenshot-narrow.png` for the manifest), `portrait/`,
-`posts/`.
+`posts/`, and three deploy-facing pieces: `_headers` and `_redirects`
+(Cloudflare parses both at deploy — every header and redirect the site serves
+lives there), and the gitignored `blog/` of markdown mirrors from
+`scripts/gen-md.ts`. `_headers` also carries explicit `Content-Type` lines for
+the extensionless metadata routes (`/icon`, the PNG family, the OG cards) —
+static assets serve an extensionless file with **no** Content-Type, and an SVG
+favicon is never content-sniffed.
 
 ## Icons
 
@@ -562,8 +579,9 @@ preloads are high priority and they compete with each other for the same pipe.
 | `mg_theme` | `"light" \| "dark"`                | `ThemeProvider`, no-flash script |
 | `mg_ink`   | ink id from `lib/ink.ts`           | `InkProvider`, no-flash script   |
 | `mg_sound` | `"1"` unmuted, anything else muted | `FXProvider`                     |
+| `mg_stars` | `{ t, c }` — 6 h star-count cache  | `components/LiveStars.tsx`       |
 
-Three keys. `mg_mode` is gone with the press runs. All reads and writes are
+Four keys. `mg_mode` is gone with the press runs. All reads and writes are
 wrapped in `try/catch` — storage may be unavailable.
 
 ---
@@ -1209,6 +1227,22 @@ in the built HTML, not from the manifest's module list.
 - ❌ Import `react-spectrum` by its bare name, or delete `react-spectrum.d.ts`.
 - ❌ Add a rounded corner that is not `--r-chip` or `--r-point`, or a `box-shadow`. Depth is line weight.
 - ❌ Ship anything at `opacity: 0` waiting for a scroll. The three one-shot draw-ins in `motion.css` are the whole allowance.
+- ❌ Let `wrangler` edit `wrangler.jsonc` for you. Its "add it on your behalf"
+  offers (e.g. `wrangler r2 bucket create`) get **answer no**: saying yes once
+  appended a duplicate binding and reformatted the whole file from spaces to
+  tabs, collapsing every blank line between the comment blocks.
+- ❌ Reintroduce `@opennextjs/cloudflare`, R2, or any incremental cache. The
+  site is a static export; the only thing a writable cache ever served was a
+  daily star refresh, and `components/LiveStars.tsx` does that in the browser
+  now. If a real server need appears, that is a redesign decision, not a config
+  flip.
+- ❌ Add a route handler without `export const dynamic = "force-static"`, or one
+  that answers anything but GET, or anything that reads the incoming request.
+  `output: "export"` builds files, not handlers — a POST endpoint has nowhere to
+  live.
+- ❌ Put headers, redirects, or rewrites back in `next.config.ts`. The export
+  ignores them **silently**. Headers go in `public/_headers`, redirects in
+  `public/_redirects`.
 - ❌ Bypass pre-commit hooks (`--no-verify`).
 - ❌ Trust your training-era memory of Next.js APIs. Open `node_modules/next/dist/docs/` first.
 - ❌ Replace `Array.prototype.toSorted()` with `.sort()` — it's intentional.

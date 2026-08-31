@@ -1,8 +1,11 @@
 "use client";
-import { usePathname } from "next/navigation";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { KeysHint } from "./KeysHint";
 import { Socials } from "./Socials";
+import { useFX } from "@/components/providers/FXProvider";
+import { useShortcut } from "@/components/shortcuts/useShortcut";
 import { identity } from "@/lib/resume";
 
 /** Which sheet of the set this is. The title block of a drawing always says. */
@@ -50,8 +53,20 @@ function tenure(now: Date): string {
  */
 export function TitleBlock() {
   const pathname = usePathname();
+  const router = useRouter();
+  const fx = useFX();
   const [clock, setClock] = useState("");
   const [since, setSince] = useState("");
+
+  // `r` lives with the link, so the Shift-hold hint floats over the real
+  // control. It moved down here with it.
+  const resumeRef = useShortcut<HTMLAnchorElement>({
+    id: "nav.resume",
+    keys: ["r"],
+    label: "Résumé",
+    group: "Navigate",
+    run: () => router.push("/resume"),
+  });
 
   useEffect(() => {
     // Minutes, not seconds. A ticking second hand in the corner of every page
@@ -124,6 +139,28 @@ export function TitleBlock() {
           </span>
           <span className="tb-contact-r">
             <KeysHint />
+            {/* The other sheet of the set. It was in the header beside
+                "writing", where it out-ranked the work it is a summary of; a
+                title block is where a drawing points at its related sheets. */}
+            <Link
+              href="/resume"
+              className="tb-cv"
+              ref={resumeRef}
+              aria-current={pathname === "/resume" ? "page" : undefined}
+              data-analytics="nav:title-block.resume"
+              onClick={() => fx?.nav()}
+            >
+              {/* A sheet-reference balloon, which is the mark a drawing uses
+                  to send you to another sheet. A document icon said "file";
+                  this says "the other sheet", which is what the link is. It
+                  had a leader running from the balloon to the word, the way a
+                  callout on a drawing does, and at this size it read as a
+                  strikethrough rather than as a pointer. */}
+              <span className="cv-balloon" aria-hidden="true">
+                CV
+              </span>
+              résumé
+            </Link>
             <Socials compact />
           </span>
         </div>

@@ -43,13 +43,6 @@ export function SchematicHeader() {
     group: "Navigate",
     run: () => router.push("/blog"),
   });
-  const resumeRef = useShortcut<HTMLAnchorElement>({
-    id: "nav.resume",
-    keys: ["r"],
-    label: "Résumé",
-    group: "Navigate",
-    run: () => router.push("/resume"),
-  });
   // No origin: a keyboard press has no point on the page behind it, so the
   // band sweeps top to bottom instead of left to right. See ThemeProvider.
   const themeRef = useShortcut<HTMLButtonElement>({
@@ -174,16 +167,6 @@ export function SchematicHeader() {
               >
                 writing
               </Link>
-              <Link
-                href="/resume"
-                ref={resumeRef}
-                aria-current={on("/resume") ? "page" : undefined}
-                data-analytics="nav:header.resume"
-                onClick={() => fx?.nav()}
-              >
-                résumé
-              </Link>
-
               <span className="hd-ctls">
                 {/* Below 640px the CSS hides every swatch but the active one. The
                   one that stays visible is a real button, so pressing it is what

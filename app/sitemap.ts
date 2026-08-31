@@ -1,4 +1,7 @@
 import type { MetadataRoute } from "next";
+
+// Required by `output: "export"`.
+export const dynamic = "force-static";
 import { published } from "@/lib/posts";
 import { SITE_URL } from "@/lib/jsonld";
 

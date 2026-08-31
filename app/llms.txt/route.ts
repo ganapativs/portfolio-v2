@@ -69,7 +69,7 @@ ${talks}
 
 - [microcharts](https://microcharts.dev): 106 word-sized chart types for React. Zero runtime dependencies, ~1-7 kB gzip each, accessible by default, server-component safe. Machine surfaces: https://microcharts.dev/llms.txt, MCP server \`npx -y @microcharts/mcp\` (https://microcharts.dev/docs/mcp)
 - [bttn.css](https://github.com/ganapativs/bttn.css): CSS button library, ${BTTN_STARS.toLocaleString("en-US")} GitHub stars
-- [react-spectrum](https://github.com/ganapativs/react-spectrum): colourful text placeholders generated from any string, 1.3 kB
+- [react-spectrum](https://github.com/ganapativs/react-spectrum): colourful text placeholders laid out from a palette and a few shape rules, 1.3 kB
 - [sgb](https://sgb.vercel.app): a tracker for India's Sovereign Gold Bonds, live since 2021
 - [Full catalogue](https://github.com/ganapativs): ${PUBLIC_WORK.repos} original public repositories, ${PUBLIC_WORK.npm} npm packages
 

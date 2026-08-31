@@ -1,5 +1,4 @@
 import type { NextConfig } from "next";
-import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 import createMDX from "@next/mdx";
 import remarkGfm from "remark-gfm";
 import remarkSmartypants from "remark-smartypants";
@@ -97,25 +96,14 @@ const withMDX = createMDX({
   },
 });
 
-const securityHeaders = [
-  { key: "X-Content-Type-Options", value: "nosniff" },
-  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-  { key: "X-Frame-Options", value: "DENY" },
-  { key: "X-DNS-Prefetch-Control", value: "on" },
-  {
-    key: "Permissions-Policy",
-    value:
-      "camera=(), microphone=(), geolocation=(), interest-cohort=(), browsing-topics=(), payment=()",
-  },
-  {
-    key: "Strict-Transport-Security",
-    value: "max-age=63072000; includeSubDomains; preload",
-  },
-];
-
-const isProd = process.env.NODE_ENV === "production";
-
 const nextConfig: NextConfig = {
+  // Static export — plain HTML/CSS/JS in out/, served by Cloudflare Workers
+  // static assets (see wrangler.jsonc). Same shape as the microcharts docs
+  // site. Everything a server used to do here moved to a file the host reads:
+  // headers → public/_headers, redirects → public/_redirects, the /blog/*.md
+  // rewrite → real files written by scripts/gen-md.ts, /api/vitals → deleted
+  // (WebVitals already reported every metric to GA4 as well).
+  output: "export",
   pageExtensions: ["ts", "tsx", "md", "mdx"],
   allowedDevOrigins: ["portfolio-v2.local"],
   // `X-Powered-By: Next.js` names the framework and version surface to anyone
@@ -140,83 +128,11 @@ const nextConfig: NextConfig = {
     // is fixed upstream.
     inlineCss: false,
   },
-  images: {
-    formats: ["image/avif", "image/webp"],
-    minimumCacheTTL: isProd ? 60 * 60 * 24 * 365 : 0,
-    qualities: [70, 80, 90],
-  },
-  async headers() {
-    // No entry for /_next/static here: Next already serves it
-    // `public, max-age=31536000, immutable`, and overriding it earns a build
-    // warning about breaking dev behaviour for a header that was identical.
-    const cacheHeaders = isProd
-      ? [
-          {
-            source: "/portrait/:path*",
-            headers: [{ key: "Cache-Control", value: "public, max-age=2592000" }],
-          },
-          {
-            source: "/posts/:path*",
-            headers: [{ key: "Cache-Control", value: "public, max-age=2592000" }],
-          },
-          {
-            source: "/rss.xml",
-            headers: [{ key: "Cache-Control", value: "public, max-age=3600, s-maxage=3600" }],
-          },
-          {
-            source: "/llms.txt",
-            headers: [{ key: "Cache-Control", value: "public, max-age=3600, s-maxage=3600" }],
-          },
-          {
-            source: "/brand/:path*",
-            headers: [{ key: "Cache-Control", value: "public, max-age=2592000" }],
-          },
-          // The generated icon family. A day, with a long stale window: the
-          // artwork only changes when the mark does, but a browser holding a
-          // stale favicon for a year is its own kind of bug.
-          {
-            source: "/:icon(favicon.ico|icon|icon-192|icon-512|icon-512-maskable|apple-icon)",
-            headers: [
-              {
-                key: "Cache-Control",
-                value: "public, max-age=86400, stale-while-revalidate=604800",
-              },
-            ],
-          },
-          {
-            source: "/manifest.webmanifest",
-            headers: [{ key: "Cache-Control", value: "public, max-age=86400" }],
-          },
-        ]
-      : [];
-
-    return [{ source: "/:path*", headers: securityHeaders }, ...cacheHeaders];
-  },
-  // The homepage absorbed both /about and /work, so those URLs no longer exist
-  // as pages. They are indexed and linked from outside, so they redirect
-  // permanently to the sections that replaced them rather than 404ing.
-  async redirects() {
-    return [
-      { source: "/about", destination: "/#subject", permanent: true },
-      { source: "/work", destination: "/#work", permanent: true },
-    ];
-  },
-  // Every post is also served as plain markdown at /blog/<slug>.md. App Router
-  // segments can't carry a file extension and a catch-all would collide with
-  // the post page, so the public URL is rewritten onto a route handler.
-  async rewrites() {
-    return [{ source: "/blog/:slug.md", destination: "/api/blog-md/:slug" }];
-  },
+  // `output: "export"` has no image optimizer to call at request time, so
+  // next/image renders the file as committed. The only next/image on the site
+  // is the essay cover (EssayShell), and the covers are pre-encoded to sizes
+  // that don't need a resizer.
+  images: { unoptimized: true },
 };
 
 export default withMDX(nextConfig);
-
-/**
- * Makes the Cloudflare bindings from wrangler.jsonc reachable in `next dev`,
- * through `getCloudflareContext()`. Nothing here calls it yet. It is wired now
- * because the alternative is discovering the gap the first time something does
- * need a binding, and finding that it works in production and not locally.
- *
- * Dev only. It is a no-op in `next build` and in the Worker.
- */
-initOpenNextCloudflareForDev();

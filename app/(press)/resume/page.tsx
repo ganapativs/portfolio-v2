@@ -11,7 +11,8 @@ import {
   speaking,
   lastUpdatedISO,
 } from "@/lib/resume";
-import { getStars, STAR_FLOOR } from "@/lib/github";
+import { getStars } from "@/lib/github";
+import { StarSuffix, StatNumber } from "@/components/LiveStars";
 import { JsonLd, profilePageSchema, routeBreadcrumb, SITE_URL } from "@/lib/jsonld";
 import { pageMetadata } from "@/lib/metadata";
 import { ROLE_COPY, SUMMARY } from "./copy";
@@ -123,15 +124,17 @@ export default async function ResumePage() {
             <div className="cv-block cv-list">
               {OSS.map((f) => {
                 // Live count where GitHub gave us one, otherwise the checked
-                // value. Small numbers are left off entirely.
-                const n = stars.byRepo[f.repo.split("/").pop() ?? ""] ?? f.stars;
+                // value. Small numbers are left off entirely (StarSuffix owns
+                // the floor, and refreshes the count in the browser).
+                const repo = f.repo.split("/").pop() ?? "";
+                const n = stars.byRepo[repo] ?? f.stars;
                 return (
                   <div key={f.name} className="cv-item">
                     <div className="cv-item-name">
                       <a href={f.repo} data-analytics={`cta:resume.oss.${f.name}`}>
                         {f.name}
                       </a>
-                      {n >= STAR_FLOOR ? ` · ${n.toLocaleString("en-US")}★` : ""}
+                      <StarSuffix initial={n} repo={repo} />
                     </div>
                     <div className="cv-item-note">{f.blurb}</div>
                   </div>
@@ -147,8 +150,9 @@ export default async function ResumePage() {
                   </a>
                 </div>
                 <div className="cv-item-note">
-                  {stars.repos} original public repos, {PUBLIC_WORK.npm} npm packages,{" "}
-                  {stars.total.toLocaleString("en-US")} stars between them.
+                  <StatNumber initial={stars.repos} stat="repos" /> original public repos,{" "}
+                  {PUBLIC_WORK.npm} npm packages, <StatNumber initial={stars.total} stat="total" />{" "}
+                  stars between them.
                 </div>
               </div>
             </div>

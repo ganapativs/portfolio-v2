@@ -37,6 +37,7 @@ const Specimens = dynamic(() =>
 import { published } from "@/lib/posts";
 import { CAREER_YEARS, PUBLIC_WORK, speaking } from "@/lib/resume";
 import { getStars } from "@/lib/github";
+import { StatNumber } from "@/components/LiveStars";
 import {
   JsonLd,
   employmentSchema,
@@ -53,8 +54,8 @@ export const metadata: Metadata = {
 const DATE = new Intl.DateTimeFormat("en-CA", { timeZone: "UTC" });
 
 export default async function HomePage() {
-  // The same daily-revalidated fetch the résumé makes, so the two pages cannot
-  // print different counts of the same account.
+  // The same build-time fetch the résumé makes, so the two pages cannot print
+  // different counts of the same account. LiveStars refreshes it in the browser.
   const stars = await getStars();
   return (
     <>
@@ -216,8 +217,8 @@ export default async function HomePage() {
         <div className="panel">
           <h2 className="sec-label">Parts list</h2>
           <p className="meta">
-            {stars.repos} original public repos · {stars.total.toLocaleString("en-US")} stars ·{" "}
-            {PUBLIC_WORK.npm} npm packages
+            <StatNumber initial={stars.repos} stat="repos" /> original public repos ·{" "}
+            <StatNumber initial={stars.total} stat="total" /> stars · {PUBLIC_WORK.npm} npm packages
           </p>
           <PartsList />
         </div>

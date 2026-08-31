@@ -13,7 +13,9 @@ const loaders: Record<string, () => Promise<{ default: React.ComponentType }>> =
   "introducing-react-spectrum": () => import("@/content/blog/introducing-react-spectrum/page.mdx"),
 };
 
-export const dynamicParams = true;
+// `output: "export"` requires every param to come from generateStaticParams —
+// there is no server to render an unknown slug on demand.
+export const dynamicParams = false;
 
 export async function generateStaticParams() {
   // Fail the build loudly if a published post has no loader entry — otherwise
