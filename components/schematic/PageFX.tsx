@@ -41,12 +41,41 @@ export function PageFX() {
   useEffect(() => {
     if (!fx) return;
     const SEL = "a,button,.prow,[role='slider']";
+
+    /**
+     * A hover the reader caused, and only one per control.
+     *
+     * Two things went wrong with the obvious version of this.
+     *
+     * `pointerover` fires whenever a different element ends up under the
+     * pointer, and scrolling does that without the hand moving at all. Scroll a
+     * list of links past a resting cursor and every one announced itself. What
+     * separates a hover from a scroll is not where the pointer is, since the
+     * events scrolling produces carry its real position, but whether the hand
+     * moved: a hand on the mouse produces `pointermove`, and a page moving
+     * under a still hand produces none. So a mouse hover has to be within a
+     * beat of a real movement. That covers every way a page can scroll,
+     * including the keyboard, an anchor jump and `scrollIntoView`, which a
+     * `scroll`-event guard would each have needed to handle. Pens and touch are
+     * exempt, having no hover to speak of and no move before their first event.
+     *
+     * And the selector matches nest. `.prow` is a parts-list row and it
+     * contains the link to that part, so crossing from the row into its own
+     * link was a second control by the old test, which only caught an
+     * identical match. Containment either way is the same control.
+     */
+    const MOVE_GRACE_MS = 120;
+    let lastMove = 0;
+    const onPointerMove = () => {
+      lastMove = performance.now();
+    };
+
     const onOver = (e: PointerEvent) => {
       const t = (e.target as HTMLElement | null)?.closest?.(SEL);
       if (!t) return;
-      // Moving between two children of the same control is not a new hover.
       const from = (e.relatedTarget as HTMLElement | null)?.closest?.(SEL);
-      if (from === t) return;
+      if (from && (from === t || from.contains(t) || t.contains(from))) return;
+      if (e.pointerType === "mouse" && performance.now() - lastMove > MOVE_GRACE_MS) return;
       fx.tick();
     };
     // The header's own controls play their own cues (a clack for the toggles, a
@@ -61,10 +90,12 @@ export function PageFX() {
       const b = (e.target as HTMLElement | null)?.closest?.("button");
       if (isPlain(b)) fx.release();
     };
+    document.addEventListener("pointermove", onPointerMove, { passive: true });
     document.addEventListener("pointerover", onOver, { passive: true });
     document.addEventListener("pointerdown", onDown, { passive: true });
     document.addEventListener("pointerup", onUp, { passive: true });
     return () => {
+      document.removeEventListener("pointermove", onPointerMove);
       document.removeEventListener("pointerover", onOver);
       document.removeEventListener("pointerdown", onDown);
       document.removeEventListener("pointerup", onUp);
