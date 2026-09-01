@@ -1,6 +1,6 @@
 "use client";
 import "@microcharts/react/styles.css";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { PUBLIC_WORK } from "@/lib/resume";
 import type { ReactNode } from "react";
 import { ActivityGrid } from "@microcharts/react/activity-grid";
@@ -455,22 +455,21 @@ function draw(rnd: () => number): Specimen[] {
 }
 
 export function Specimens() {
-  // Seed 0 is the server's draw and the client's first render, so the two agree;
-  // the mount bumps it, and every bump after that is the reader re-rolling.
-  // Math.random() during the render the server also performs is a hydration
-  // mismatch, which is why this is a state bump rather than a call in place.
+  // Seed 0 is the server's draw and the client's first render, so the two
+  // agree and hydration changes nothing on screen. There is no mount re-roll
+  // any more: the tray used to swap its eight a beat after the paper arrived,
+  // and a page replacing its own content on load read as the page failing to
+  // settle. The server's eight stay until the reader asks for another draw —
+  // the chip below is the only thing that bumps the seed.
+  // (Math.random() during the render the server also performs would be a
+  // hydration mismatch, which is why seed 0 maps to a fixed rng.)
   const [seed, setSeed] = useState(0);
   const fx = useFX();
   const picks = useMemo(() => draw(seed === 0 ? () => 0 : Math.random), [seed]);
 
-  useEffect(() => setSeed(1), []);
-
   return (
     <div className="specimens" role="group" aria-label="Chart specimens">
-      {/* Keyed on the draw. The server renders a fixed eight and the mount
-          re-rolls them, which is the point — a different eight each load — but
-          as a hard swap it read as the page failing to settle. The tray fades
-          the new set in over one frame's worth of animation instead. */}
+      {/* Keyed on the draw, so a re-roll fades the new set in. */}
       {picks.map((s) => (
         <span className="spec" key={`${seed}-${s.id}`}>
           <span className="spec-chart">{s.node}</span>
@@ -479,9 +478,7 @@ export function Specimens() {
       ))}
 
       <span className="specs-foot">
-        <span className="specs-note">
-          8 of the 106, a different eight each load · the real components, not screenshots
-        </span>
+        <span className="specs-note">8 of the 106 · the real components, not screenshots</span>
         <button
           type="button"
           className="chip"

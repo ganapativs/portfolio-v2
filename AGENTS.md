@@ -1179,7 +1179,9 @@ answer engine can cite, each with its real primary language and licence from
 Three of the home page's figures are behind `next/dynamic` in
 `app/(press)/page.tsx`: the specimen tray (25 static chart builds so a shuffle
 can pick eight), the pipeline, and the loupe. `ssr` stays ON for all three.
-Specimens renders a fixed first eight on the server before it reshuffles, the
+Specimens' server-rendered eight are the eight the reader sees (no mount
+re-roll — the swap a beat after load read as the page failing to settle;
+only the "draw another eight" chip re-rolls), the
 pipeline's server markup IS its no-flash guarantee (the sketch state in the
 markup equals the state the JS initialises to), and the loupe's sentence is
 content.
