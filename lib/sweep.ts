@@ -22,22 +22,11 @@ export type Band = { kind: "pair"; hexes: [string, string] } | { kind: "chain"; 
  * back for whichever is left. All three go through here instead, and the fetch
  * happens on the first palette change.
  */
-let glimm: typeof import("glimm") | null = null;
 let loading: Promise<typeof import("glimm")> | null = null;
 
 function loadGlimm() {
-  loading ??= import("glimm").then((m) => (glimm = m));
+  loading ??= import("glimm");
   return loading;
-}
-
-/**
- * The module if it is already here, for `SweepProvider`'s shaderFactory, which
- * glimm calls synchronously. It cannot be null in practice: the factory runs
- * from inside `sweep()`, and `sweepApply` below is the only caller of that,
- * after the load has resolved.
- */
-export function glimmNow() {
-  return glimm;
 }
 
 /**

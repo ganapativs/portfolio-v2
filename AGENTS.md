@@ -836,8 +836,8 @@ Replaces the old view-transition contract. **The clip-path iris is gone.**
    copies. It read as the ink bar under the G blinking out and back on every
    navigation.
    1b. **The header paints above the band.** `.hd` is `z-index: 70`, over the
-   band's 60. The band is painted with the ink in play and the bar under the G
-   is that same ink, so a theme flip washed the mark out and gave it back as
+   band's 60. The band carries the tray's colours and the bar under the G is
+   the active ink, so a theme flip washed the mark out and gave it back as
    the band passed: it read as the underline blinking off and on. The band
    re-inks the sheet; the control surface that caused it stays legible while it
    happens.
@@ -856,21 +856,19 @@ hexes }`), not as a built palette**, and builds it itself after the module
    not, which is why which builder to use is part of the description rather
    than the caller's business.
    2d. **glimm's root module is fetched on the first palette change, not
-   imported at the top of a provider.** It was three static imports —
-   `createMeshShader` in `SweepProvider`, `accentChain` in `ThemeProvider`,
-   `accentPair` in `InkProvider` — and it sat in the root layout chunk, 13.2 kB
-   gzip on every route, including routes with no palette control in reach.
-   **Moving one and not the others buys nothing**: `glimm/react` carries its own
-   copy of the colour helpers but does not export them, so the root module comes
-   back for whichever import is left. All three go through `lib/sweep.ts` now.
-   `SweepProvider`'s `shaderFactory` reads it via `glimmNow()`, which is safe
-   because glimm only calls that factory from inside `sweep()`, and `sweepApply`
-   awaits the module first. The 1.6 s guard timer starts before the fetch, so a
-   press whose band never arrives still gets its ink.
-3. **The band is painted with the ink in play.** A theme flip sweeps the active
-   ink between its two grounds; an ink pick sweeps from the ink being replaced
-   to the one replacing it, so the sweep _is_ the interpolation rather than
-   something laid over one.
+   imported at the top of a provider.** Static imports of its palette builders
+   sat in the root layout chunk, 13.2 kB gzip on every route, including routes
+   with no palette control in reach. **Moving one and not the others buys
+   nothing**: `glimm/react` carries its own copy of the colour helpers but does
+   not export them, so the root module comes back for whichever import is left.
+   Everything goes through `lib/sweep.ts` now. The 1.6 s guard timer starts
+   before the fetch, so a press whose band never arrives still gets its ink.
+3. **The band is painted in the tray's LIT values — `INK_HEX_DARK` — on both
+   grounds.** The flat band is a translucent veil of light, and light is lit:
+   sweeping the light-ground pigments, which are dark, filmed the paper brown
+   (measured in a pinned-frame harness). An ink pick sweeps the lit values of
+   the ink being replaced and the one replacing it; a theme flip sweeps all
+   six, led and closed by the active ink.
 4. **Direction says how it was done.** `ltr` when a pointer landed on a control,
    `ttb` from the keyboard. A number key has no position on the page, and a
    different axis is a more honest way to say so than a wipe pretending to start
@@ -891,18 +889,18 @@ hexes }`), not as a built palette**, and builds it itself after the module
    rather than travelling.
 
 `SweepProvider`'s settings are all decisions, documented in the file. It runs
-glimm's **mesh** shader (`shaderFactory: createMeshShader`), not the flat one:
-the band is a lit crest with a trailing second wave, refraction and a dispersed
-rim, so it reads as a material passing over the sheet rather than as a lighter
-rectangle. `sweepMs 900` / `outroMs 420` / `midpoint 0.45` is the one place the
-motion law is deliberately exceeded, because this is the whole sheet being
-re-inked rather than a control answering; it has been shortened twice and both
-times the sweep was simply missed. `waveAmount` and `rippleAmount` are on now.
-`brightness` and `peakAlpha` stay pulled down because at the library's defaults
-the band blows out to near-white on graphite, which is the one colour the
-palette does not contain. (A flat-shader remake — easeInOutCubic, lit-value
-bands, swellAmount 0 — was tried on 2026-09-01 and reverted on the owner's
-call: it read worse than the mesh. This configuration is the shipped one.)
+glimm's **flat** shader at the **mesh era's tempo**, and that hybrid is the
+owner's settled call (2026-09-01) after trying both extremes. The mesh
+(`createMeshShader`) is gone because its lit ridge was a white bar riding the
+crest — horizontal above the header on a keyboard (ttb) flip — and white is
+the one colour the palette does not contain. **`swellAmount` is 0 and must
+stay 0**: it gates the flat shader's own specular highlight, the same white
+bar by another switch, and the library defaults it to 0.55. The timing stays
+the mesh's — `sweepMs 900` / `outroMs 420` / `midpoint 0.45` / `houseEase` —
+because the faster easeInOutCubic remake read hurried; this is the one place
+the motion law is deliberately exceeded, and it has been shortened twice and
+both times the sweep was simply missed. `brightness`/`peakAlpha` stay pulled
+down because the library is tuned for white sites.
 
 **An ink pick sweeps two colours; a paper change sweeps all six.** `accentPair`
 for the pick, because two colours is the whole event. `themeBand()` in
