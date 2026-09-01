@@ -17,10 +17,13 @@ import { Socials } from "@/components/schematic/Socials";
  * downloading and executing all of it and rendering none of it, and a blog post
  * with no charts in it was shipping the entire chart library.
  *
- * `ssr` stays on for all three. Specimens renders a fixed first eight on the
- * server before it reshuffles, the pipeline's server markup IS its no-flash
- * guarantee (the sketch state in the markup equals the state the JS
+ * `ssr` stays on for all of them. The pipeline's server markup IS its
+ * no-flash guarantee (the sketch state in the markup equals the state the JS
  * initialises to), and the loupe's sentence is content.
+ *
+ * Specimens is NOT in this list any more: it is a server component now (the
+ * build draws the sets, the client only flips visibility), so it ships as
+ * HTML and its twenty-five chart builds never enter a client chunk at all.
  */
 const Exploded = dynamic(() => import("@/components/schematic/Exploded").then((m) => m.Exploded));
 const SgbFigure = dynamic(() =>
@@ -31,9 +34,7 @@ const SpectrumDemo = dynamic(() =>
 );
 const Loupe = dynamic(() => import("@/components/schematic/Loupe").then((m) => m.Loupe));
 const Pipeline = dynamic(() => import("@/components/schematic/Pipeline").then((m) => m.Pipeline));
-const Specimens = dynamic(() =>
-  import("@/components/schematic/Specimens").then((m) => m.Specimens),
-);
+import { Specimens } from "@/components/schematic/Specimens";
 import { published } from "@/lib/posts";
 import { CAREER_YEARS, PUBLIC_WORK, speaking } from "@/lib/resume";
 import { getStars } from "@/lib/github";

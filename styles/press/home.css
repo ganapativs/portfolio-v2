@@ -790,6 +790,19 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+/* The build pre-renders several sets of eight; only the active one renders.
+   `display: contents` on the set wrapper keeps each .spec a direct grid item
+   of .specimens, so the layout is identical to the single-set days, and the
+   none → contents flip is what restarts the entry fade on a swap. */
+.spec-set {
+  display: none;
+}
+.specimens[data-active="0"] .spec-set[data-set="0"],
+.specimens[data-active="1"] .spec-set[data-set="1"],
+.specimens[data-active="2"] .spec-set[data-set="2"],
+.specimens[data-active="3"] .spec-set[data-set="3"] {
+  display: contents;
+}
 .spec {
   display: flex;
   flex-direction: column;
@@ -802,9 +815,12 @@
    finds its own size centred inside a fixed box rather than being stretched to
    match its neighbours, and the labels under them land on one line.
 
-   Fixed height, not min-height: the tray draws a different eight on mount, and
-   a box that measured its contents would jump as they swapped. */
-.spec {
+   Fixed height, not min-height: the chip swaps in a different eight, and a
+   box that measured its contents would jump as they swapped. */
+/* The entry fade plays only once the reader has drawn (data-touched, set by
+   the chip's first press) — on load the tray is simply there, like every
+   other figure. */
+.specimens[data-touched] .spec {
   animation: cap-in var(--dur-base) var(--ease-out) both;
 }
 .spec-chart {
