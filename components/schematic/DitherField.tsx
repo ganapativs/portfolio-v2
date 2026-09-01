@@ -180,17 +180,8 @@ export function DitherField() {
       } else wake();
     };
     // The dot colour is a token, so a theme flip has to be re-read. Ink changes
-    // do not touch it — the light is never in the ink. Twice, because the
-    // token now tweens for 340ms (see tokens.css): the mutation fires at the
-    // tween's first frame, when a read still returns the colour being left,
-    // and the second read lands after it has settled.
-    let settleTid = 0;
-    const onTheme = () => {
-      size();
-      window.clearTimeout(settleTid);
-      settleTid = window.setTimeout(size, 380);
-    };
-    const themeObs = new MutationObserver(onTheme);
+    // do not touch it — the light is never in the ink.
+    const themeObs = new MutationObserver(size);
     themeObs.observe(root, { attributes: true, attributeFilter: ["data-theme"] });
 
     let rz = 0;
@@ -208,7 +199,6 @@ export function DitherField() {
     return () => {
       cancelAnimationFrame(raf);
       clearTimeout(rz);
-      clearTimeout(settleTid);
       themeObs.disconnect();
       window.removeEventListener("pointermove", onMove);
       document.removeEventListener("pointerleave", onLeave);
