@@ -20,9 +20,9 @@
 
      Motion   --dur-fast 140ms for hover and focus, --dur-base 260ms for
               everything the reader caused, --dur-ink 340ms for the coordinated
-              ink tween. Nothing here is slower. The palette sweep is longer
-              than any of them, and it is not a token: it belongs to glimm and
-              is configured in components/providers/SweepProvider.tsx. Direct
+              ink tween. The palette sweep (ink) and the paper iris (theme)
+              are longer than any of them, and they are not this scale: the
+              sweep belongs to glimm, the iris to --dur-iris. Direct
               manipulation has no duration at all, because the hand sets it.
 
    Structure
@@ -45,6 +45,12 @@
      a declaration is ever invalid at computed-value time, and an initial value
      from a retired default is a silent way to print last season's ink. */
   initial-value: #2b6083;
+}
+
+@property --vt-r-now {
+  syntax: "<length>";
+  initial-value: 0px;
+  inherits: false;
 }
 
 /* 2 — SURFACES ---------------------------------------------------------------
@@ -239,16 +245,17 @@
   --r-chip: 2px;
   --r-point: 50%;
 
-  /* Motion. One easing: everything here settles on the out-curve (houseEase
-     in useReducedMotion.ts is the same curve solved in JS). --ease-in-out was
-     declared beside it and referenced zero times — deleted rather than left
-     as a curve the site could be mistaken for using, the same policy as the
-     unused type scale. The one in-out motion (the pipeline's auto pass) owns
-     its curve in JS. */
+  /* Motion. The sheet settles on --ease-out (houseEase in JS). The paper mix
+     has its own curve: houseEase dumps too much radius into the first frames
+     and a hard circle on this drawing reads as skipped frames. --ease-in-out
+     was declared beside it, referenced zero times, and deleted. */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --dur-fast: 140ms;
   --dur-base: 260ms;
   --dur-ink: 340ms;
+  --dur-iris: 720ms;
+  --vt-feather: 160px;
+  --ease-iris: cubic-bezier(0.45, 0.02, 0.18, 1);
 
   /* Measures. --w-sheet is the drawing's own width; --w-essay is a reading
      measure and is narrower because prose has a different job than a drawing. */

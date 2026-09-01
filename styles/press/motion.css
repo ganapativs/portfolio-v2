@@ -21,12 +21,12 @@
    on the owner's call: line appearance on load read as motion nobody caused.
    All of it renders finished from the first paint.
 
-   And one duration that is not a token at all: the palette sweep. A glimm band
-   crossing the whole sheet is 900ms plus a 420ms fade, which is longer than
-   anything else here by a factor of three. It is a full-sheet reveal rather than
-   a control responding, it happens only when the reader changes the paper or
-   the ink, and its timing lives in components/providers/SweepProvider.tsx
-   because it belongs to the library that draws it.
+   And two durations that are not this scale: the ink sweep and the paper
+   iris. A glimm band crossing the sheet is 900ms plus a 420ms fade
+   (`SweepProvider`). A paper flip is a 720ms feathered circle from the control
+   (`--dur-iris` / `lib/vt.ts`). They are different events on purpose — a
+   band always enters from an edge, and the paper control is not on that
+   edge.
    ============================================================================ */
 
 @media (prefers-reduced-motion: reduce) {

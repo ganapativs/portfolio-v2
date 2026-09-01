@@ -2,7 +2,9 @@
 
 # This is NOT the Next.js you know
 
-Next.js **16.2** + React **19.2** + Tailwind **v4** in this repo. APIs, conventions, and file structure may differ from your training data. Before writing Next.js or React code, **read the relevant guide in `node_modules/next/dist/docs/`** and heed deprecation notices. Do not invent options or import paths from memory.
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
 
@@ -127,7 +129,7 @@ Do not reintroduce these, and do not "restore" doc text describing them.
 | Package manager | pnpm                           | `pnpm-lock.yaml` committed; never `npm`/`yarn`/`bun`                                                                                                                                                                                              |
 | MDX             | @next/mdx ^16.3                | `remark-gfm`, `remark-smartypants`, `rehype-slug`, `rehype-autolink-headings`, `rehype-highlight`                                                                                                                                                 |
 | Charts          | @microcharts/react ^0.18       | **No longer blog-only** — fig. 2 on the home sheet is a tray of them. Tokens bridged at `:root` in `styles/press/tokens.css` (`--mc-*`), not at `.prose`                                                                                          |
-| Sweep           | glimm ^0.3                     | The WebGL band that carries every palette change. `GlimmProvider` is the outermost provider; **its root module is imported dynamically** — see "Sweep contract"                                                                                   |
+| Sweep           | glimm ^0.3                     | The WebGL band that carries an **ink** pick. Paper is the iris in `lib/vt.ts`. `GlimmProvider` is the outermost provider; **its root module is imported dynamically** — see "Sweep contract"                                                      |
 | Live specimen   | react-spectrum ^1.3            | His own 2019 package, running in fig. 4. **Imported by ESM file path** with a type shim at the repo root — see the trap below                                                                                                                     |
 | Dialog          | @base-ui/react ^1.7            | One use: the `?` shortcut help sheet (`components/shortcuts/ShortcutHelp.tsx`)                                                                                                                                                                    |
 | Image zoom      | medium-zoom ^1.1               | `components/mdx/ZoomImage.tsx`, essays only. It takes over the `<img>`, which is why the portrait and the MDX images are raw `<img>` and not `next/image`                                                                                         |
@@ -146,11 +148,12 @@ Do not reintroduce these, and do not "restore" doc text describing them.
   repo root declares that module path, because the package's own `types` entry
   does not cover it. **Do not "clean up" the import.**
 - **glimm's midpoint is rAF-driven, so `lib/sweep.ts` guards it.** A browser
-  freezes `requestAnimationFrame` in a hidden tab: a reader who flipped the
-  paper and immediately switched tabs came back to the old theme, because the
+  freezes `requestAnimationFrame` in a hidden tab: a reader who picked an ink
+  and immediately switched tabs came back to the old colour, because the
   band suspended before its midpoint and the swap never ran. `sweepApply()`
   fires the change on whichever comes first, the midpoint or a 1.6 s timer, and
   makes `apply` idempotent. **Never call `sweep()` directly for a state change.**
+  Paper does not go through glimm.
 
 ---
 
@@ -188,8 +191,10 @@ content/blog/<slug>/ MDX posts. Body in page.mdx. Metadata is in lib/posts.ts (N
 public/posts/<slug>/ Cover + inline imagery for each post.
 lib/
   ink.ts             The ink system: ids, labels, pitches, hex mirrors, storage keys
-  sweep.ts           sweepApply() — the guarded glimm sweep every palette change goes through,
+  sweep.ts           sweepApply() — the guarded glimm sweep an ink pick goes through,
                      and the dynamic import that keeps glimm's root module off every route
+  sweep-shader.ts    The band itself: mesh harmonics on a flat quad, fetched with glimm
+  vt.ts              withViewTransition() — the paper iris, from the control
   posts.ts           Post metadata — outside the route tree so the pages and the feeds share it
   fonts.ts           The three faces
   mark.ts            The G, as raw path data — the one copy every renderer shares
@@ -355,8 +360,8 @@ so a duplicated tick hides and a duplicated anything-else does not. Do not read
 Root (`app/layout.tsx`) owns everything:
 
 ```
-<SweepProvider>             // glimm. Outermost, because both providers below hand it their swap.
-  <ThemeProvider>           // theme + toggle(origin?). mg_theme.
+<SweepProvider>             // glimm. Outermost: InkProvider hands it the ink pick.
+  <ThemeProvider>           // paper iris via withViewTransition. mg_theme.
     <FXProvider>            // WebAudio cue set + haptic. mg_sound.
       <ShortcutProvider>    // keyboard registry. ? = help, Esc = close. Scope stack: global|modal|page.
         <InkProvider>       // ink. mg_ink. Stamps data-ink and nothing else.
@@ -763,15 +768,13 @@ which reads as four different mechanisms. `.chip` documents the one exception:
 it is 236px wide, where the token is 14px of travel.
 
 **Motion**: `--dur-fast 140ms` hover and focus · `--dur-base 260ms` everything
-the reader caused · `--dur-ink 340ms` the coordinated ink tween · the palette
-sweep at 900ms + 420ms, which lives in `SweepProvider.tsx` rather than in a
-token because it belongs to the library that draws it. One easing:
-`--ease-out cubic-bezier(.22,1,.36,1)`
-(`--ease-in-out` was declared, referenced zero times, and deleted — the one
-in-out motion, the pipeline's auto pass, owns its curve in JS). Direct
-manipulation has no duration at all, because the hand sets it. (`--dur-iris`, `--vt-r-now` and the `.vt-recolor-radial` block
-were the clip-path iris the sweep replaced. All three are gone; this file
-described them as "still declared" for a while after they were deleted.)
+the reader caused · `--dur-ink 340ms` the coordinated ink tween · `--dur-iris
+720ms` the paper mix · the ink sweep at 900ms + 420ms, which lives in
+`SweepProvider.tsx` rather than in a token because it belongs to the library
+that draws it. Sheet easing is `--ease-out cubic-bezier(.22,1,.36,1)`. The
+paper mix uses `--ease-iris` — a gentler start — because houseEase on a
+hard circle jumped a hairline drawing ~25px a frame. Direct
+manipulation has no duration at all, because the hand sets it.
 
 ### The motion law (`styles/press/motion.css`)
 
@@ -826,7 +829,8 @@ snap-under-the-mesh-band is the shipped behaviour.)
 
 ## Sweep contract
 
-Replaces the old view-transition contract. **The clip-path iris is gone.**
+Ink is a glimm band. Paper is a circle from the control. They are different
+events on purpose.
 
 1. **Route nav** uses `<ViewTransition name="route">` in
    `app/(press)/layout.tsx`, with its own quiet crossfade. **The `root` group is
@@ -834,80 +838,88 @@ Replaces the old view-transition contract. **The clip-path iris is gone.**
    — header, measuring edge, title block — lands in `root`, and the API's
    default crossfade dipped two identical headers through a pair of half-opaque
    copies. It read as the ink bar under the G blinking out and back on every
-   navigation.
+   navigation. A paper flip adds `.vt-recolor-radial` and **overrides** that
+   `display: none` so the old frame can hold still while the new one opens.
    1b. **The header paints above the band.** `.hd` is `z-index: 70`, over the
-   band's 60. The band carries the tray's colours and the bar under the G is
-   the active ink, so a theme flip washed the mark out and gave it back as
-   the band passed: it read as the underline blinking off and on. The band
-   re-inks the sheet; the control surface that caused it stays legible while it
-   happens.
+   band's 60. The band re-inks the sheet on an ink pick; the control surface
+   that caused it stays legible while it happens.
    1c. **The header is also the only place the `--accent` tween is visible on a
    theme flip**, which is why there is not one any more. See
    `data-repapering` under "`<html>` data attributes".
-2. **Both palette changes — theme and ink — go through `sweepApply()` in
-   `lib/sweep.ts`**, which hands the state swap to glimm. glimm draws one WebGL
-   band across the viewport and applies the change underneath it at the
-   midpoint. A circle opening from a control said "this control did it"; a band
-   passing over the sheet says what actually happened, which is a roller laying
-   down new ink.
-   2c. **`sweepApply` takes the band as hexes (`{ kind: "pair" | "chain",
-hexes }`), not as a built palette**, and builds it itself after the module
-   lands. `accentPair` pins its two endpoints exactly and `accentChain` does
-   not, which is why which builder to use is part of the description rather
-   than the caller's business.
-   2d. **glimm's root module is fetched on the first palette change, not
+2. **An ink pick goes through `sweepApply()` in `lib/sweep.ts`.** glimm draws
+   one WebGL band and applies the ink underneath it at the midpoint.
+   2b. **A paper flip goes through `withViewTransition()` in `lib/vt.ts`.** The
+   new sheet is clipped to a circle that opens from the control (viewport
+   centre from the keyboard, which has no pointer). A linear band always
+   enters from an edge, so a theme flip started from the header flashed the
+   left side of the sheet first, then snapped the paper in the open — two
+   animations. The live site's iris is the one motion that does not do that.
+   Do not also run a sweep on a paper flip: the canvas is snapshotted with
+   the root, so the band would freeze or play after the circle as a second
+   event.
+   2c. **`sweepApply` takes the band as hexes (`{ kind: "pair", hexes }`),
+   not as a built palette**, and builds it itself after the module lands.
+   `accentPair` pins its two endpoints exactly.
+   2d. **glimm's root module is fetched on the first ink pick, not
    imported at the top of a provider.** Static imports of its palette builders
    sat in the root layout chunk, 13.2 kB gzip on every route, including routes
    with no palette control in reach. **Moving one and not the others buys
    nothing**: `glimm/react` carries its own copy of the colour helpers but does
    not export them, so the root module comes back for whichever import is left.
-   Everything goes through `lib/sweep.ts` now. The 1.6 s guard timer starts
-   before the fetch, so a press whose band never arrives still gets its ink.
+   Everything for the band goes through `lib/sweep.ts` now, including the wavy
+   shader in `sweep-shader.ts` (same tick as the glimm import). The 1.6 s
+   guard timer starts before the fetch, so a press whose band never arrives
+   still gets its ink.
 3. **The band is painted in the tray's LIT values — `INK_HEX_DARK` — on both
    grounds.** The flat band is a translucent veil of light, and light is lit:
    sweeping the light-ground pigments, which are dark, filmed the paper brown
    (measured in a pinned-frame harness). An ink pick sweeps the lit values of
-   the ink being replaced and the one replacing it; a theme flip sweeps all
-   six, led and closed by the active ink.
-4. **Direction says how it was done.** `ltr` when a pointer landed on a control,
-   `ttb` from the keyboard. A number key has no position on the page, and a
-   different axis is a more honest way to say so than a wipe pretending to start
-   somewhere.
-5. **The swap is fired by whichever comes first, the midpoint or a 1.6 s
+   the ink being replaced and the one replacing it.
+4. **Direction says how the ink pick was done.** `ltr` when a pointer landed
+   on a swatch, `ttb` from a number key. A number key has no position on the
+   page, and a different axis is a more honest way to say so than a wipe
+   pretending to start somewhere.
+5. **The ink swap is fired by whichever comes first, the midpoint or a 1.6 s
    guard**, and `apply` is idempotent so it cannot run twice. See the glimm trap
    in "Stack snapshot" for why the guard is not optional.
-6. **A second press while the band is still crossing restarts it.**
+6. **A second ink press while the band is still crossing restarts it.**
    `playSweep` continues from the controller's current progress by design,
-   which is right for a page navigation and wrong for a toggle: press the theme
-   twice quickly and the second sweep starts wherever the first had got to, so
-   past the midpoint the swap fires at once and the band is already leaving.
-   The reader sees the paper change with no pass over it. `sweepApply` lands the
-   interrupted change immediately, cancels its handle, and winds the band back
-   to zero through the controller `SweepProvider` hands it via `onController`.
+   which is right for a page navigation and wrong for a toggle.
+   `sweepApply` lands the interrupted change immediately, cancels its handle,
+   and winds the band back to zero through the controller `SweepProvider`
+   hands it via `onController`.
 7. **Reduced motion**: glimm's own `reducedMotion: "instant"` default is left
-   alone, and `motion.css` kills the `--accent` transition. The ink arrives
+   alone, `withViewTransition` skips the iris and runs the swap, and
+   `motion.css` kills the `--accent` transition. The ink and the paper arrive
    rather than travelling.
 
-`SweepProvider`'s settings are all decisions, documented in the file. It runs
-glimm's **flat** shader at the **mesh era's tempo**, and that hybrid is the
-owner's settled call (2026-09-01) after trying both extremes. The mesh
-(`createMeshShader`) is gone because its lit ridge was a white bar riding the
-crest — horizontal above the header on a keyboard (ttb) flip — and white is
-the one colour the palette does not contain. **`swellAmount` is 0 and must
-stay 0**: it gates the flat shader's own specular highlight, the same white
-bar by another switch, and the library defaults it to 0.55. The timing stays
-the mesh's — `sweepMs 900` / `outroMs 420` / `midpoint 0.45` / `houseEase` —
-because the faster easeInOutCubic remake read hurried; this is the one place
-the motion law is deliberately exceeded, and it has been shortened twice and
-both times the sweep was simply missed. `brightness`/`peakAlpha` stay pulled
-down because the library is tuned for white sites.
+`SweepProvider`'s settings are all decisions, documented in the file. The band
+is a **custom flat shader** (`lib/sweep-shader.ts`), not glimm's `createShader`
+and not `createMeshShader`. glimm's own edge is a 0.4% sine × `waveAmount`, so
+even 2 reads as a straight stripe (measured: crest x by row differed by ~1%).
+The mesh has real harmonics but its swell is a white specular ridge, and with
+swell 0 it is a faint haze rather than a band. Ours keeps the flat-quad
+controller and puts the mesh's three sines on the edge (~5% at `waveAmount`
+1). **`swellAmount` is 0 and must stay 0**: it gates the specular highlight
+and Fresnel rim, and the library defaults it to 0.55. Palette samples are
+clamped and the wake is 0.12 rather than 0.30. There is no cross-axis
+`vfade`: that 1.5% fade was the white strip at the top and bottom, and
+growing the canvas past the viewport to hide it is the same replaced-element
+trap `.dither` already documents.
 
-**An ink pick sweeps two colours; a paper change sweeps all six.** `accentPair`
-for the pick, because two colours is the whole event. `themeBand()` in
-`ThemeProvider` builds an `accentChain` from the active ink on the ground it is
-leaving, through the other five at their new values in tray order, to the same
-ink on the ground it arrives at: every ink is about to be repigmented for a
-different ground, and the band says so.
+Timing is the mesh's — `sweepMs 900` / `outroMs 420` / `midpoint 0.45` /
+`houseEase` — and it is **ink only**. Theme is `--dur-iris 720ms`, a
+feathered radial mask from the control so the two papers dissolve across the
+edge. A hard `clip-path: circle()` jumped a hairline drawing ~25px per
+frame and read as skipped frames. Do not put `filter: blur()` on the
+view-transition snapshots to mix them: that is the whole sheet, every frame.
+
+`waveAmount` is 1 (the harmonics are already the displacement),
+`rippleAmount` is 1, `brightness`/`peakAlpha` stay pulled down because the
+library is tuned for white sites.
+
+**An ink pick sweeps two colours.** `accentPair` for the pick, because two
+colours is the whole event. A paper flip is not a band.
 
 ---
 
@@ -1268,7 +1280,7 @@ in the built HTML, not from the manifest's module list.
 - ❌ Add a second copy of the palette. `--sw-*` exists so the picker does not need one.
 - ❌ Change a colour in `styles/press/tokens.css` without updating its hex mirror in `lib/ink.ts` — the OG cards and the icons read the mirror.
 - ❌ Reintroduce press runs, `data-mode`, `mg_mode`, or a third palette axis.
-- ❌ Reintroduce the clip-path iris, `lib/vt.ts`, or `withViewTransition`. Palette changes go through `sweepApply()`.
+- ❌ Run a glimm sweep for a paper flip. Theme is the iris in `lib/vt.ts`; layering both is two animations, and the band always enters from an edge.
 - ❌ Call glimm's `sweep()` directly for a state change. Use `sweepApply()`, or a hidden tab eats the swap.
 - ❌ Import `react-spectrum` by its bare name, or delete `react-spectrum.d.ts`.
 - ❌ Add a rounded corner that is not `--r-chip` or `--r-point`, or a `box-shadow`. Depth is line weight.

@@ -162,10 +162,10 @@ kbd {
 /* -----------------------------------------------------------------------------
    ROUTE TRANSITIONS
 
-   Palette changes do not come through here. Theme and ink are both carried by
-   a glimm band (components/providers/SweepProvider.tsx), which paints over the
-   page rather than snapshotting it, so there is nothing for the View
-   Transitions API to do. What is left is the route swap.
+   Palette changes do not all come through here. An ink pick is a glimm band
+   (`SweepProvider`). A paper flip is the iris in `.vt-recolor-radial` below,
+   because a band always enters from an edge and the control is not on that
+   edge. What is left in this block is the route swap.
    --------------------------------------------------------------------------- */
 
 /* The root snapshot is not animated, and that is the fix for a real bug.
@@ -181,6 +181,56 @@ kbd {
 }
 ::view-transition-new(root) {
   animation: none;
+}
+
+/* Theme iris. Hard clip-path jumped a hairline-drawing ~25px per frame and
+   read as skipped frames. A feathered mask is the same circle with a mix
+   band, so old and new paper dissolve across the edge instead of tearing.
+   Gaussian blur on these snapshots is the other way to mix and it is also
+   how you drop frames: the capture is the whole sheet. */
+@keyframes vt-radial-reveal {
+  from {
+    --vt-r-now: 0px;
+  }
+  to {
+    --vt-r-now: var(--vt-r, 100vmax);
+  }
+}
+:root.vt-recolor-radial::view-transition-group(root),
+:root.vt-recolor-radial::view-transition-image-pair(root) {
+  animation: none;
+}
+:root.vt-recolor-radial::view-transition-old(root) {
+  display: block;
+  animation: none;
+  opacity: 1;
+}
+:root.vt-recolor-radial::view-transition-new(root) {
+  --iris-in: max(0px, calc(var(--vt-r-now, 0px) - var(--vt-feather)));
+  -webkit-mask-image: radial-gradient(
+    circle at var(--vt-x, 50%) var(--vt-y, 50%),
+    #000 0,
+    #000 var(--iris-in),
+    rgb(0 0 0 / 0.45) max(0px, calc(var(--vt-r-now, 0px) - 48px)),
+    transparent var(--vt-r-now, 0px)
+  );
+  mask-image: radial-gradient(
+    circle at var(--vt-x, 50%) var(--vt-y, 50%),
+    #000 0,
+    #000 var(--iris-in),
+    rgb(0 0 0 / 0.45) max(0px, calc(var(--vt-r-now, 0px) - 48px)),
+    transparent var(--vt-r-now, 0px)
+  );
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  animation: vt-radial-reveal var(--dur-iris) var(--ease-iris) both;
+}
+:root.vt-recolor-radial,
+:root.vt-recolor-radial body,
+:root.vt-recolor-radial body :where(*) {
+  transition: none !important;
 }
 ::view-transition-group(route) {
   animation-duration: var(--dur-base);

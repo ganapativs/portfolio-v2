@@ -3,30 +3,39 @@ import type { SweepFn, SweepHandle } from "glimm/react";
 /**
  * How the band is coloured, as hexes rather than as a built palette.
  *
- * `accentPair` pins its two endpoints exactly and `accentChain` does not, so
- * which of the two built it is part of the description. An ink pick is a pair,
- * because the two inks either side of it are the whole event; a paper change is
- * the chain of all six. See ThemeProvider.themeBand.
+ * `accentPair` pins its two endpoints exactly. An ink pick is those two
+ * inks. A paper flip is the iris in `lib/vt.ts`, not a band.
  */
-export type Band = { kind: "pair"; hexes: [string, string] } | { kind: "chain"; hexes: string[] };
+export type Band = { kind: "pair"; hexes: [string, string] };
 
 /**
- * glimm's root module: the oklch maths behind both palette builders, and the
- * mesh shader the band is drawn with. 13.2 kB gzip, and it used to sit in the
- * root layout chunk on every route because three providers imported from it at
- * the top level -- so a reader who only ever read a blog post still paid for
- * the machinery that repigments the sheet.
+ * glimm's root module: the oklch maths behind both palette builders. 13.2 kB
+ * gzip, and it used to sit in the root layout chunk on every route because
+ * three providers imported from it at the top level -- so a reader who only
+ * ever read a blog post still paid for the machinery that repigments the
+ * sheet. The wavy shader (`sweep-shader.ts`) is fetched in the same tick.
  *
  * `glimm/react` carries its own copy of the colour helpers but does not export
  * them, so moving one import and not the others buys nothing: the module comes
  * back for whichever is left. All three go through here instead, and the fetch
  * happens on the first palette change.
  */
-let loading: Promise<typeof import("glimm")> | null = null;
+type GlimmMod = typeof import("glimm");
+let loading: Promise<GlimmMod> | null = null;
+let wavy: (typeof import("./sweep-shader"))["createWavyShader"] | null = null;
 
 function loadGlimm() {
-  loading ??= import("glimm");
+  loading ??= Promise.all([import("glimm"), import("./sweep-shader")]).then(([g, s]) => {
+    wavy = s.createWavyShader;
+    return g;
+  });
   return loading;
+}
+
+export function sweepShader(
+  opts: Parameters<NonNullable<typeof wavy>>[0],
+): ReturnType<NonNullable<typeof wavy>> {
+  return wavy?.(opts) ?? null;
 }
 
 /**
@@ -34,7 +43,11 @@ function loadGlimm() {
  * `ShaderController` type from its root entry but not from `glimm/react`, and
  * this file has no business with the rest of it.
  */
-type BandControls = { setProgress: (p: number) => void; setAlpha: (a: number) => void };
+type BandControls = {
+  setProgress: (p: number) => void;
+  setAlpha: (a: number) => void;
+  canvas?: HTMLCanvasElement;
+};
 
 /**
  * The band's shader controller, handed over by `SweepProvider` the first time
@@ -118,10 +131,7 @@ export function sweepApply(
     if (id !== seq) return land();
     const { band, direction } = options;
     const handle = sweep(once, {
-      palette:
-        band.kind === "pair"
-          ? g.accentPair(band.hexes[0], band.hexes[1])
-          : g.accentChain(band.hexes),
+      palette: g.accentPair(band.hexes[0], band.hexes[1]),
       direction,
     });
     const settle = () => {

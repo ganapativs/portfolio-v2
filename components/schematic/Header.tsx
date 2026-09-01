@@ -68,8 +68,8 @@ export function SchematicHeader() {
     group: "Navigate",
     run: () => router.push("/resume"),
   });
-  // No origin: a keyboard press has no point on the page behind it, so the
-  // band sweeps top to bottom instead of left to right. See ThemeProvider.
+  // The iris opens from the control. A key has no pointer, so the circle
+  // starts at the viewport centre rather than pretending a press landed.
   const themeRef = useShortcut<HTMLButtonElement>({
     id: "theme.toggle",
     keys: ["t"],
