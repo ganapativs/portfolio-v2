@@ -3,26 +3,30 @@
 
    Nothing ships at opacity 0 waiting for a scroll to reveal it. Motion is
    reserved for things the reader caused — a hover, a drag, an ink pick, a route
-   swap — with two sanctioned exceptions, both one-shot:
+   swap — with three sanctioned exceptions, all one-shot:
 
      the halftone portrait blooming in from two or three seeds, once, on load
      the pipeline playing one pass through its stages the first time it is seen
+     the loupe's lens settling onto the sentence once it has been placed, its
+       two tangents extending out of the ring behind it
 
-   Both happen once per load and never again; the pipeline's pass is
-   interruptible (touching the scrubber cancels it). Everything else that once
+   All three happen once per load and never again; the pipeline's pass is
+   interruptible (touching the scrubber cancels it). The lens is the newest and
+   the narrowest: it is not decoration on a finished drawing but the arrival of
+   a thing that CANNOT be drawn until it has been measured — the placing effect
+   runs after first paint, so the choice is between appearing in one frame and
+   appearing over 420ms, and one frame read as a glitch. Everything else that once
    moved on load — the figure draw-ins on figs. 1 and 3, the sheet frame's
    400ms wipe, the portrait's dimension lines drawing themselves — was retired
    on the owner's call: line appearance on load read as motion nobody caused.
    All of it renders finished from the first paint.
 
    And one duration that is not a token at all: the palette sweep. A glimm band
-   crossing the whole sheet is 800ms plus a 350ms fade, which is longer than
+   crossing the whole sheet is 900ms plus a 420ms fade, which is longer than
    anything else here by a factor of three. It is a full-sheet reveal rather than
    a control responding, it happens only when the reader changes the paper or
    the ink, and its timing lives in components/providers/SweepProvider.tsx
-   because it belongs to the library that draws it. Underneath it, both kinds of
-   palette change ride the one 340ms token tween in tokens.css — ink and paper
-   are the same mechanism at the same tempo.
+   because it belongs to the library that draws it.
    ============================================================================ */
 
 @media (prefers-reduced-motion: reduce) {
@@ -34,6 +38,7 @@
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;

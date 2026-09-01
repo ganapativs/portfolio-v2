@@ -609,12 +609,6 @@ writes exactly those two plus the inline ground colour, and nothing else.
 `--accent` is registered with `@property { syntax: "<color>" }`. That is what
 makes an ink change a real 340 ms interpolation rather than a hard swap —
 unregistered custom properties are token streams and cannot be transitioned.
-**The nine surface tokens and `--dither-dot` are registered the same way and
-share the same one transition on `:root`**, so a theme flip is the same 340 ms
-repigmentation an ink pick is, under the same band — not a hard cut. Their
-`initial-value`s are the light ramp; change a surface in the theme blocks,
-change its `@property` initial too.
-
 The six live as `--sw-<id>` and `--accent` is aliased to the active one. The
 derived weights are plain `color-mix()` properties rather than registered ones,
 on purpose: `color-mix()` re-evaluates every frame as `--accent` tweens, so they
@@ -769,11 +763,10 @@ which reads as four different mechanisms. `.chip` documents the one exception:
 it is 236px wide, where the token is 14px of travel.
 
 **Motion**: `--dur-fast 140ms` hover and focus · `--dur-base 260ms` everything
-the reader caused · `--dur-ink 340ms` the coordinated palette tween (the
-accent AND the nine registered surface tokens plus `--dither-dot`, all on one
-clock — see "The ink system") · the palette sweep at 800ms + 350ms, which
-lives in `SweepProvider.tsx` rather than in a token because it belongs to the
-library that draws it. One easing: `--ease-out cubic-bezier(.22,1,.36,1)`
+the reader caused · `--dur-ink 340ms` the coordinated ink tween · the palette
+sweep at 900ms + 420ms, which lives in `SweepProvider.tsx` rather than in a
+token because it belongs to the library that draws it. One easing:
+`--ease-out cubic-bezier(.22,1,.36,1)`
 (`--ease-in-out` was declared, referenced zero times, and deleted — the one
 in-out motion, the pipeline's auto pass, owns its curve in JS). Direct
 manipulation has no duration at all, because the hand sets it. (`--dur-iris`, `--vt-r-now` and the `.vt-recolor-radial` block
@@ -783,11 +776,20 @@ described them as "still declared" for a while after they were deleted.)
 ### The motion law (`styles/press/motion.css`)
 
 Motion is reserved for things the reader caused — a hover, a drag, an ink pick,
-a route swap — with **two sanctioned one-shot exceptions**:
+a route swap — with **three sanctioned one-shot exceptions**:
 
 1. the halftone portrait blooming in from two or three random seeds, once, on
    load (`Portrait.tsx` — the only randomness on the page);
-2. the pipeline playing one pass through its stages the first time it is seen.
+2. the pipeline playing one pass through its stages the first time it is seen;
+3. the loupe's lens settling onto the sentence the moment it is placed
+   (`lp-lens-in`, 420 ms), with its two tangents extending out of the ring
+   behind it (`lp-lines-in`, a top-down `clip-path` wipe on `.lp-lines`).
+   Narrower than it looks: the lens is positioned from a measurement taken
+   after first paint, so it cannot render finished from the first byte the way
+   every retired draw-in could, and appearing in a single frame read as a
+   glitch. The zoom is the independent `scale` property and the wipe is on the
+   container, because `transform` and `width` on the lines are written by
+   `Loupe.tsx` on every pointermove.
 
 (Everything else that once moved on load was deleted on the owner's call —
 line appearance on load read as motion nobody caused. That covers the figure
@@ -803,19 +805,22 @@ introduce one.**
 
 ### `<html>` data attributes
 
-| Attribute                  | Set by                     | Triggers           |
-| -------------------------- | -------------------------- | ------------------ |
-| `data-theme="light\|dark"` | no-flash → `ThemeProvider` | Every dark surface |
-| `data-ink="<id>"`          | no-flash → `InkProvider`   | The active ink     |
+| Attribute                  | Set by                     | Triggers                        |
+| -------------------------- | -------------------------- | ------------------------------- |
+| `data-theme="light\|dark"` | no-flash → `ThemeProvider` | Every dark surface              |
+| `data-ink="<id>"`          | no-flash → `InkProvider`   | The active ink                  |
+| `data-repapering`          | `ThemeProvider`, one frame | Kills the `--accent` transition |
 
-These two and nothing else, plus the inline ground colour and `colorScheme`.
-`data-mode` is gone, and so is `data-repapering`: it existed to make the
-accent SNAP on a theme flip, back when the grounds could not tween and a
-340ms-lagging accent printed the wrong ink on the header. The surface tokens
-are `@property`-registered `<color>`s now and share the accent's one 340ms
-transition (`tokens.css`), so ink and paper move together and nothing can lag
-anything. Do not reintroduce the flag, and do not give any surface token its
-own duration.
+These three and nothing else, plus the inline ground colour and
+`colorScheme`. `data-mode` is gone.
+
+`data-repapering` is not a third palette axis: it is written and removed inside
+one theme swap and is never persisted. It exists so the ink snaps with the
+ground it belongs to instead of tweening to catch up with it — see
+`:root[data-repapering]` in `tokens.css` and the sweep contract below.
+(Registering the surface tokens so ink and ground tween together was tried on
+2026-09-01 and reverted with the flat band on the owner's call: the original
+snap-under-the-mesh-band is the shipped behaviour.)
 
 ---
 
@@ -831,16 +836,14 @@ Replaces the old view-transition contract. **The clip-path iris is gone.**
    copies. It read as the ink bar under the G blinking out and back on every
    navigation.
    1b. **The header paints above the band.** `.hd` is `z-index: 70`, over the
-   band's 60. The band carries the tray's colours and the bar under the G is
-   the active ink, so a theme flip washed the mark out and gave it back as
+   band's 60. The band is painted with the ink in play and the bar under the G
+   is that same ink, so a theme flip washed the mark out and gave it back as
    the band passed: it read as the underline blinking off and on. The band
    re-inks the sheet; the control surface that caused it stays legible while it
    happens.
-   1c. **The header is why the whole palette tweens on one clock.** It paints
-   above the band, so any token lagging another is visible there and only
-   there. The accent used to snap on a theme flip (`data-repapering`) because
-   the grounds could not tween; both tween together at `--dur-ink` now — see
-   "`<html>` data attributes".
+   1c. **The header is also the only place the `--accent` tween is visible on a
+   theme flip**, which is why there is not one any more. See
+   `data-repapering` under "`<html>` data attributes".
 2. **Both palette changes — theme and ink — go through `sweepApply()` in
    `lib/sweep.ts`**, which hands the state swap to glimm. glimm draws one WebGL
    band across the viewport and applies the change underneath it at the
@@ -853,20 +856,21 @@ hexes }`), not as a built palette**, and builds it itself after the module
    not, which is why which builder to use is part of the description rather
    than the caller's business.
    2d. **glimm's root module is fetched on the first palette change, not
-   imported at the top of a provider.** Static imports of its palette builders
-   sat in the root layout chunk, 13.2 kB gzip on every route, including routes
-   with no palette control in reach. **Moving one and not the others buys
-   nothing**: `glimm/react` carries its own copy of the colour helpers but
-   does not export them, so the root module comes back for whichever import is
-   left. Everything goes through `lib/sweep.ts` now. The 1.6 s guard timer
-   starts before the fetch, so a press whose band never arrives still gets its
-   ink.
-3. **The band is painted in the tray's LIT values — `INK_HEX_DARK` — on both
-   grounds.** The band is a translucent veil of light, and light is lit:
-   sweeping the light-ground pigments, which are dark, laid a muddy brown film
-   over the paper (measured in a pinned-frame harness). An ink pick sweeps the
-   lit values of the ink being replaced and the one replacing it; a theme flip
-   sweeps all six, led and closed by the active ink.
+   imported at the top of a provider.** It was three static imports —
+   `createMeshShader` in `SweepProvider`, `accentChain` in `ThemeProvider`,
+   `accentPair` in `InkProvider` — and it sat in the root layout chunk, 13.2 kB
+   gzip on every route, including routes with no palette control in reach.
+   **Moving one and not the others buys nothing**: `glimm/react` carries its own
+   copy of the colour helpers but does not export them, so the root module comes
+   back for whichever import is left. All three go through `lib/sweep.ts` now.
+   `SweepProvider`'s `shaderFactory` reads it via `glimmNow()`, which is safe
+   because glimm only calls that factory from inside `sweep()`, and `sweepApply`
+   awaits the module first. The 1.6 s guard timer starts before the fetch, so a
+   press whose band never arrives still gets its ink.
+3. **The band is painted with the ink in play.** A theme flip sweeps the active
+   ink between its two grounds; an ink pick sweeps from the ink being replaced
+   to the one replacing it, so the sweep _is_ the interpolation rather than
+   something laid over one.
 4. **Direction says how it was done.** `ltr` when a pointer landed on a control,
    `ttb` from the keyboard. A number key has no position on the page, and a
    different axis is a more honest way to say so than a wipe pretending to start
@@ -887,18 +891,18 @@ hexes }`), not as a built palette**, and builds it itself after the module
    rather than travelling.
 
 `SweepProvider`'s settings are all decisions, documented in the file. It runs
-glimm's **default flat shader** — the mesh (`createMeshShader`) was tried and
-retired: its lit crest, refraction and bloom read as a bright travelling blob,
-and on a keyboard (ttb) flip its specular ridge was a white horizontal bar
-over the header. `sweepMs 800` / `outroMs 350` / `midpoint 0.42` /
-`easing "easeInOutCubic"` is the one place the motion law is deliberately
-exceeded, because this is the whole sheet being re-inked rather than a control
-answering; the early midpoint lets the 340 ms token tween finish while the
-veil is still at strength, so the swap is masked rather than exposed as an
-after-flicker. **`swellAmount` is 0 and must stay 0** — it gates the flat
-shader's specular highlight, the same white bar by another switch.
-`brightness` and `peakAlpha` stay pulled down because the library is tuned
-for white sites and both grounds here are low-key.
+glimm's **mesh** shader (`shaderFactory: createMeshShader`), not the flat one:
+the band is a lit crest with a trailing second wave, refraction and a dispersed
+rim, so it reads as a material passing over the sheet rather than as a lighter
+rectangle. `sweepMs 900` / `outroMs 420` / `midpoint 0.45` is the one place the
+motion law is deliberately exceeded, because this is the whole sheet being
+re-inked rather than a control answering; it has been shortened twice and both
+times the sweep was simply missed. `waveAmount` and `rippleAmount` are on now.
+`brightness` and `peakAlpha` stay pulled down because at the library's defaults
+the band blows out to near-white on graphite, which is the one colour the
+palette does not contain. (A flat-shader remake — easeInOutCubic, lit-value
+bands, swellAmount 0 — was tried on 2026-09-01 and reverted on the owner's
+call: it read worse than the mesh. This configuration is the shipped one.)
 
 **An ink pick sweeps two colours; a paper change sweeps all six.** `accentPair`
 for the pick, because two colours is the whole event. `themeBand()` in
@@ -996,10 +1000,17 @@ different ground, and the band says so.
   claim is that the thing in the sentence is real. It is the same `Sparkline` on
   the same `SPARK` series at 280x64 on `curve="smooth"`, with the dimension line
   and the caption as their own small SVG beneath it, so the two cannot drift.
-- **The lens is `visibility: hidden` until `Loupe.tsx` has placed it.** It is
-  positioned by a transform written from a measurement, and the placing effect
-  runs after the first paint, so it was painted at the stage's top left corner
-  for a frame and then flew onto the sentence on every load. It also starts on
+- **The lens is `visibility: hidden` until `Loupe.tsx` raises `data-placed` on
+  the STAGE, and that is not the first placement — it is the first placement
+  the fonts cannot move.** The lens is positioned by a transform written from a
+  measurement, and the placing effect runs after first paint, so a visible lens
+  is painted at the stage's top left corner for a frame and then flies onto the
+  sentence. Revealing at the first placement only moved the problem: that
+  measurement lands before the fonts do, so the reader watched the lens fade in
+  at the pre-font position and snap across when they arrived. The flag goes up
+  on `document.fonts.ready`, or on a 600 ms guard timer if that promise never
+  lands, and `reveal()` is idempotent. It is on the stage rather than on the
+  lens so the two tangents share the one moment. It also starts on
   the inline chart rather than on a word (`CHART_WORD`, derived from `WORDS`),
   because the detail box should be showing the component when the reader
   arrives.

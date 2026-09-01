@@ -151,11 +151,6 @@ export function Loupe() {
       }, 50);
     }
     loupe.style.transform = `translate(${r.x - 29}px,${r.y - 29}px)`;
-    // Until this has run once, the lens has no transform and CSS has it at the
-    // stage's top left corner. The placing effect runs after the first paint,
-    // so it was painted there for a frame and then jumped onto the sentence.
-    // It is hidden until it is somewhere.
-    loupe.dataset.placed = "true";
     const d = detail.getBoundingClientRect();
     const base = stage.getBoundingClientRect();
     const dt = d.top - base.top;
@@ -201,6 +196,25 @@ export function Loupe() {
     // All three of these are layout resyncs, so they place instantly.
     measure();
     place(curRef.current, true);
+    // Until this has run once, the lens has no transform and CSS has it at the
+    // stage's top left corner, hidden: the placing effect runs after the first
+    // paint, so a visible lens would be painted there for a frame and jump onto
+    // the sentence. Which is also why the reveal is NOT this first placement.
+    // The measurement above lands before the fonts do, and the resync when they
+    // arrive moves every word box; revealing here showed the lens at the
+    // pre-font position and then snapped it across in full view of the reader.
+    // It is raised once the boxes are final — the fonts, or a guard timer if
+    // that promise never lands. Idempotent, so it cannot matter which wins.
+    let guard = 0;
+    const reveal = () => {
+      window.clearTimeout(guard);
+      measure();
+      place(curRef.current, true);
+      if (stageRef.current) stageRef.current.dataset.placed = "true";
+    };
+    guard = window.setTimeout(reveal, 600);
+    if (document.fonts?.ready) document.fonts.ready.then(reveal).catch(reveal);
+    else reveal();
     let rz = 0;
     const onResize = () => {
       clearTimeout(rz);
@@ -210,14 +224,8 @@ export function Loupe() {
       }, 150);
     };
     window.addEventListener("resize", onResize);
-    // Font swap changes every word box, so re-measure once the faces land.
-    document.fonts?.ready
-      .then(() => {
-        measure();
-        place(curRef.current, true);
-      })
-      .catch(() => {});
     return () => {
+      window.clearTimeout(guard);
       clearTimeout(rz);
       window.removeEventListener("resize", onResize);
     };

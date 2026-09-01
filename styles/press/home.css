@@ -618,8 +618,47 @@
   transition: transform var(--dur-base) var(--ease-out);
   background: radial-gradient(circle, transparent 62%, var(--accent-soft) 63%);
 }
-.loupe[data-placed="true"] {
+/* Placement is a measurement, not an event the reader caused, so the lens may
+   not appear on the sentence in one frame either: a 58px ring with four
+   crosshairs simply being there on the second paint reads as a glitch. It
+   arrives once, as a lens does — slightly large and clear, settling to size.
+   The zoom is the independent `scale` property, NOT `transform`: Loupe.tsx
+   writes `transform: translate(...)` straight to the node on every pointermove
+   and an animation on the same property would fight the drag. `scale`
+   composes after the translate, so it zooms about the lens's own centre — it
+   arrives WHERE it belongs, and does not travel there.
+
+   The flag is on the STAGE, not on the lens, and Loupe.tsx only raises it once
+   the word boxes are final. The first measurement lands before the fonts do,
+   so on the lens it revealed the pre-font position and the font swap's snap
+   then happened in full view, a beat into the fade: the lens looked like it
+   appeared to the right and slid across. The stage flag also lets the tangents
+   share the one moment. */
+.lp-stage[data-placed="true"] .loupe {
   visibility: visible;
+  animation:
+    lp-lens-in 420ms var(--ease-out) both,
+    lp-lens-fade 420ms linear both;
+}
+/* Two animations, one moment: the house ease settles the zoom fast, the way
+   every other control here lands, but on opacity it is 76% opaque at 105ms and
+   the arrival reads abrupt all over again. The fade is linear so it is
+   actually a fade. */
+@keyframes lp-lens-in {
+  from {
+    scale: 1.32;
+  }
+  to {
+    scale: 1;
+  }
+}
+@keyframes lp-lens-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 .loupe:active {
   cursor: grabbing;
@@ -661,11 +700,33 @@
 .lp-stage[data-dragging="true"] .lp-detail > * {
   animation: none;
 }
+/* The tangents extend out of the lens rather than being there already, a beat
+   behind it. Revealed by clipping the container top-down — the lines run from
+   the ring down to the detail box, so a top-down wipe IS them drawing outward
+   from the lens. Clipping the container rather than animating each line's own
+   `width`/`transform`, because those two are written by Loupe.tsx on every
+   move and are how the callout tracks the hand. */
 .lp-lines {
   position: absolute;
   inset: 0;
   pointer-events: none;
   z-index: 1;
+}
+/* `backwards`, not `both`: the wipe must leave NO clip behind it. The sides and
+   the top are held a full box out for the same reason — with the tangents on
+   the sentence's first word the left one starts a few pixels outside the
+   stage, and a `inset(0 0 0 0)` finish quietly cut it off. Only the bottom edge
+   travels, which is the wipe. */
+.lp-stage[data-placed="true"] .lp-lines {
+  animation: lp-lines-in 520ms var(--ease-out) 140ms backwards;
+}
+@keyframes lp-lines-in {
+  from {
+    clip-path: inset(-100% -100% 100% -100%);
+  }
+  to {
+    clip-path: inset(-100% -100% -100% -100%);
+  }
 }
 /* The two tangents from the lens down to the detail box, the way an enlarged
    detail is tied to its callout on a real drawing. */
