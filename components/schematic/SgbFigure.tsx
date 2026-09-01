@@ -3,7 +3,6 @@ import type { KeyboardEvent } from "react";
 import { useState } from "react";
 import { useFX } from "@/components/providers/FXProvider";
 import { useCoarsePointer } from "./useCoarsePointer";
-import { useDrawOnFirstView } from "./useDrawOnFirstView";
 
 /**
  * Fig. 3 — sgb, in general arrangement.
@@ -45,7 +44,6 @@ export function SgbFigure({ fig, body }: { fig: string; body: string }) {
   });
   const coarse = useCoarsePointer();
   const fx = useFX();
-  const { ref: svgRef, replay } = useDrawOnFirstView<SVGSVGElement>();
   const cur = PARTS.find((p) => p.id === on);
 
   const idx = (id: string | null) => PARTS.findIndex((p) => p.id === id);
@@ -91,18 +89,10 @@ export function SgbFigure({ fig, body }: { fig: string; body: string }) {
 
   return (
     <>
-      <button
-        type="button"
-        className="p-fig p-fig-replay"
-        data-analytics="cta:figure.replay.sgb"
-        onClick={replay}
-      >
-        {fig}
-        <span className="sr-only">: replay the drawing</span>
-      </button>
+      {/* A plain label again — the draw-in it used to replay is gone. */}
+      <span className="p-fig p-fig-lead">{fig}</span>
       <svg
-        ref={svgRef}
-        className="sgbfig willdraw"
+        className="sgbfig"
         viewBox="0 0 300 112"
         role="img"
         aria-label="A drawing of the sgb interface, a grid of bond series with one series card enlarged and its parts named"

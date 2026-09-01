@@ -170,8 +170,8 @@ components/
   schematic/         The design. Sheet, Header, Ruler, DitherField, TitleBlock, PageFX, Mark,
                      Caption,
                      Portrait, Exploded, Loupe, Specimens, SpectrumDemo, SgbFigure, Career,
-                     PartsList, Pipeline, CopyEmail, Socials, EssayShell, PrintCV, and three
-                     hooks: useDrawOnFirstView, useCoarsePointer, useReducedMotion
+                     PartsList, Pipeline, CopyEmail, Socials, EssayShell, PrintCV, and two
+                     hooks: useCoarsePointer, useReducedMotion
                      (which also exports `approach`, the frame-rate-independent lerp every
                      eased follow on the site uses, and `houseEase`, `--ease-out` solved in
                      JS for the loops that cannot read a CSS easing — see "Motion" below)
@@ -314,10 +314,10 @@ tracing paper laid over the drawing, not a floating panel.
 
 ### The sheet
 
-`components/schematic/Sheet.tsx` is the chrome every page shares: the dither
-field, the ruler, the skip link, the four corner registration ticks, the four
-frame masks that wipe off one edge at a time in the first 400 ms, the header,
-the children, the title block, and `<PageFX />`.
+`components/schematic/Sheet.tsx` is the chrome every page shares: the skip
+link (first, so it is the first Tab stop), the dither field, the ruler, the
+four corner registration ticks, the header, the children, the title block,
+and `<PageFX />`.
 
 `PageFX` is two page-wide delegated listeners with no element of their own: the
 panels' hex-mesh cursor mask, and the sound layer (hover tick, button
@@ -344,7 +344,7 @@ playing `clack` **and** a `chime` 80 ms behind it — four tones for one press,
 beside a sound toggle that plays one.
 
 Two things follow. A plain button — one with no cue of its own, like
-`.p-fig-replay` or the keys chip — carries no attribute and correctly gets the
+the keys chip — carries no attribute and correctly gets the
 press/release pair; do not tag a control that has nothing else to say. And a
 `tick` is throttled to 80 ms inside `FXProvider` while every other cue is not,
 so a duplicated tick hides and a duplicated anything-else does not. Do not read
@@ -783,16 +783,19 @@ described them as "still declared" for a while after they were deleted.)
 ### The motion law (`styles/press/motion.css`)
 
 Motion is reserved for things the reader caused — a hover, a drag, an ink pick,
-a route swap — with **four sanctioned one-shot exceptions**, all of them about
-the drawing drawing itself:
+a route swap — with **two sanctioned one-shot exceptions**:
 
-1. the sheet frame ruling itself in, once, in the first 400 ms of the page;
-2. a figure drawing its own lines the first time it comes into view
-   (`useDrawOnFirstView` — it drives a `stroke-dashoffset`, not an opacity, and
-   the figure is fully readable before and after);
-3. the pipeline playing one pass through its stages the first time it is seen;
-4. the halftone portrait blooming in from two or three random seeds, once, on
-   load (`Portrait.tsx` — the only randomness on the page).
+1. the halftone portrait blooming in from two or three random seeds, once, on
+   load (`Portrait.tsx` — the only randomness on the page);
+2. the pipeline playing one pass through its stages the first time it is seen.
+
+(Everything else that once moved on load was deleted on the owner's call —
+line appearance on load read as motion nobody caused. That covers the figure
+draw-ins on figs. 1 and 3 with their `useDrawOnFirstView` hook, `.willdraw`
+rules, setting-out ghosts and plate-number replay buttons; the sheet frame's
+400 ms four-mask wipe; and the portrait's dimension-line draw. All of it
+renders finished from the first byte. The machinery is in git history; do not
+reintroduce any of it.)
 
 Each happens once per load and never again, and each is interruptible by
 touching the thing it is happening to. **There is no scroll-reveal. Do not
@@ -950,10 +953,10 @@ different ground, and the band says so.
   for their padding with a matching offset. Both were failing WCAG 2.2's
   2.5.8, and the chips were failing it in the worse direction: overlapping
   targets, where a press lands on somebody else's control.
-- **Two of the plate numbers (`.p-fig-replay`) are buttons that replay their
-  figure's draw-in.** They are rendered by the figure component, which sits
-  below the heading in source, and put back on top with `order: -1` on the flex
-  column. Do not "fix" that by splitting the component in two.
+- **Two of the plate numbers (`.p-fig-lead`) are rendered by their figure
+  component**, which sits below the heading in source, and put back on top
+  with `order: -1` on the flex column. Do not "fix" that by splitting the
+  component in two. (They were replay buttons while the draw-ins existed.)
 - **A caption slot that swaps text keys its content and lets the slot animate
   its height.** `interpolate-size: allow-keywords` is set on `:root` in
   `tokens.css`; `.tl-cap` transitions `height`, and the inner `.cap-in` element
@@ -962,24 +965,9 @@ different ground, and the band says so.
   still works this way**, because its entries are dates and ranges that cannot
   be evened out. Figs. 1 and 3 take the other road entirely, below. `.xp-cap` is
   gone with them.
-- **A draw-in has to hide the fill as well as the stroke, and then it has to
-  put something back.** `stroke-dashoffset` hides a line; a `fill` is painted
-  the moment the element exists. Fig. 1's slab faces are filled in `--raise` and
-  `--sunk`, so the figure arrived as five grey lozenges fully formed and then
-  had its outlines drawn on top of them, which is a drawing in reverse. The
-  `.willdraw` rules animate `fill-opacity` from 0, 260ms behind each slab's own
-  stroke: the line first, then the material. Animate the opacity rather than
-  re-declaring the colours, or the two face tones end up written twice.
-  **Hiding both leaves a 370px hole, though, and that is worse.** So each slab
-  also carries a `.ghost` copy of its top face: the outline, `--rule` at 1px,
-  undashed, in the server-rendered HTML from the first byte, rubbed out 140ms
-  after its own slab's stroke begins. It is the setting-out line, and the ink
-  overtakes it. Three details are load-bearing. The ghost is a `polygon` inside
-  `.slab`, so every draw-in rule is scoped `:not(.ghost)` or it gets dash-hidden
-  along with everything else. It needs `.willdraw .slab polygon.ghost` to
-  out-specify `.xp .slab polygon`, which would otherwise fill and ink it. And it
-  is `fill: none`: a ghost with a fill is just the grey brick again.
-  Reduced motion `display: none`s it, there being nothing to set out for.
+- **The figures carry no draw-in.** See the note under "The motion law": the
+  self-inking pass (dash offsets, fill-opacity ramps, setting-out ghosts) was
+  deliberately deleted, and its hard-won lessons live in git history with it.
 - **`CHART` in `app/(press)/content.ts` is a hand-plotted path, not data.**
   `{ x: 10, y: 50 }` is a pixel position in fig. 6's own 272x64 SVG space, so
   `52 - c.y` is a height above a baseline running 2 to 44 and is not a quantity
@@ -1019,8 +1007,10 @@ different ground, and the band says so.
   dash-drawn path.** `pathLength` normalises the dash pattern to the path's own
   length, but `non-scaling-stroke` moves dash computation into screen space, so
   `stroke-dasharray: 1` becomes one CSS pixel and the figure prints as a field
-  of 1px dashes. It is silent: the drawing simply looks like a scribble. Fig.
-  1's glyphs fade in instead (`.willdraw .glyph`, `home.css`).
+  of 1px dashes. It is silent: the drawing simply looks like a scribble. (This
+  is why fig. 1's glyphs faded rather than drew, back when the draw-in
+  existed, and it still binds anything new that dash-draws a
+  non-scaling-stroke path.)
 - **A glyph drawn on an isometric face is built from that face's two axes.**
   The projection in `Exploded.tsx` turns a horizontal into a line sloping
   down-right and a vertical into one sloping down-left. Rectangles and axis-

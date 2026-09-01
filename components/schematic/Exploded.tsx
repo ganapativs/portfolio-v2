@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useCoarsePointer } from "./useCoarsePointer";
-import { useDrawOnFirstView } from "./useDrawOnFirstView";
 
 /**
  * Fig. 1 — the assistant, exploded.
@@ -156,7 +155,6 @@ export function Exploded({ fig, body }: { fig: string; body: string }) {
   const [{ on, dir }, setSel] = useState({ on: -1, dir: 1 });
   const coarse = useCoarsePointer();
   const clearTid = useRef(0);
-  const { ref: svgRef, replay } = useDrawOnFirstView<SVGSVGElement>();
 
   useEffect(() => () => window.clearTimeout(clearTid.current), []);
 
@@ -182,21 +180,13 @@ export function Exploded({ fig, body }: { fig: string; body: string }) {
 
   return (
     <>
-      {/* The plate number is the replay control. The assembly draws itself once
-          per load, and a reader who scrolled past it in a hidden tab never saw
-          it; this is the same pass, on request, and it is where a reader would
-          look to find out what they were looking at. */}
-      <button
-        type="button"
-        className="p-fig p-fig-replay"
-        data-analytics="cta:figure.replay.assistant"
-        onClick={replay}
-      >
-        {fig}
-        <span className="sr-only">: replay the drawing</span>
-      </button>
+      {/* A plain label again. It was a button that replayed the figure's
+          draw-in, and the draw-in is gone: a figure animating itself on load
+          was distracting motion nobody caused. `p-fig-lead` keeps the
+          order: -1 that puts it above the heading. */}
+      <span className="p-fig p-fig-lead">{fig}</span>
       <div className="xp">
-        <svg ref={svgRef} className="willdraw" viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
+        <svg viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
           <defs>
             <pattern
               id="hatchP"
@@ -243,17 +233,6 @@ export function Exploded({ fig, body }: { fig: string; body: string }) {
                     points={`${CX},${y} ${CX + HALF_W},${m} ${CX + HALF_W},${m + DEPTH} ${CX},${b + DEPTH} ${CX - HALF_W},${m + DEPTH} ${CX - HALF_W},${m}`}
                   />
                   <g className="lift">
-                    {/* The setting-out line.
-                      
-                      The slab's own outline, faint and undashed, present from
-                      the first byte of HTML and rubbed out once the inked line
-                      has been drawn over it. Without it the plate is simply
-                      empty until the draw-in runs, which is a 370px hole where
-                      the figure is going to be: the drawn stroke is hidden by
-                      its dash offset and the faces are hidden by fill-opacity,
-                      so there is nothing left to see. A drawing is set out in
-                      pencil before it is inked, so that is what is there. */}
-                    <polygon className="ghost" points={top} />
                     <polygon
                       className="side"
                       points={`${CX - HALF_W},${m} ${CX},${b} ${CX},${b + DEPTH} ${CX - HALF_W},${m + DEPTH}`}

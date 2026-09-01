@@ -157,31 +157,9 @@
 .fig .dot {
   fill: var(--accent);
 }
-/* The dimensions draw themselves once, on load, then hold. They are a
-   measurement, and a measurement that keeps re-measuring is a fidget. */
-@media (prefers-reduced-motion: no-preference) {
-  .fig .dim,
-  .fig .ext,
-  .fig .ldr {
-    stroke-dasharray: 1;
-    stroke-dashoffset: 1;
-    animation: fig-draw 500ms var(--ease-out) 340ms forwards;
-  }
-  .fig .anno {
-    opacity: 0;
-    animation: fig-in var(--dur-base) var(--ease-out) 640ms forwards;
-  }
-  @keyframes fig-draw {
-    to {
-      stroke-dashoffset: 0;
-    }
-  }
-  @keyframes fig-in {
-    to {
-      opacity: 1;
-    }
-  }
-}
+/* The dimensions do not draw themselves in any more — line appearance on load
+   was retired with the figure draw-ins. The portrait's one load animation is
+   the halftone bloom on the canvas; its annotations are simply there. */
 
 /* Annotations on a drawing are furniture, not copy. Dragging across a figure
    should not select "12 yrs experience" and "56 x 56 halftone" along with the
@@ -564,98 +542,12 @@
   margin-bottom: 1px;
 }
 
-/* Draw-on-first-view: the assembly builds itself once, bottom slab up.
-   
-   `fill-opacity` is half of that and it was missing. The dash offset hides a
-   stroke, not a shape: the slab faces are filled in --raise and --sunk, and a
-   fill is painted the instant the element exists. So the figure arrived as five
-   grey lozenges sitting there fully formed, and then had its outlines drawn on
-   top of them, which is the opposite of a drawing being drawn. Fading the fill
-   in rather than re-declaring it keeps the two face colours in one place.
-   
-   The fill follows its own outline rather than arriving with it: 260ms behind
-   the stroke on that slab, which is most of the way through its 420ms draw. The
-   line first, then the material. */
-.willdraw .slab polygon:not(.ghost),
-.willdraw .leader {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-}
-.willdraw .slab polygon:not(.ghost) {
-  fill-opacity: 0;
-}
-/* The setting-out lines. See the note in Exploded.tsx: with both the stroke and
-   the fill hidden there is nothing in the plate until the draw runs, so the
-   figure's own outline is there in pencil from the start. It is not dashed and
-   not animated in, because it is what was already on the paper.
-   
-   It is rubbed out per slab, 140ms after that slab's stroke begins, so the ink
-   is overtaking the pencil rather than replacing it. `fill: none` matters: this
-   is the same polygon as the drawn face, and a ghost with a fill is just the
-   grey brick again. */
-.willdraw .slab polygon.ghost {
-  fill: none;
-  fill-opacity: 1;
-  /* --rule, not --rule-3. The faint weight is for a hairline sitting next to
-     type; at 1px across an empty 370px plate it was invisible, which is the
-     blank space this exists to fill. */
-  stroke: var(--rule);
-  stroke-width: 1;
-  stroke-dasharray: none;
-  stroke-dashoffset: 0;
-}
-.willdraw[data-drawn="true"] .slab polygon.ghost {
-  opacity: 0;
-  transition: opacity 320ms var(--ease-out) calc(var(--i) * 70ms + 140ms);
-}
-/* The delay and duration live inside the shorthand rather than as their own
-   declarations, because `transition-delay` applies to every property in the
-   list: as a bare declaration it also sat on the hover stroke change above,
-   and the leader answered a pointer 300ms late, forever. */
-.willdraw[data-drawn="true"] .leader {
-  transition:
-    stroke-dashoffset 280ms var(--ease-out) 300ms,
-    stroke var(--dur-fast) var(--ease-out);
-  stroke-dashoffset: 0;
-}
-.willdraw[data-drawn="true"] .slab polygon:not(.ghost) {
-  transition:
-    stroke-dashoffset 420ms var(--ease-out) calc(var(--i) * 70ms),
-    fill-opacity 300ms var(--ease-out) calc(var(--i) * 70ms + 260ms);
-  stroke-dashoffset: 0;
-  fill-opacity: 1;
-}
-/* The glyphs fade rather than draw, and that is not a style choice.
-   `pathLength="1"` normalises a dash pattern to the path's own length, but
-   `vector-effect: non-scaling-stroke` moves dash computation into screen
-   space, where `stroke-dasharray: 1` means one CSS pixel. The two together
-   printed every symbol as a field of 1px dashes: the reason the glyphs read
-   as scribbles rather than as figures. Opacity has no such interaction. */
-.willdraw .glyph {
-  opacity: 0;
-}
-.willdraw[data-drawn="true"] .glyph {
-  opacity: 1;
-  transition: opacity 320ms var(--ease-out);
-  transition-delay: calc(140ms + var(--i) * 70ms);
-}
-@media (prefers-reduced-motion: reduce) {
-  .willdraw .glyph {
-    opacity: 1;
-  }
-  .willdraw .slab polygon,
-  .willdraw .leader {
-    stroke-dasharray: none;
-    stroke-dashoffset: 0;
-  }
-  .willdraw .slab polygon:not(.ghost) {
-    fill-opacity: 1;
-  }
-  /* Nothing to set out for: the ink is already on the paper. */
-  .willdraw .slab polygon.ghost {
-    display: none;
-  }
-}
+/* No draw-on-first-view any more. Figs. 1 and 3 used to ink themselves in
+   on first view (stroke-dashoffset, ghosts as setting-out lines, a replay
+   button on the plate number); it was retired as distracting motion on load —
+   the sheet frame, the portrait bloom and the pipeline's single pass are the
+   only load animations now. The machinery lived here and in
+   useDrawOnFirstView.ts, both deleted; see git history to resurrect it. */
 
 /* ---- fig. 2 · the loupe -------------------------------------------------- */
 
@@ -1052,49 +944,9 @@
 .sgb-hit[data-on="true"] .sgb-bar {
   opacity: 1;
 }
-/* The tile field is the setting out, so it is not hidden.
-   
-   Every stroke in this figure used to be dash-hidden until the observer fired,
-   which left the plate completely empty on arrival: the same hole fig. 1 has a
-   `.ghost` layer to fill. Fig. 3 needs no ghost, because it already contains
-   the thing a ghost would be. The 65 tiles are the field the detail is taken
-   from, and a field is what a draughtsman sets out first. They are drawn faint
-   from the first byte and come up to their own weight as the callout arrives.
-   
-   What still draws is the callout itself: the frame around the enlarged tile,
-   the leaders to it, the ring on the tile it came from, and the rule. That is
-   the part that is an act of drawing rather than a thing already on the sheet. */
-.sgbfig.willdraw .sgb-tile {
-  stroke: var(--rule-3);
-}
-.sgbfig.willdraw[data-drawn="true"] .sgb-tile {
-  transition: stroke 420ms var(--ease-out);
-  stroke: var(--rule-2);
-}
-.sgbfig.willdraw .sgb-ldr,
-.sgbfig.willdraw .sgb-pick,
-.sgbfig.willdraw .sgb-frame,
-.sgbfig.willdraw .sgb-rule {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-}
-.sgbfig.willdraw[data-drawn="true"] .sgb-ldr,
-.sgbfig.willdraw[data-drawn="true"] .sgb-pick,
-.sgbfig.willdraw[data-drawn="true"] .sgb-frame,
-.sgbfig.willdraw[data-drawn="true"] .sgb-rule {
-  transition: stroke-dashoffset 420ms var(--ease-out);
-  stroke-dashoffset: 0;
-}
-@media (prefers-reduced-motion: reduce) {
-  .sgbfig.willdraw :is(.sgb-tile, .sgb-ldr, .sgb-pick, .sgb-rule, .sgb-frame) {
-    stroke-dasharray: none;
-    stroke-dashoffset: 0;
-  }
-  /* Nothing is being set out, so the field is at its own weight. */
-  .sgbfig.willdraw .sgb-tile {
-    stroke: var(--rule-2);
-  }
-}
+/* No draw-in here either — see the note above fig. 2's section. The tiles,
+   leaders, frame and rules render at their final weights from the first
+   paint. */
 
 /* ---- fig. 4 · react-spectrum, running ------------------------------------ */
 
