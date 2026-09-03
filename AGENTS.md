@@ -1146,13 +1146,12 @@ colours is the whole event. A paper flip is not a band.
 - **Fig. 6 is a grid of four areas (head, note, stage, scrub), and on a phone
   the note goes last and holds two lines.** As a flex row above the stage it
   grew from one line to two between stages and moved everything under it.
-  Under 768px the card is centred in the stage while the slot below it is
-  empty (sketch, vectors) and rises as a side panel fades in: `--y-shift` on
-  `.pipe-stage` is `(1 - max(--o-tok, --o-dom, --o-live)) * 74px`, applied as
-  a transform to `.pipe-card` and every `.pipe-lay` overlay, so nothing
-  reflows. `build()` zeroes it while it measures, because the overlays are
-  drawn in unshifted stage coordinates and ride the shift with the card. It
-  also measures with `--o-tok` and `--o-dom` forced to 1 (the panel rows
+  Under 768px the card stays at the top of the stage in every stage and the
+  slot below it holds the tallest side panel's height. **Do not centre the
+  card while the slot is empty**: a scrub-driven transform that let it rise
+  as a panel faded in was tried on 2026-09-03 and read as the card lurching
+  on every stage change. Nothing in the stage moves; only opacity does.
+  `build()` measures with `--o-tok` and `--o-dom` forced to 1 (the panel rows
   slide 8px as they fade, and the wires sat 8px off their swatches), keys
   its cache on the first swatch as well as the card (the fonts.ready rebuild
   was otherwise skipped), starts each phone wire at the swatch itself and

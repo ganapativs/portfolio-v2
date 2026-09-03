@@ -278,14 +278,9 @@ export function Pipeline() {
     const btn = btnRef.current;
     const chart = chartRef.current;
     if (!stageEl || !ui || !vec || !wires || !btn || !chart) return;
-    // Measured with the phone layout's card shift zeroed (see --y-shift in
-    // pipeline.css): the overlays are drawn in unshifted stage coordinates and
-    // travel with the card on the same transform, so a measurement taken
-    // while the card was centred would have drawn them 74px low once it rose.
-    stageEl.style.setProperty("--y-shift", "0px");
-    // And with the side panels fully in: their rows slide 8px as they fade,
-    // so measured at rest in the sketch stage every wire sat 8px right of
-    // its swatch.
+    // Measured with the side panels fully in: their rows slide 8px as they
+    // fade, so measured at rest in the sketch stage every wire sat 8px right
+    // of its swatch.
     stageEl.style.setProperty("--o-tok", "1");
     stageEl.style.setProperty("--o-dom", "1");
     try {
@@ -454,7 +449,6 @@ export function Pipeline() {
         }
       }
     } finally {
-      stageEl.style.removeProperty("--y-shift");
       stageEl.style.removeProperty("--o-tok");
       stageEl.style.removeProperty("--o-dom");
     }
