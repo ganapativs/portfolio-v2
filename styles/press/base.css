@@ -192,6 +192,26 @@ kbd {
 ::view-transition-new(root) {
   animation: none;
 }
+/* The root group's own animation is a 250ms no-op (its geometry does not
+   change) that kept the transition alive: on a phone, where the route swap
+   is instant, the finished sections sat above the bar in the pseudo-tree for
+   those 250ms. Zero-length, not none: WebKit hands the group its geometry
+   through this animation. */
+::view-transition-group(root) {
+  animation-duration: 0s;
+}
+
+/* On a phone the route swap is instant. The bar at the foot is fixed over the
+   content, and during the fade the new page's sections painted ON TOP of it
+   until the transition ended. Naming the bar as its own group fixed that in
+   Chromium and made WebKit drop the bar for the whole swap, the same failure
+   the header had. With nothing animating, the transition ends in a frame and
+   the live page, bar on top, is what the reader sees. */
+@media (max-width: 640px) {
+  ::view-transition-new(.vt-route) {
+    animation-duration: 0s;
+  }
+}
 
 /* Theme iris. Hard clip-path jumped a hairline-drawing ~25px per frame and
    read as skipped frames. A feathered mask is the same circle with a mix

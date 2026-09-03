@@ -1244,9 +1244,10 @@ h2.sec-label {
     width: 0;
     opacity: 0;
   }
-  /* The preferences leave the strip on a phone (they render in .ptray, below)
-     and the strip keeps mark, name, writing and résumé, which fit. */
-  .hd .hd-ctls {
+  /* The links and the preferences leave the strip on a phone (they render in
+     .ptray, below) and the strip keeps the mark and the names. */
+  .hd .hd-ctls,
+  .hd .hd-nav > a {
     display: none;
   }
   /* 24px of panel padding inside an 18px gutter inside a 12px margin left
@@ -1281,28 +1282,29 @@ h2.sec-label {
   }
 }
 
-/* ---- the phone tray ------------------------------------------------------ */
+/* ---- the phone bar ------------------------------------------------------- */
 
-/* Ink, theme and sound, fixed at the bottom right of a phone screen, where a
-   thumb is. The strip they came from is sticky at the top and out of reach on
-   a tall phone. Drawn as the sheet's other chrome is: raised ground, one rule,
-   the chip radius, no shadow. Header.tsx moves the same buttons here through
-   a portal, so the keyboard map registers once. Hidden while the title block
-   is on screen, and never shown above 640px (the phone block above turns it
-   on). */
+/* Home, writing and résumé, then ink, theme and sound, fixed at the foot of a
+   phone screen where a thumb is. The strip they came from is sticky at the
+   top and out of reach on a tall phone. Drawn as the sheet's other chrome:
+   raised ground, one rule, the chip radius, no shadow. Header.tsx moves the
+   same links and buttons here through a portal, so the keyboard map registers
+   once. Hidden while the title block is on screen. Never shown above 640px.
+
+   Three layouts for the prototype (data-bar, see Header.tsx):
+     a  one centred pill, links then controls
+     b  two pills, links at the left, controls at the right
+     c  an edge-to-edge bar docked to the bottom, tabs at the left */
 .ptray {
   display: none;
   position: fixed;
-  right: 16px;
-  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-  /* Above the sheet's content and the header's 70. The sweep band's 60 is
-     outside the sheet's stacking context and paints over the sheet anyway. */
+  left: 12px;
+  right: 12px;
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
   z-index: 71;
+  justify-content: center;
   align-items: center;
-  padding: 7px 9px;
-  background: var(--raise);
-  border: 1px solid var(--rule);
-  border-radius: var(--r-chip);
+  gap: 14px;
   transition:
     opacity var(--dur-base) var(--ease-out),
     transform var(--dur-base) var(--ease-out);
@@ -1312,13 +1314,63 @@ h2.sec-label {
   transform: translateY(8px);
   pointer-events: none;
 }
+.pt-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.pt-nav > a {
+  font-family: var(--f-mono);
+  font-size: 12px;
+  color: var(--ink-3);
+  padding: 7px 8px;
+  min-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--r-chip);
+  position: relative;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+.pt-nav > a[aria-current="page"] {
+  color: var(--ink);
+}
+/* The current page's rule, the same mark the strip's links use. */
+.pt-nav > a::after {
+  content: "";
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 3px;
+  height: 1px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--dur-base) var(--ease-out);
+}
+.pt-nav > a[aria-current="page"]::after {
+  transform: scaleX(1);
+}
+.pt-home {
+  color: var(--ink);
+}
+.pt-mark {
+  display: block;
+  height: 18px;
+  width: auto;
+}
+.pt-mark .mark-bar {
+  fill: var(--accent);
+}
+.pt-ctls {
+  display: flex;
+  align-items: center;
+}
 .ptray .hd-ctls {
   display: flex;
   gap: 10px;
 }
 /* The ink tray is the collapsed disclosure here at every width: six chips
-   would make the tray wider than the thumb it serves. Opening it grows the
-   tray leftward, since it is anchored on the right. */
+   would make the bar wider than the screen. Opening it grows leftward. */
 .ptray .inks .ink-sw {
   display: none;
 }
@@ -1326,9 +1378,64 @@ h2.sec-label {
 .ptray .inks[data-open="true"] .ink-sw {
   display: inline-flex;
 }
+/* a: one pill, centred. */
+.ptray[data-bar="a"] {
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+  padding: 5px 8px 5px 6px;
+  background: var(--raise);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-chip);
+}
+.ptray[data-bar="a"][data-show="false"] {
+  transform: translateX(-50%) translateY(8px);
+}
+.ptray[data-bar="a"] .pt-ctls {
+  padding-left: 12px;
+  border-left: 1px solid var(--rule-3);
+}
+/* b: two pills, links left, controls right. */
+.ptray[data-bar="b"] {
+  justify-content: space-between;
+}
+.ptray[data-bar="b"] .pt-nav,
+.ptray[data-bar="b"] .pt-ctls {
+  padding: 5px 8px 5px 6px;
+  background: var(--raise);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-chip);
+}
+.ptray[data-bar="b"] .pt-ctls {
+  padding: 7px 9px;
+}
+/* c: a tab bar on the bottom edge. */
+.ptray[data-bar="c"] {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 6px 12px calc(6px + env(safe-area-inset-bottom, 0px));
+  justify-content: space-between;
+  background: var(--raise);
+  border-top: 1px solid var(--rule);
+}
+.ptray[data-bar="c"] .pt-nav > a {
+  font-size: 12.5px;
+  padding: 8px 10px;
+}
 /* After the base rule above, so it wins. */
 @media (max-width: 640px) {
   .ptray {
     display: flex;
   }
+}
+/* Six chips need the room the links were standing on: while the ink tray is
+   open the links step out, and come back when it closes. The same move the
+   strip makes with the name. */
+.ptray:has(.inks[data-open="true"]) .pt-nav {
+  display: none;
+}
+.ptray[data-bar="a"]:has(.inks[data-open="true"]) .pt-ctls {
+  padding-left: 0;
+  border-left: 0;
 }

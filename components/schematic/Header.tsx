@@ -106,6 +106,18 @@ export function SchematicHeader() {
     return () => mq.removeEventListener("change", update);
   }, []);
   const [trayEl, setTrayEl] = useState<HTMLDivElement | null>(null);
+  // PROTOTYPE SWITCH (2026-09-03): three bar layouts to compare on a phone,
+  // `?bar=a|b|c`, remembered in localStorage as mg_bar. Remove once one is
+  // chosen, along with the `[data-bar]` rules in chrome.css.
+  const [bar, setBar] = useState("a");
+  useEffect(() => {
+    try {
+      const q = new URLSearchParams(location.search).get("bar");
+      if (q && /^[abc]$/.test(q)) localStorage.setItem("mg_bar", q);
+      const v = localStorage.getItem("mg_bar");
+      if (v && /^[abc]$/.test(v)) setBar(v);
+    } catch {}
+  }, []);
   const narrowTray = phone || (measured && fit.includes("tray"));
   const rowRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -329,6 +341,32 @@ export function SchematicHeader() {
   }, []);
 
   /**
+   * The two links, one JSX value, in the strip or in the phone bar. `b` and
+   * `r` are registered on them wherever they render.
+   */
+  const links = (
+    <>
+      <Link
+        href="/blog"
+        ref={writingRef}
+        aria-current={on("/blog") ? "page" : undefined}
+        data-analytics="nav:header.writing"
+        onClick={() => fx?.nav()}
+      >
+        writing
+      </Link>
+      <Link
+        href="/resume"
+        ref={resumeRef}
+        aria-current={on("/resume") ? "page" : undefined}
+        data-analytics="nav:header.resume"
+        onClick={() => fx?.nav()}
+      >
+        résumé
+      </Link>
+    </>
+  );
+  /**
    * The three preferences: ink, theme, sound. One JSX value, rendered in one
    * of two places: in the strip on a wide sheet, or through a portal into the
    * fixed tray under the sheet on a phone, where the strip is out of thumb's
@@ -460,26 +498,9 @@ export function SchematicHeader() {
             </Link>
 
             <nav className="hd-nav" aria-label="Site">
-              <Link
-                href="/blog"
-                ref={writingRef}
-                aria-current={on("/blog") ? "page" : undefined}
-                data-analytics="nav:header.writing"
-                onClick={() => fx?.nav()}
-              >
-                writing
-              </Link>
-              <Link
-                href="/resume"
-                ref={resumeRef}
-                aria-current={on("/resume") ? "page" : undefined}
-                data-analytics="nav:header.resume"
-                onClick={() => fx?.nav()}
-              >
-                résumé
-              </Link>
-              {/* On a phone the controls render in the tray below the
-                    header instead; see `ctls` and `.ptray`. */}
+              {/* On a phone the links and the controls render in the bar
+                  below the header instead; see `links`, `ctls` and `.ptray`. */}
+              {phone && trayEl ? null : links}
               {phone && trayEl ? null : ctls}
             </nav>
           </div>
@@ -512,14 +533,32 @@ export function SchematicHeader() {
           a portal once the phone query is known, which is after hydration:
           the server renders them in the strip, where the phone stylesheet
           hides them, so nothing relocates on screen. */}
-      <div
-        className="ptray"
-        ref={setTrayEl}
-        role="group"
-        aria-label="Preferences"
-        data-show={trayShown}
-      >
-        {phone && trayEl ? createPortal(ctls, trayEl) : null}
+      <div className="ptray" ref={setTrayEl} data-show={trayShown} data-bar={bar}>
+        {phone && trayEl
+          ? createPortal(
+              <>
+                <nav className="pt-nav" aria-label="Site">
+                  {/* Home is a plain link here: `h` lives on the brand. */}
+                  <Link
+                    href="/"
+                    prefetch={false}
+                    className="pt-home"
+                    aria-current={pathname === "/" ? "page" : undefined}
+                    aria-label="Home"
+                    data-analytics="nav:bar.home"
+                    onClick={() => fx?.nav()}
+                  >
+                    <Mark className="pt-mark" />
+                  </Link>
+                  {links}
+                </nav>
+                <span className="pt-ctls" role="group" aria-label="Preferences">
+                  {ctls}
+                </span>
+              </>,
+              trayEl,
+            )
+          : null}
       </div>
     </>
   );
