@@ -187,18 +187,20 @@
 .essay {
   /* Opens where every page opens. */
   padding-top: var(--page-top);
-  /* The reading column starts on the sheet's left edge, where every other
-     page's content starts, and the cover breaks out to the full width: a
-     two-track grid whose first track is the measure. It was centred for a
-     while, which put the essay's title 76px right of the home page's and the
-     writing index's, so each route opened at a different x. Children keep
-     their own tighter caps (the title's 26ch, the spoiler's 56ch) and
-     left-align inside the track, so the column reads as one edge. */
+  /* The reading column is centred in the plate and the cover breaks out to the
+     full width: a three-track grid whose middle track is the measure. The
+     column used to hug the plate's left edge, which put 216px of dead gutter
+     under a full-bleed cover on every post. It is the one route whose text
+     does not start on the sheet's left edge, and that is the owner's call
+     (2026-09-03): the vertical opening is what has to match across pages,
+     not the x. Children keep their own tighter caps (the title's 26ch, the
+     spoiler's 56ch) and left-align inside the centred track, so the column
+     reads as one edge. */
   display: grid;
-  grid-template-columns: min(var(--w-essay), 100%) 1fr;
+  grid-template-columns: 1fr min(var(--w-essay), 100%) 1fr;
 }
 .essay > * {
-  grid-column: 1;
+  grid-column: 2;
 }
 /* Prose caps at the reading measure and the cover gets the whole plate. That
    contrast is the layout now that the card has gone; prose at the plate's

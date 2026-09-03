@@ -812,7 +812,9 @@ are part of the shared-component bridge below, not of the deleted scale.
 measure, `--sheet-margin 24px`, `--gutter 32px`, **`--page-top 36px`**: the
 gap between the header's rule and the first thing on every route (home's
 `.subject`, `.doc-head`, `.essay`, the résumé's `.cv`), so all four pages open
-at the same height, 45px under the hairline. **One h1 scale**:
+at the same height, 45px under the hairline. The essay's column stays
+centred in the plate (owner's call, 2026-09-03: the vertical opening has to
+match, the x does not). **One h1 scale**:
 `clamp(30px, calc(23px + 1.5vw), 42px)` on 1.08, shared by home, the writing
 index and the essay; the résumé's name is a document heading and stays at its
 own clamp. **One lede**: 1.19rem on 1.46 for the home introduction, the
