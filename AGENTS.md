@@ -357,6 +357,23 @@ none` with `.hd > *` set back to `auto`, so the dead area under the condensed
   steps out while it is open so the chips have the row it was on. A press
   anywhere outside `.inks`, or Escape, closes it. The name does not hide on
   stick any more: one row condenses into one row.
+- **On a phone (≤640px) the three preferences are not in the strip at all.**
+  Ink, theme and sound render through a portal into `.ptray`, a fixed tray
+  at the bottom right above the safe-area inset, because the sticky strip is
+  out of thumb's reach on a tall phone. Same JSX, one place at a time, so
+  every shortcut registers once. The strip keeps mark, name, writing and
+  résumé, which fit. The server still renders the controls in the strip and
+  the phone stylesheet hides them there, so nothing relocates on screen; the
+  tray fills after hydration. It hides while the title block is in view (an
+  IntersectionObserver on `.tb-wrap`) so it never covers the marks and the
+  résumé chip. The ink swatch in it is always the collapsed disclosure and
+  opens leftward. Drawn as the sheet's other chrome: raised ground, one
+  rule, chip radius, no shadow. Option 2 of three on 2026-09-03; a full
+  bottom dock and a bottom-docked strip were the other two.
+- **The nav links' 24px hit area is vertical padding pulled back with a
+  vertical negative margin only.** A negative side margin on the last link
+  poked 3px past the row's edge and the fit loop, which measures overflow,
+  never saw the row fit: every token went on, name included.
 - **The words on the rule are plain.** `drawingTitle()` says Home, Writing,
   Résumé, Essay or Not found. It said "General arrangement", "Specification
   sheet" and "Revision index" for a while, which meant nothing to the reader

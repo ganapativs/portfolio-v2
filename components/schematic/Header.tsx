@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Mark } from "./Mark";
 import { useFX } from "@/components/providers/FXProvider";
 import { useInk } from "@/components/providers/InkProvider";
@@ -94,7 +95,18 @@ export function SchematicHeader() {
   // ARIA follows the measurement, not the guess. The server rendered the
   // swatches without `aria-expanded`; deriving it from the guess on the first
   // client render was a hydration mismatch on every phone load.
-  const narrowTray = measured && fit.includes("tray");
+  // Phone: the preferences live in the fixed tray, and the ink swatch there
+  // is always the collapsed disclosure. Known after mount only; see .ptray.
+  const [phone, setPhone] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 640px)");
+    const update = () => setPhone(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+  const [trayEl, setTrayEl] = useState<HTMLDivElement | null>(null);
+  const narrowTray = phone || (measured && fit.includes("tray"));
   const rowRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const hd = headerRef.current;
@@ -128,6 +140,18 @@ export function SchematicHeader() {
       document.removeEventListener("keydown", onKey);
     };
   }, [trayOpen, narrowTray]);
+  // The tray steps aside while the title block is on screen: the marks and
+  // the résumé chip sit exactly where it would float.
+  const [trayShown, setTrayShown] = useState(true);
+  const pathnameForTray = usePathname();
+  useEffect(() => {
+    if (!phone) return;
+    const foot = document.querySelector(".tb-wrap");
+    if (!foot) return;
+    const io = new IntersectionObserver(([e]) => setTrayShown(!e.isIntersecting));
+    io.observe(foot);
+    return () => io.disconnect();
+  }, [phone, pathnameForTray]);
   const pathname = usePathname();
   const router = useRouter();
   const fx = useFX();
@@ -304,6 +328,84 @@ export function SchematicHeader() {
     };
   }, []);
 
+  /**
+   * The three preferences: ink, theme, sound. One JSX value, rendered in one
+   * of two places: in the strip on a wide sheet, or through a portal into the
+   * fixed tray under the sheet on a phone, where the strip is out of thumb's
+   * reach. One place at a time, so every shortcut on them registers once.
+   */
+  const ctls = (
+    <span className="hd-ctls">
+      {/* Below 640px the CSS hides every swatch but the active one. The
+        one that stays visible is a real button, so pressing it is what
+        opens the tray: no handler on the group, and the keyboard gets
+        the behaviour for free. Above 640px the attribute does nothing
+        and all six are always shown. */}
+      <span className="inks" role="group" aria-label="Ink" data-open={trayOpen}>
+        {INKS.map((i, n) => (
+          <InkSwatch
+            key={i.id}
+            id={i.id}
+            label={i.label}
+            n={n + 1}
+            on={ink === i.id}
+            pick={setInk}
+            // The active swatch toggles the tray; any other pick
+            // closes it.
+            onPicked={() => setTrayOpen(ink === i.id ? (o) => !o : false)}
+            discloses={narrowTray && ink === i.id ? trayOpen : undefined}
+          />
+        ))}
+      </span>
+
+      <button
+        type="button"
+        className="ctl"
+        ref={themeRef}
+        // Clacks. See the rule in PageFX.
+        data-cue="self"
+        // Deliberately not "switch to dark" / "switch to light". The
+        // server does not know which paper the reader chose — the
+        // no-flash script stamps that before React sees the page — so a
+        // theme-dependent label is a guaranteed hydration mismatch, and a
+        // toggle that renames itself is worse to hear read out anyway.
+        aria-label="Switch theme"
+        title="Theme · t"
+        onClick={(e) => {
+          // The origin is the middle of the control rather than the
+          // pointer, so a click and a keyboard activation of the same
+          // button are told apart by intent, not by a few pixels.
+          const r = e.currentTarget.getBoundingClientRect();
+          // A switch thrown, which `clack` already is: two notes, 40ms
+          // apart. The chime 80ms behind it made four tones for one
+          // press, where the sound toggle beside it plays one.
+          fx?.clack();
+          toggle({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
+        }}
+      >
+        {/* Half the disc hatched: the drawing-office way to say "this
+          side is in shadow", and it needs no sun or moon. */}
+        <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+          <defs>
+            <pattern
+              id="hatch-theme"
+              width="1.75"
+              height="1.75"
+              patternUnits="userSpaceOnUse"
+              patternTransform="rotate(45)"
+            >
+              <line x1="0" y1="0" x2="0" y2="1.75" stroke="currentColor" strokeWidth="0.8" />
+            </pattern>
+          </defs>
+          <circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" strokeWidth="1" />
+          <path d="M7 1.5 A5.5 5.5 0 0 1 7 12.5 Z" fill="url(#hatch-theme)" />
+        </svg>
+      </button>
+
+      <SoundToggle btnRef={soundRef} />
+    </span>
+  );
+
   return (
     <>
       <span className="hd-sentinel" ref={sentinel} aria-hidden="true" />
@@ -314,7 +416,7 @@ export function SchematicHeader() {
         // With the tray collapsed, opening it needs the row the name is on, so
         // the name steps out while the six chips are showing. The mark stays:
         // it is the home link and carries the identity on its own.
-        data-tray={trayOpen && narrowTray ? "open" : undefined}
+        data-tray={trayOpen && narrowTray && !phone ? "open" : undefined}
         // The inline script below rewrites data-fit before hydration and the
         // state initialiser reads it back, so the two agree on every healthy
         // load; the fallback on both sides is the empty string.
@@ -376,89 +478,9 @@ export function SchematicHeader() {
               >
                 résumé
               </Link>
-              <span className="hd-ctls">
-                {/* Below 640px the CSS hides every swatch but the active one. The
-                  one that stays visible is a real button, so pressing it is what
-                  opens the tray: no handler on the group, and the keyboard gets
-                  the behaviour for free. Above 640px the attribute does nothing
-                  and all six are always shown. */}
-                <span className="inks" role="group" aria-label="Ink" data-open={trayOpen}>
-                  {INKS.map((i, n) => (
-                    <InkSwatch
-                      key={i.id}
-                      id={i.id}
-                      label={i.label}
-                      n={n + 1}
-                      on={ink === i.id}
-                      pick={setInk}
-                      // The active swatch toggles the tray; any other pick
-                      // closes it.
-                      onPicked={() => setTrayOpen(ink === i.id ? (o) => !o : false)}
-                      discloses={narrowTray && ink === i.id ? trayOpen : undefined}
-                    />
-                  ))}
-                </span>
-
-                <button
-                  type="button"
-                  className="ctl"
-                  ref={themeRef}
-                  // Clacks. See the rule in PageFX.
-                  data-cue="self"
-                  // Deliberately not "switch to dark" / "switch to light". The
-                  // server does not know which paper the reader chose — the
-                  // no-flash script stamps that before React sees the page — so a
-                  // theme-dependent label is a guaranteed hydration mismatch, and a
-                  // toggle that renames itself is worse to hear read out anyway.
-                  aria-label="Switch theme"
-                  title="Theme · t"
-                  onClick={(e) => {
-                    // The origin is the middle of the control rather than the
-                    // pointer, so a click and a keyboard activation of the same
-                    // button are told apart by intent, not by a few pixels.
-                    const r = e.currentTarget.getBoundingClientRect();
-                    // A switch thrown, which `clack` already is: two notes, 40ms
-                    // apart. The chime 80ms behind it made four tones for one
-                    // press, where the sound toggle beside it plays one.
-                    fx?.clack();
-                    toggle({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
-                  }}
-                >
-                  {/* Half the disc hatched: the drawing-office way to say "this
-                    side is in shadow", and it needs no sun or moon. */}
-                  <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
-                    <defs>
-                      <pattern
-                        id="hatch-theme"
-                        width="1.75"
-                        height="1.75"
-                        patternUnits="userSpaceOnUse"
-                        patternTransform="rotate(45)"
-                      >
-                        <line
-                          x1="0"
-                          y1="0"
-                          x2="0"
-                          y2="1.75"
-                          stroke="currentColor"
-                          strokeWidth="0.8"
-                        />
-                      </pattern>
-                    </defs>
-                    <circle
-                      cx="7"
-                      cy="7"
-                      r="5.5"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1"
-                    />
-                    <path d="M7 1.5 A5.5 5.5 0 0 1 7 12.5 Z" fill="url(#hatch-theme)" />
-                  </svg>
-                </button>
-
-                <SoundToggle btnRef={soundRef} />
-              </span>
+              {/* On a phone the controls render in the tray below the
+                    header instead; see `ctls` and `.ptray`. */}
+              {phone && trayEl ? null : ctls}
             </nav>
           </div>
 
@@ -484,6 +506,21 @@ export function SchematicHeader() {
           <span hidden dangerouslySetInnerHTML={{ __html: `<script>${FIT_INLINE}</script>` }} />
         </div>
       </header>
+      {/* The phone tray. Fixed bottom-right, above the safe area, hidden while
+          the title block is in view so it never covers the marks there, and
+          display: none above 640px (chrome.css). The controls arrive through
+          a portal once the phone query is known, which is after hydration:
+          the server renders them in the strip, where the phone stylesheet
+          hides them, so nothing relocates on screen. */}
+      <div
+        className="ptray"
+        ref={setTrayEl}
+        role="group"
+        aria-label="Preferences"
+        data-show={trayShown}
+      >
+        {phone && trayEl ? createPortal(ctls, trayEl) : null}
+      </div>
     </>
   );
 }

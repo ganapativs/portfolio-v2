@@ -440,7 +440,7 @@
   font-size: 18px;
 }
 .hd[data-fit~="compact"] .hd-nav {
-  gap: 12px;
+  gap: 6px;
 }
 .hd[data-fit~="compact"] .hd-ctls {
   gap: 10px;
@@ -531,7 +531,7 @@
   margin-left: auto;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 10px;
 }
 .hd-nav a {
   font-family: var(--f-mono);
@@ -539,10 +539,13 @@
   color: var(--ink-3);
   position: relative;
   /* 13px of text was the whole target. Six px of padding each way makes it
-     24px to the finger (WCAG 2.5.8), and the negative margin gives the space
-     back so the row does not move. */
+     24px to the finger (WCAG 2.5.8), and the negative margin gives the height
+     back so the row does not move. Vertical only: a negative side margin on
+     the last link poked 3px past the row's edge, and the fit loop, which
+     measures overflow, never saw the row fit. The nav's gap is 6px smaller
+     to keep the links where they were. */
   padding: 6px 3px;
-  margin: -6px -3px;
+  margin: -6px 0;
   transition: color var(--dur-fast) var(--ease-out);
 }
 .hd-nav a::after {
@@ -1241,6 +1244,11 @@ h2.sec-label {
     width: 0;
     opacity: 0;
   }
+  /* The preferences leave the strip on a phone (they render in .ptray, below)
+     and the strip keeps mark, name, writing and résumé, which fit. */
+  .hd .hd-ctls {
+    display: none;
+  }
   /* 24px of panel padding inside an 18px gutter inside a 12px margin left
      267px for the figures. 16 gives them 283. */
   .panel {
@@ -1270,5 +1278,57 @@ h2.sec-label {
   }
   .tb-contact-r {
     margin-left: -8px;
+  }
+}
+
+/* ---- the phone tray ------------------------------------------------------ */
+
+/* Ink, theme and sound, fixed at the bottom right of a phone screen, where a
+   thumb is. The strip they came from is sticky at the top and out of reach on
+   a tall phone. Drawn as the sheet's other chrome is: raised ground, one rule,
+   the chip radius, no shadow. Header.tsx moves the same buttons here through
+   a portal, so the keyboard map registers once. Hidden while the title block
+   is on screen, and never shown above 640px (the phone block above turns it
+   on). */
+.ptray {
+  display: none;
+  position: fixed;
+  right: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  /* Above the sheet's content and the header's 70. The sweep band's 60 is
+     outside the sheet's stacking context and paints over the sheet anyway. */
+  z-index: 71;
+  align-items: center;
+  padding: 7px 9px;
+  background: var(--raise);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-chip);
+  transition:
+    opacity var(--dur-base) var(--ease-out),
+    transform var(--dur-base) var(--ease-out);
+}
+.ptray[data-show="false"] {
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+}
+.ptray .hd-ctls {
+  display: flex;
+  gap: 10px;
+}
+/* The ink tray is the collapsed disclosure here at every width: six chips
+   would make the tray wider than the thumb it serves. Opening it grows the
+   tray leftward, since it is anchored on the right. */
+.ptray .inks .ink-sw {
+  display: none;
+}
+.ptray .inks .ink-sw[aria-pressed="true"],
+.ptray .inks[data-open="true"] .ink-sw {
+  display: inline-flex;
+}
+/* After the base rule above, so it wins. */
+@media (max-width: 640px) {
+  .ptray {
+    display: flex;
   }
 }
