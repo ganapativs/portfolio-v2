@@ -5,8 +5,13 @@
 /* Same reasoning as the essay: a CV is a document, and it sits on the board
    rather than being printed through it. */
 .cv {
-  margin-top: 44px;
-  padding: clamp(28px, 4vw, 44px);
+  /* The card's edge is this page's first thing, and it sits where every
+     page's first thing sits. */
+  margin-top: var(--page-top);
+  /* Less above than at the sides: the card's edge is where the page opens,
+     and 44px of inset put the first line 99px under the rule against 45 on
+     every other route. */
+  padding: clamp(22px, 2.6vw, 30px) clamp(28px, 4vw, 44px) clamp(28px, 4vw, 44px);
   background: var(--raise);
   border: 1px solid var(--rule);
 }
@@ -255,7 +260,6 @@
 }
 @media (max-width: 640px) {
   .cv {
-    margin-top: 24px;
     padding: 20px 16px 24px;
   }
   .cv-topline {

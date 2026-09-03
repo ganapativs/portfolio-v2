@@ -15,7 +15,7 @@
   align-items: center;
   /* 36 down from 44: with the header's own rule 20px under the brand row, a
      44px void before the H1 made the head of the sheet read bottom-heavy. */
-  padding: 36px 0 40px;
+  padding: var(--page-top) 0 40px;
 }
 /* The one piece of display type on the sheet. The scale runs to 58px and the
    home page used to stop at 22, which made the drawing beautiful and mute. */
@@ -1492,7 +1492,7 @@
     grid-template-columns: minmax(0, 1fr);
   }
   .subject {
-    padding: 36px 0 32px;
+    padding: var(--page-top) 0 32px;
   }
   /* The two tangents from the lens to the detail box. On a phone the sentence
      wraps five times and the box is 200px below the ring, so the pair ran

@@ -809,7 +809,15 @@ The `--t-micro / --t-overline / --t-caption / --t-small / --t-body / --t-h5 /
 are part of the shared-component bridge below, not of the deleted scale.
 **Spacing**: `4 · 8 · 12 · 16 · 24 · 32 · 48 · 64 · 96 · 144` (`--s-1` … `--s-10`).
 **Measures**: `--w-sheet 1040px` the drawing, `--w-essay 760px` the reading
-measure, `--sheet-margin 24px`, `--gutter 32px`.
+measure, `--sheet-margin 24px`, `--gutter 32px`, **`--page-top 36px`**: the
+gap between the header's rule and the first thing on every route (home's
+`.subject`, `.doc-head`, `.essay`, the résumé's `.cv`), so all four pages open
+at the same height, 45px under the hairline. **One h1 scale**:
+`clamp(30px, calc(23px + 1.5vw), 42px)` on 1.08, shared by home, the writing
+index and the essay; the résumé's name is a document heading and stays at its
+own clamp. **One lede**: 1.19rem on 1.46 for the home introduction, the
+writing lede and the essay spoiler. Measured on 2026-09-03 before this: the
+four pages opened at 45, 69, 61 and 53px, with three h1 sizes.
 
 **Radius — three values, each with a job.** `--r-rule 0` is drawing geometry:
 every rule, panel, slab and axis. `--r-chip 2px` is a touched thing: chips,

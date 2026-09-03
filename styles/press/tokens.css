@@ -261,6 +261,12 @@
      measure and is narrower because prose has a different job than a drawing. */
   --w-sheet: 1040px;
   --w-essay: 760px;
+  /* Where a page starts: the gap between the header's rule and the first
+     thing on the sheet, the same on every route. The rule's own box carries
+     9px under its hairline, so the first element's top sits 45px below the
+     line. Home had 36, writing and the essay 52, the résumé 44 to a card
+     edge; every page opened at a different height. */
+  --page-top: 36px;
   --sheet-margin: 24px;
   --gutter: 32px;
 }
