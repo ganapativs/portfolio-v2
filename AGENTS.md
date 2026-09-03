@@ -368,7 +368,10 @@ none` with `.hd > *` set back to `auto`, so the dead area under the condensed
   renders links and controls in the strip and the phone stylesheet hides them
   there, so nothing relocates on screen; the bar fills after hydration. It
   hides while the title block is in view (an IntersectionObserver on
-  `.tb-wrap`). **The pill never changes width, and the ink picker is a sheet
+  `.tb-wrap`), observed once: it is the layout's node on every route, and
+  re-observing per navigation fired mid-swap. The bar has `will-change:
+transform` for a compositing layer of its own. **The pill never changes
+  width, and the ink picker is a sheet
   inside it.** The six swatches live on a layer spanning the pill from its
   left edge to the ink slot, in the pill's own material. Closed, the layer is
   clipped to the slot and shows the active ink. Pressed, the clip opens
@@ -940,7 +943,16 @@ events on purpose.
    gives every one of them `view-transition-class: vt-route`, and the
    `route-fade` rules in `base.css` select `(.vt-route)`. They selected the
    name `route` for a while, matched nothing, and the browser's own 250ms
-   crossfade ran instead. **The old route snapshots are `display: none`.**
+   crossfade ran instead. **On a phone there is no route transition at
+   all**: `installPhoneRouteSwap()` in `lib/vt.ts` (mounted from
+   `ThemeProvider`) replaces `document.startViewTransition` under 640px with
+   a stub that applies the update and resolves, because even a zero-length
+   transition held the screen for one frame in Chromium and the fixed bar at
+   the foot blinked on every navigation. The iris keeps the native call
+   through `nativeStart`, captured at module load; nothing else on the site
+   calls the document's method directly. Naming the bar as its own group was
+   tried instead and WebKit dropped it for 20 frames. **The old route
+   snapshots are `display: none`.**
    They are captured where they sat on screen, which after a scroll is under
    the sticky strip, and any crossfade drew them on top of the new header:
    Chromium ghosted the strip for six frames, Safari kept the old text over
@@ -1275,14 +1287,15 @@ hidden` — the same reserve-don't-animate move as the `.xp-note` slots, and for
   plate is only as tall as its contents. Padding is not distributable, so it
   survives both. `.xp`, `.spectrum` and `.lp-stage` all carry the floor as
   padding now.
-- **The loupe is 46px (`R = 23` in `Loupe.tsx`, `.loupe` in home.css) and the
-  sentence's leading is 2.7 because of it.** At 58px on a 35px line the ring
-  stood over the line above and the line below at every wrap, and on a phone
-  the sentence wraps five times. 2.7 × 17.5px is 47px, so consecutive lines
-  clear the ring. The tangents leave the ring at ±13px, which the same
-  constants derive; the crosshair arms' `box-shadow` offset is the diameter
-  plus 8. Below 640px `.lp-lines` is hidden: the detail box is 200px under the
-  ring there and the pair ran through three lines of prose.
+- **The loupe is 34px (`R = 17` in `Loupe.tsx`, `.loupe` in home.css) and the
+  sentence's leading is 2.3 because of it.** At 58px on a 35px line the ring
+  stood over the line above and the line below at every wrap; at 46px on 2.7
+  the lines sat so far apart the sentence read as a list (owner, 2026-09-03).
+  2.3 × 17.5px is 40px: the ring clears and the crosshair arms land in the
+  blank between neighbouring lines' glyphs. The tangents leave the ring at
+  ±10px, which the same constants derive; the arms' `box-shadow` offset is the
+  diameter plus 8. Below 640px `.lp-lines` is hidden: the detail box is far
+  under the ring there and the pair ran through three lines of prose.
 - **`.lp-stage`'s padding is also what keeps the lens off the type above it.**
   The word rectangles are measured against the stage box, so padding there
   moves the lens down with the sentence and no second number is needed in

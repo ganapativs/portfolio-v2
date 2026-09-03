@@ -567,12 +567,15 @@
   padding-top: 12px;
   margin-top: 16px;
 }
-/* The leading is the lens. The ring is 46px (R = 23 in Loupe.tsx) and it sits
-   on the centre of a line, so anything under 46px of leading puts it over the
-   line above and the line below at every wrap. 2.7 is 47px at this size. */
+/* The leading is the lens. The ring is 34px (R = 17 in Loupe.tsx) and it sits
+   on the centre of a line, so anything under 34px of leading puts it over the
+   line above and the line below at every wrap. 2.3 is 40px at this size: the
+   ring clears, and the crosshair arms (7px past the ring) land in the blank
+   between the glyphs of neighbouring lines. 2.7 was tried with a 46px ring and
+   the sentence read as a list. */
 .lp-sentence {
   font-size: 17.5px;
-  line-height: 2.7;
+  line-height: 2.3;
   position: relative;
   z-index: 2;
   user-select: none;
@@ -609,8 +612,8 @@
      the lens flying in from the top left on every load. `visibility`, so it
      still holds its place in the accessibility tree and takes focus. */
   visibility: hidden;
-  width: 46px;
-  height: 46px;
+  width: 34px;
+  height: 34px;
   border-radius: var(--r-point);
   left: 0;
   top: 0;
@@ -674,20 +677,20 @@
   opacity: 0.6;
 }
 /* The four crosshair arms: one element each way, its twin an offset shadow of
-   the ring's diameter plus the 7px it sits outside. 46 + 8 = 54. */
+   the ring's diameter plus the 7px it sits outside. 34 + 8 = 42. */
 .loupe::before {
   left: 50%;
   top: -7px;
   width: 1px;
   height: 6px;
-  box-shadow: 0 54px 0 var(--accent);
+  box-shadow: 0 42px 0 var(--accent);
 }
 .loupe::after {
   top: 50%;
   left: -7px;
   height: 1px;
   width: 6px;
-  box-shadow: 54px 0 0 var(--accent);
+  box-shadow: 42px 0 0 var(--accent);
 }
 /* Direct manipulation has no duration: while the hand is on the lens, both the
    lens and the two tangents tied to it follow it exactly. The flag is on the

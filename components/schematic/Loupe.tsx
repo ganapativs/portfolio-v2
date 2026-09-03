@@ -65,14 +65,15 @@ const MAG_W = 280;
 const MAG_X0 = 2;
 const MAG_X1 = MAG_W - MAG_X0;
 
-/* The lens radius. 23 (a 46px ring), down from 29: at 58px the ring stood over
-   the line above and the line below on every wrap, and on a phone the sentence
-   wraps five times. `.loupe` in home.css is sized from the same number and the
-   sentence's leading is set so consecutive lines clear the ring. */
-const R = 23;
-/* Where the two tangents leave the ring: 13px either side of centre, which puts
-   them sqrt(R^2 - 13^2) = 19px below it, on the ring itself. */
-const TAN_X = 13;
+/* The lens radius: 17, a 34px ring. It was 29 (58px), which stood over the
+   lines above and below at every wrap, then 23 with a 2.7 leading, which held
+   the lines so far apart the sentence read as a list. 34 on a 2.3 leading
+   (40px at 17.5px) clears the ring with the crosshair arms landing in the
+   blank between lines. `.loupe` in home.css is sized from the same number. */
+const R = 17;
+/* Where the two tangents leave the ring: 10px either side of centre, which puts
+   them sqrt(R^2 - 10^2) = 14px below it, on the ring itself. */
+const TAN_X = 10;
 const TAN_Y = Math.round(Math.sqrt(R * R - TAN_X * TAN_X));
 
 type Rect = { x: number; y: number; l: number; r: number; t: number; b: number };
