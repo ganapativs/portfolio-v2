@@ -64,7 +64,20 @@ function fitRow(hd: HTMLElement, row: HTMLElement): string {
 const FIT_INLINE =
   `try{var h=document.currentScript.closest(".hd"),r=h.querySelector(".hd-row"),t=${JSON.stringify(FIT)},f="";` +
   `for(var n=0;n<=t.length;n++){f=t.slice(0,n).join(" ");h.dataset.fit=f;if(r.scrollWidth<=r.clientWidth)break}` +
-  `window.__mgFit=f}catch(e){}`;
+  `window.__mgFit=f;` +
+  // The height lock, measured here while the header is certainly unstuck.
+  // Then the stuck state, from the same rule React uses (the sentinel above
+  // the header has left the viewport), kept current by a scroll listener
+  // until React's own observer takes over, and stamped with transitions off
+  // for the first 400ms so a reload that lands scrolled paints the condensed
+  // strip rather than condensing it. Without the lock first, the strip's
+  // 260ms condense shrank the box and scroll anchoring dragged the page 40px
+  // along with it; without the ground, the strip sat over the reader's
+  // content with no blur until hydration. React writes the same values.
+  `h.style.setProperty("--hd-h",Math.round(h.getBoundingClientRect().height)+"px");` +
+  `h.dataset.instant="";setTimeout(function(){delete h.dataset.instant},400);` +
+  `var s=h.previousElementSibling,u=function(){h.dataset.stuck=String(s.getBoundingClientRect().top<0)};` +
+  `u();addEventListener("scroll",u,{passive:true})}catch(e){}`;
 
 export function SchematicHeader() {
   const [trayOpen, setTrayOpen] = useState(false);
@@ -186,8 +199,17 @@ export function SchematicHeader() {
    * observer callback per crossing instead of a handler on every scroll frame,
    * and it needs no thresholds to tune.
    */
-  const [stuck, setStuck] = useState(false);
+  // Seeded from the sentinel's real position rather than `false`, so a reload
+  // of a scrolled page hydrates into the condensed strip the inline script
+  // above already painted, instead of expanding it for 50ms and condensing
+  // it again. suppressHydrationWarning on the header covers the attribute.
+  const [stuck, setStuck] = useState(() => {
+    if (typeof document === "undefined") return false;
+    const el = document.querySelector(".hd-sentinel");
+    return el ? el.getBoundingClientRect().top < 0 : false;
+  });
   const sentinel = useRef<HTMLSpanElement>(null);
+
   const headerRef = useRef<HTMLElement>(null);
   useEffect(() => {
     const el = sentinel.current;
@@ -215,6 +237,14 @@ export function SchematicHeader() {
     h.dataset.instant = "";
     const sync = () => setStuck(el.getBoundingClientRect().top < 0);
     sync();
+    // A selection made on the old page survives a client navigation: React
+    // keeps the nodes, the range re-resolves against the new content, and a
+    // word the reader double-clicked on the home page arrived as half a title
+    // painted in the ink on the essay. Nothing on the new page was selected
+    // by anyone.
+    try {
+      window.getSelection()?.removeAllRanges();
+    } catch {}
     // Once more after Next's scroll restoration has actually run — it lands
     // after the commit this effect belongs to.
     const t1 = window.setTimeout(sync, 50);
@@ -250,6 +280,12 @@ export function SchematicHeader() {
   useEffect(() => {
     const h = headerRef.current;
     if (!h) return;
+    // Only while unstuck: a stuck header is condensed and would measure
+    // short. A reload that lands scrolled hydrates stuck, and for that case
+    // the inline script above already measured the lock during parse, while
+    // the header was still at its natural height. (Toggling the state here
+    // to measure was tried and it restarted the ground's transition: one
+    // frame of no blur over the content.)
     const measure = () => {
       if (h.dataset.stuck === "true") return;
       h.style.setProperty("--hd-h", `${Math.round(h.getBoundingClientRect().height)}px`);
@@ -426,9 +462,6 @@ export function SchematicHeader() {
             </nav>
           </div>
 
-          {/* Measures the row and stamps data-fit during parse, before the
-              strip paints. After the row on purpose: it needs the row. */}
-          <script dangerouslySetInnerHTML={{ __html: FIT_INLINE }} />
           <div className="hd-rule">
             <span className="hd-title">
               {drawingTitle(pathname)}
@@ -440,6 +473,15 @@ export function SchematicHeader() {
             </span>
             <NorthArrow />
           </div>
+          {/* Measures the row, locks the height and stamps data-fit and
+              data-stuck during parse, before the strip paints. LAST in the
+              strip on purpose: it measures the whole strip, and with the rule
+              still unparsed it locked the box 34px short. The script is
+              written as markup inside a span rather than as a React <script>
+              element: the server emits it verbatim and the parser runs it,
+              and React does not log "encountered a script tag" on the client,
+              where it would never run anyway. */}
+          <span hidden dangerouslySetInnerHTML={{ __html: `<script>${FIT_INLINE}</script>` }} />
         </div>
       </header>
     </>

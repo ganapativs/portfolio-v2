@@ -9,7 +9,12 @@ export default function SheetLayout({ children }: { children: React.ReactNode })
   return (
     <Sheet>
       <main id="main-content">
-        <ViewTransition name="route">{children}</ViewTransition>
+        {/* `default` is the view-transition-class base.css targets. React
+            names each routed child `route_N`, so a selector on the name
+            `route` matched nothing and the browser's own crossfade ran. */}
+        <ViewTransition name="route" default="vt-route">
+          {children}
+        </ViewTransition>
       </main>
     </Sheet>
   );

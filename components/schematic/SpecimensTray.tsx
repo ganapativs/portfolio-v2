@@ -50,13 +50,18 @@ export function SpecimensTray({ count, children }: { count: number; children: Re
       // globals, a blocked script) — the fallback on both sides is set 0.
       suppressHydrationWarning
     >
-      <script
+      <span
+        hidden
         // Stamps the random set before the specimens parse. Kept to one
         // statement per concern and wrapped in try/catch the way the
         // no-flash script is: a failure must leave set 0 showing, not a
-        // blank tray.
+        // blank tray. Markup inside a span rather than a React <script>
+        // element: the server emits it verbatim and the parser runs it, and
+        // React stops logging "encountered a script tag" every time the home
+        // page mounts on the client (where it never ran anyway, and where the
+        // state initialiser's fallback to set 0 is the intended path).
         dangerouslySetInnerHTML={{
-          __html: `try{var n=Math.floor(Math.random()*${count});document.currentScript.parentElement.dataset.active=n;window.__mgSpec=n}catch(e){}`,
+          __html: `<script>try{var n=Math.floor(Math.random()*${count});document.currentScript.closest(".specimens").dataset.active=n;window.__mgSpec=n}catch(e){}</script>`,
         }}
       />
       {children}

@@ -12,17 +12,13 @@ body {
 }
 html {
   -webkit-text-size-adjust: 100%;
-  /* Anchor jumps and ruler clicks glide. motion.css turns this off for
-     reduced motion, and scrollIntoView opts out explicitly there too. */
-  scroll-behavior: smooth;
-  /* The header is sticky, so the top of the scrollport is not the top of the
-     readable page. Every scroll the browser performs for us — a ruler tick, an
-     anchor jump, find-in-page, focus moving into an off-screen control — lands
-     the target under the condensed strip without this. The strip bottoms out
-     39px from the viewport top once stuck; 56px clears it with a line of air.
-     scroll-padding on the scrollport rather than scroll-margin on the targets:
-     one number, and it covers the targets nobody remembered to mark. */
-  scroll-padding-top: 56px;
+  /* No `scroll-behavior: smooth` here, on purpose. The ruler's ticks scroll
+     smoothly through scrollIntoView on their own; the CSS property also
+     applied to scroll RESTORATION, so a reload of a scrolled page eased from
+     the top over 600ms in Chromium, and Next's restore on Back animated the
+     same way and stopped short. Everything the browser scrolls for us is
+     instant now. */
+  scroll-behavior: auto;
   background: var(--paper);
   /* `clip`, not `hidden`, and this is load-bearing for the sticky header.
      `overflow-x: hidden` makes the element a scroll container, so a sticky
@@ -32,6 +28,20 @@ html {
      scrollport. Safari has had it since 16, which is this site's floor. */
   overflow-x: clip;
   scrollbar-color: var(--rule) transparent;
+}
+/* The header is sticky, so the top of the scrollport is not the top of the
+   readable page. Every scroll the browser performs to a target — a ruler
+   tick, an anchor jump, focus moving into an off-screen control — lands it
+   under the condensed strip without this. The strip bottoms out 39px from
+   the viewport top once stuck; 56px clears it with a line of air.
+
+   On the targets, not `scroll-padding-top` on the scrollport. The padding
+   was tried and WebKit applies it to scroll RESTORATION too, so a reload of a
+   scrolled page came back 56px short of where the reader was, even with the
+   padding switched on after load. Anything with an id is a target: the
+   sections, the essay headings rehype-slug names, the skip link's main. */
+:where([id]) {
+  scroll-margin-top: 56px;
 }
 body {
   background: var(--paper);
@@ -232,14 +242,34 @@ kbd {
 :root.vt-recolor-radial body :where(*) {
   transition: none !important;
 }
-::view-transition-group(route) {
-  animation-duration: var(--dur-base);
+/* By class, not by name. React's <ViewTransition name="route"> names each
+   routed child `route_2`, `route_3`, ... and a selector on `route` matched
+   none of them; `default="vt-route"` in app/(press)/layout.tsx is the class
+   every one of them carries.
+
+   The old page is not shown at all. Its snapshots are captured where they sat
+   on screen, which after a scroll is under the sticky strip, and a crossfade
+   drew them ON TOP of the new header: in Chromium the strip ghosted for six
+   frames, in Safari the old text stayed over the new page. Giving the header
+   its own group fixed Chromium and made Safari drop the header for the whole
+   transition. So: no old, the new sheet is simply there, and the routed
+   content fades in over it. Measured clean in both engines. */
+/* No group animation either. React pairs the Nth routed child of the old page
+   with the Nth of the new, and the browser's default group animation morphed
+   each new section from where its old namesake sat on screen: after a scroll,
+   the writing index slid up out of fig. 3's plate and the h1 landed over the
+   list. The new sections take their own geometry from the first frame.
+   Zero duration, not `animation: none`: WebKit hands the group its size and
+   position through that animation, and with none the routed content was a
+   0x0 box for the whole transition, a blank page for 400ms. */
+::view-transition-group(.vt-route) {
+  animation-duration: 0s;
 }
-::view-transition-old(route) {
-  animation: route-fade var(--dur-fast) var(--ease-out) both reverse;
+::view-transition-old(.vt-route) {
+  display: none;
 }
-::view-transition-new(route) {
-  animation: route-fade var(--dur-base) var(--ease-out) var(--dur-fast) both;
+::view-transition-new(.vt-route) {
+  animation: route-fade var(--dur-base) var(--ease-out) both;
 }
 @keyframes route-fade {
   from {

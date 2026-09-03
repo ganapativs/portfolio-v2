@@ -303,13 +303,32 @@ none` with `.hd > *` set back to `auto`, so the dead area under the condensed
   and the ground runs past the line; and the rule's `margin-bottom: -9px` is
   half its own height, which puts the hairline exactly on the ground's bottom
   edge with the compass straddling it.
-- **The scroll offset it needs is `scroll-padding-top` on `html`, not
-  `scroll-margin-top` on the targets** (`base.css`, 56px). The condensed strip
-  bottoms out ~48px from the viewport top, so every scroll the browser performs —
-  a ruler tick, an anchor jump, find-in-page, focus moving into an off-screen
-  control — would otherwise land its target underneath it. One number on the
-  scrollport covers all of them, including the targets nobody remembered to
-  mark; the essay headings used to carry their own 88px copy and no longer do.
+- **The scroll offset it needs is `scroll-margin-top: 56px` on every element
+  with an id** (`:where([id])` in `base.css`), not `scroll-padding-top` on
+  `html`. The condensed strip bottoms out ~48px from the viewport top, so a
+  ruler tick, an anchor jump or focus moving into an off-screen control would
+  otherwise land its target underneath it. The scrollport padding was the
+  first answer and it was reverted on 2026-09-03: WebKit applies it to scroll
+  restoration as well, so a reload of a scrolled page came back 56px short,
+  even with the padding switched on only after load. **There is no
+  `scroll-behavior: smooth` on `html` either**, for the same family of reason:
+  Chromium applied it to restoration (a reload eased from the top over 600ms)
+  and Next's restore on Back animated and stopped short. The ruler's ticks
+  scroll smoothly through `scrollIntoView` on their own.
+- **A reload that lands scrolled is handled before hydration.** The inline
+  script at the end of the strip locks `--hd-h` (measured while the header is
+  still at its natural height, so it must stay LAST in the strip), stamps
+  `data-stuck` from the sentinel's position, keeps it current from a scroll
+  listener, and holds `data-instant` for 400ms so the strip paints condensed
+  rather than condensing. React seeds `stuck` from the same sentinel and its
+  `measure()` skips while stuck (it would measure the condensed box, and
+  toggling the state to measure restarted the ground's transition). Without
+  this the strip sat transparent over the content until hydration, and its
+  260ms condense shrank the box while scroll anchoring dragged the page.
+- **A selection made on the old page is cleared on route change**
+  (`Header.tsx`, the pathname effect). React keeps the DOM nodes, so a word
+  double-clicked on the home page arrived as half a title painted in the ink
+  on the essay.
 - **Two widths, deliberately.** The ground bleeds to the sheet's inner edge,
   because a blur that stops mid-air is worse than no blur. The rule inside it
   stays at the drawing's width, like every other rule here.
@@ -876,6 +895,20 @@ events on purpose.
    copies. It read as the ink bar under the G blinking out and back on every
    navigation. A paper flip adds `.vt-recolor-radial` and **overrides** that
    `display: none` so the old frame can hold still while the new one opens.
+   1a. **React names the routed groups `route_2`, `route_3`… and the CSS
+   targets them by class.** `<ViewTransition name="route" default="vt-route">`
+   gives every one of them `view-transition-class: vt-route`, and the
+   `route-fade` rules in `base.css` select `(.vt-route)`. They selected the
+   name `route` for a while, matched nothing, and the browser's own 250ms
+   crossfade ran instead. **The old route snapshots are `display: none`.**
+   They are captured where they sat on screen, which after a scroll is under
+   the sticky strip, and any crossfade drew them on top of the new header:
+   Chromium ghosted the strip for six frames, Safari kept the old text over
+   the new page. Naming the header as its own group (`view-transition-name`)
+   fixed Chromium and made WebKit drop the header for the whole transition,
+   so do not try that again. The new content fades in with no delay over a
+   sheet that is simply there. Verified in Chromium and in WebKit
+   (Playwright's cached build, driven by `executablePath`).
    1b. **The header paints above the band.** `.hd` is `z-index: 70`, over the
    band's 60. The band re-inks the sheet on an ink pick; the control surface
    that caused it stays legible while it happens.
