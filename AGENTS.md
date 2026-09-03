@@ -368,11 +368,16 @@ none` with `.hd > *` set back to `auto`, so the dead area under the condensed
   renders links and controls in the strip and the phone stylesheet hides them
   there, so nothing relocates on screen; the bar fills after hydration. It
   hides while the title block is in view (an IntersectionObserver on
-  `.tb-wrap`). **The pill never changes width.** The ink control keeps a
-  16px slot; pressing it lifts all six swatches into a popover above the
-  pill, right-aligned over the slot in tray order, and the slot shows a
-  stand-in in the live ink. Growing the pill to fit six chips was the first
-  version and the owner called it out. **The route swap is instant on
+  `.tb-wrap`). **The pill never changes width, and the ink picker is a sheet
+  inside it.** The six swatches live on a layer spanning the pill from its
+  left edge to the ink slot, in the pill's own material. Closed, the layer is
+  clipped to the slot and shows the active ink. Pressed, the clip opens
+  leftward over the links and the six fan from the slot to even positions,
+  staggered 25ms per step so the far ink lands last; a pick folds it back.
+  Theme and sound never move or get covered. Home's current-page mark is the
+  bar under the G (grey at rest, the ink when current), not a second rule.
+  Growing the pill to fit six chips, then a popover above it, were the first
+  two versions and the owner called both out. **The route swap is instant on
   phones** (`base.css`): the bar is fixed over the content and the fade
   painted the new sections on top of it; naming the bar as its own group
   made WebKit drop it for the whole swap. Three layouts were prototyped on

@@ -1351,8 +1351,13 @@ h2.sec-label {
 .pt-nav > a[aria-current="page"]::after {
   transform: scaleX(1);
 }
+/* Home's current-page mark is the bar under the G, not a second rule under
+   it. Grey at rest, the ink when this is the page. */
 .pt-home {
   color: var(--ink);
+}
+.pt-home::after {
+  display: none;
 }
 .pt-mark {
   display: block;
@@ -1364,6 +1369,10 @@ h2.sec-label {
   flex: none;
 }
 .pt-mark .mark-bar {
+  fill: var(--ink-3);
+  transition: fill var(--dur-base) var(--ease-out);
+}
+.pt-home[aria-current="page"] .pt-mark .mark-bar {
   fill: var(--accent);
 }
 .pt-ctls {
@@ -1376,68 +1385,96 @@ h2.sec-label {
   display: flex;
   gap: 10px;
 }
-/* The ink control keeps a 16px slot in the pill whatever it is doing. Closed,
-   the active swatch sits in it. Open, all six lift into a popover above the
-   pill, in tray order, right-aligned over the slot, and the slot shows a
-   stand-in in the live ink so the row does not go blank. */
-.ptray .inks {
-  position: relative;
+/* The ink picker is a sheet inside the pill.
+
+   The pill never changes width. The six swatches live on a layer that spans
+   the pill from its left edge to the ink slot, in the pill's own material.
+   Closed, the layer is clipped to the 16px slot and shows the active ink.
+   Pressed, the clip opens leftward from the slot over the links, and the six
+   fan out from the slot to even positions across the sheet, in tray order,
+   the far ink arriving last. A pick folds it all back into the slot. The
+   theme and sound controls to the right never move and are never covered.
+
+   Geometry: the slot's right edge is 88px from the pill's right edge (sound
+   30, gap 10, theme 30, gap 10, padding 8); the row keeps the slot itself as
+   a pseudo-element, because the layer is out of the flow. */
+.ptray .hd-ctls::before {
+  content: "";
   width: 16px;
   height: 16px;
+  flex: none;
 }
+.ptray .inks {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 88px;
+  margin: 0;
+  background: var(--raise);
+  clip-path: inset(0 0 0 calc(100% - 16px - 6px));
+  transition: clip-path var(--dur-base) var(--ease-out);
+}
+.ptray .inks[data-open="true"] {
+  clip-path: inset(0 0 0 0);
+}
+/* Each swatch is placed from the sheet's right edge, so the closed position
+   (all six stacked in the slot) and the open one (spread to the left edge)
+   are the same property, and the travel is one interpolation. */
 .ptray .inks .ink-sw {
-  display: none;
+  display: inline-flex;
+  position: absolute;
+  top: 50%;
+  margin-top: -8px;
+  right: 6px;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    right var(--dur-base) var(--ease-out),
+    opacity var(--dur-fast) var(--ease-out),
+    visibility 0s linear var(--dur-base),
+    border-color var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
 }
 .ptray .inks .ink-sw[aria-pressed="true"] {
-  display: inline-flex;
+  opacity: 1;
+  visibility: visible;
+  z-index: 1;
 }
 .ptray .inks[data-open="true"] .ink-sw {
-  display: inline-flex;
-  position: absolute;
-  bottom: 27px;
-  /* n from the right: 24px pitch, the tray's own spacing. */
-  right: calc((6 - var(--n)) * 24px);
+  opacity: 1;
+  visibility: visible;
+  right: calc(6px + (6 - var(--n)) * ((100% - 12px - 16px) / 5));
+  transition:
+    right var(--dur-base) var(--ease-out) calc((6 - var(--n)) * 25ms),
+    opacity var(--dur-fast) var(--ease-out) calc((6 - var(--n)) * 25ms),
+    visibility 0s,
+    border-color var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
 }
-.ptray .inks[data-open="true"] .ink-sw:nth-child(1) {
+.ptray .inks .ink-sw:nth-child(1) {
   --n: 1;
 }
-.ptray .inks[data-open="true"] .ink-sw:nth-child(2) {
+.ptray .inks .ink-sw:nth-child(2) {
   --n: 2;
 }
-.ptray .inks[data-open="true"] .ink-sw:nth-child(3) {
+.ptray .inks .ink-sw:nth-child(3) {
   --n: 3;
 }
-.ptray .inks[data-open="true"] .ink-sw:nth-child(4) {
+.ptray .inks .ink-sw:nth-child(4) {
   --n: 4;
 }
-.ptray .inks[data-open="true"] .ink-sw:nth-child(5) {
+.ptray .inks .ink-sw:nth-child(5) {
   --n: 5;
 }
-.ptray .inks[data-open="true"] .ink-sw:nth-child(6) {
+.ptray .inks .ink-sw:nth-child(6) {
   --n: 6;
 }
-/* The popover's plate, behind the six: the same pill material. */
-.ptray .inks[data-open="true"]::before {
-  content: "";
-  position: absolute;
-  right: -9px;
-  bottom: 18px;
-  width: calc(6 * 24px + 2px);
-  height: 34px;
-  background: var(--raise);
-  border: 1px solid var(--rule);
-  border-radius: var(--r-chip);
-}
-/* The stand-in for the active swatch while it is up in the popover. */
-.ptray .inks[data-open="true"]::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: var(--r-chip);
-  border: 1px solid var(--accent);
-  background: var(--accent);
-  background-clip: content-box;
-  padding: 2.5px;
+@media (prefers-reduced-motion: reduce) {
+  .ptray .inks,
+  .ptray .inks .ink-sw {
+    transition: none;
+  }
 }
 
 /* After the base rule above, so it wins. */
