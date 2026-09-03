@@ -1284,34 +1284,35 @@ h2.sec-label {
 
 /* ---- the phone bar ------------------------------------------------------- */
 
-/* Home, writing and résumé, then ink, theme and sound, fixed at the foot of a
-   phone screen where a thumb is. The strip they came from is sticky at the
-   top and out of reach on a tall phone. Drawn as the sheet's other chrome:
-   raised ground, one rule, the chip radius, no shadow. Header.tsx moves the
-   same links and buttons here through a portal, so the keyboard map registers
-   once. Hidden while the title block is on screen. Never shown above 640px.
-
-   Three layouts for the prototype (data-bar, see Header.tsx):
-     a  one centred pill, links then controls
-     b  two pills, links at the left, controls at the right
-     c  an edge-to-edge bar docked to the bottom, tabs at the left */
+/* Home, writing and résumé, then ink, theme and sound, in one pill fixed at
+   the foot of a phone screen where a thumb is. The strip they came from is
+   sticky at the top and out of reach on a tall phone. Drawn as the sheet's
+   other chrome: raised ground, one rule, the chip radius, no shadow.
+   Header.tsx moves the same links and buttons here through a portal, so the
+   keyboard map registers once. Hidden while the title block is on screen.
+   Never shown above 640px (the media rule at the end of this file turns it
+   on). The pill never changes width: the six inks open in a popover above it
+   rather than inside it. */
 .ptray {
   display: none;
   position: fixed;
-  left: 12px;
-  right: 12px;
+  left: 50%;
   bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
   z-index: 71;
-  justify-content: center;
   align-items: center;
   gap: 14px;
+  padding: 5px 8px 5px 6px;
+  background: var(--raise);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-chip);
   transition:
     opacity var(--dur-base) var(--ease-out),
     transform var(--dur-base) var(--ease-out);
 }
 .ptray[data-show="false"] {
   opacity: 0;
-  transform: translateY(8px);
+  transform: translateX(-50%) translateY(8px);
   pointer-events: none;
 }
 .pt-nav {
@@ -1357,6 +1358,10 @@ h2.sec-label {
   display: block;
   height: 18px;
   width: auto;
+  /* base.css caps every svg at 100% of its container. Inside a content-sized
+     flex item that is circular and resolved to 0: the mark was 0px wide. */
+  max-width: none;
+  flex: none;
 }
 .pt-mark .mark-bar {
   fill: var(--accent);
@@ -1364,78 +1369,80 @@ h2.sec-label {
 .pt-ctls {
   display: flex;
   align-items: center;
+  padding-left: 12px;
+  border-left: 1px solid var(--rule-3);
 }
 .ptray .hd-ctls {
   display: flex;
   gap: 10px;
 }
-/* The ink tray is the collapsed disclosure here at every width: six chips
-   would make the bar wider than the screen. Opening it grows leftward. */
+/* The ink control keeps a 16px slot in the pill whatever it is doing. Closed,
+   the active swatch sits in it. Open, all six lift into a popover above the
+   pill, in tray order, right-aligned over the slot, and the slot shows a
+   stand-in in the live ink so the row does not go blank. */
+.ptray .inks {
+  position: relative;
+  width: 16px;
+  height: 16px;
+}
 .ptray .inks .ink-sw {
   display: none;
 }
-.ptray .inks .ink-sw[aria-pressed="true"],
-.ptray .inks[data-open="true"] .ink-sw {
+.ptray .inks .ink-sw[aria-pressed="true"] {
   display: inline-flex;
 }
-/* a: one pill, centred. */
-.ptray[data-bar="a"] {
-  left: 50%;
-  right: auto;
-  transform: translateX(-50%);
-  padding: 5px 8px 5px 6px;
+.ptray .inks[data-open="true"] .ink-sw {
+  display: inline-flex;
+  position: absolute;
+  bottom: 27px;
+  /* n from the right: 24px pitch, the tray's own spacing. */
+  right: calc((6 - var(--n)) * 24px);
+}
+.ptray .inks[data-open="true"] .ink-sw:nth-child(1) {
+  --n: 1;
+}
+.ptray .inks[data-open="true"] .ink-sw:nth-child(2) {
+  --n: 2;
+}
+.ptray .inks[data-open="true"] .ink-sw:nth-child(3) {
+  --n: 3;
+}
+.ptray .inks[data-open="true"] .ink-sw:nth-child(4) {
+  --n: 4;
+}
+.ptray .inks[data-open="true"] .ink-sw:nth-child(5) {
+  --n: 5;
+}
+.ptray .inks[data-open="true"] .ink-sw:nth-child(6) {
+  --n: 6;
+}
+/* The popover's plate, behind the six: the same pill material. */
+.ptray .inks[data-open="true"]::before {
+  content: "";
+  position: absolute;
+  right: -9px;
+  bottom: 18px;
+  width: calc(6 * 24px + 2px);
+  height: 34px;
   background: var(--raise);
   border: 1px solid var(--rule);
   border-radius: var(--r-chip);
 }
-.ptray[data-bar="a"][data-show="false"] {
-  transform: translateX(-50%) translateY(8px);
-}
-.ptray[data-bar="a"] .pt-ctls {
-  padding-left: 12px;
-  border-left: 1px solid var(--rule-3);
-}
-/* b: two pills, links left, controls right. */
-.ptray[data-bar="b"] {
-  justify-content: space-between;
-}
-.ptray[data-bar="b"] .pt-nav,
-.ptray[data-bar="b"] .pt-ctls {
-  padding: 5px 8px 5px 6px;
-  background: var(--raise);
-  border: 1px solid var(--rule);
+/* The stand-in for the active swatch while it is up in the popover. */
+.ptray .inks[data-open="true"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
   border-radius: var(--r-chip);
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  background-clip: content-box;
+  padding: 2.5px;
 }
-.ptray[data-bar="b"] .pt-ctls {
-  padding: 7px 9px;
-}
-/* c: a tab bar on the bottom edge. */
-.ptray[data-bar="c"] {
-  left: 0;
-  right: 0;
-  bottom: 0;
-  padding: 6px 12px calc(6px + env(safe-area-inset-bottom, 0px));
-  justify-content: space-between;
-  background: var(--raise);
-  border-top: 1px solid var(--rule);
-}
-.ptray[data-bar="c"] .pt-nav > a {
-  font-size: 12.5px;
-  padding: 8px 10px;
-}
+
 /* After the base rule above, so it wins. */
 @media (max-width: 640px) {
   .ptray {
     display: flex;
   }
-}
-/* Six chips need the room the links were standing on: while the ink tray is
-   open the links step out, and come back when it closes. The same move the
-   strip makes with the name. */
-.ptray:has(.inks[data-open="true"]) .pt-nav {
-  display: none;
-}
-.ptray[data-bar="a"]:has(.inks[data-open="true"]) .pt-ctls {
-  padding-left: 0;
-  border-left: 0;
 }

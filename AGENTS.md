@@ -368,14 +368,16 @@ none` with `.hd > *` set back to `auto`, so the dead area under the condensed
   renders links and controls in the strip and the phone stylesheet hides them
   there, so nothing relocates on screen; the bar fills after hydration. It
   hides while the title block is in view (an IntersectionObserver on
-  `.tb-wrap`). The ink swatch in it is the collapsed disclosure, and while it
-  is open the links step out (`:has()`) so six chips fit. **The route swap is
-  instant on phones** (`base.css`): the bar is fixed over the content and
-  the fade painted the new sections on top of it; naming the bar as its own
-  group made WebKit drop it for the whole swap. **PROTOTYPE, 2026-09-03**:
-  three layouts behind `?bar=a|b|c` (remembered as `mg_bar`): a one centred
-  pill, b two pills, c an edge-to-edge tab bar. Pick one, then delete the
-  switch in `Header.tsx` and the `[data-bar]` rules in `chrome.css`.
+  `.tb-wrap`). **The pill never changes width.** The ink control keeps a
+  16px slot; pressing it lifts all six swatches into a popover above the
+  pill, right-aligned over the slot in tray order, and the slot shows a
+  stand-in in the live ink. Growing the pill to fit six chips was the first
+  version and the owner called it out. **The route swap is instant on
+  phones** (`base.css`): the bar is fixed over the content and the fade
+  painted the new sections on top of it; naming the bar as its own group
+  made WebKit drop it for the whole swap. Three layouts were prototyped on
+  2026-09-03 (one pill, two pills, an edge-to-edge tab bar); the owner chose
+  the single centred pill.
 - **The nav links' 24px hit area is vertical padding pulled back with a
   vertical negative margin only.** A negative side margin on the last link
   poked 3px past the row's edge and the fit loop, which measures overflow,

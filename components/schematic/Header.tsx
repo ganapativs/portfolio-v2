@@ -106,18 +106,6 @@ export function SchematicHeader() {
     return () => mq.removeEventListener("change", update);
   }, []);
   const [trayEl, setTrayEl] = useState<HTMLDivElement | null>(null);
-  // PROTOTYPE SWITCH (2026-09-03): three bar layouts to compare on a phone,
-  // `?bar=a|b|c`, remembered in localStorage as mg_bar. Remove once one is
-  // chosen, along with the `[data-bar]` rules in chrome.css.
-  const [bar, setBar] = useState("a");
-  useEffect(() => {
-    try {
-      const q = new URLSearchParams(location.search).get("bar");
-      if (q && /^[abc]$/.test(q)) localStorage.setItem("mg_bar", q);
-      const v = localStorage.getItem("mg_bar");
-      if (v && /^[abc]$/.test(v)) setBar(v);
-    } catch {}
-  }, []);
   const narrowTray = phone || (measured && fit.includes("tray"));
   const rowRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -533,7 +521,7 @@ export function SchematicHeader() {
           a portal once the phone query is known, which is after hydration:
           the server renders them in the strip, where the phone stylesheet
           hides them, so nothing relocates on screen. */}
-      <div className="ptray" ref={setTrayEl} data-show={trayShown} data-bar={bar}>
+      <div className="ptray" ref={setTrayEl} data-show={trayShown}>
         {phone && trayEl
           ? createPortal(
               <>
