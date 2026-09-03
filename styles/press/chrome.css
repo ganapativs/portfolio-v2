@@ -1214,18 +1214,32 @@ h2.sec-label {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+/* No frame on a phone. The sheet's margin, its border and the registration
+   ticks cost 26px of a 375px screen and a band top and bottom; the page is
+   the sheet there. The frame returns at 641px, where there is room for it. */
 @media (max-width: 640px) {
   .sheet {
-    margin: 12px;
-    min-height: calc(100vh - 24px);
+    margin: 0;
+    border: 0;
+    min-height: 100vh;
   }
-  .ruler {
-    left: 12px;
-    top: 12px;
-    bottom: 12px;
+  .tick-c {
+    display: none;
   }
   .wrap {
-    --gutter: 18px;
+    --gutter: 16px;
+  }
+  /* The compass follows a pointer, and a phone has none. Once the strip
+     sticks it straddled the rule over the reader's content for nothing, so
+     it closes to zero width and the two hairlines meet: an unbroken rule. */
+  .north {
+    transition:
+      width var(--dur-base) var(--ease-out),
+      opacity var(--dur-base) var(--ease-out);
+  }
+  .hd[data-stuck="true"] .north {
+    width: 0;
+    opacity: 0;
   }
   /* 24px of panel padding inside an 18px gutter inside a 12px margin left
      267px for the figures. 16 gives them 283. */

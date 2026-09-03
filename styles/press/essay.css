@@ -165,11 +165,12 @@
   color: var(--ink);
   text-decoration: none;
 }
-.essay-back span[aria-hidden] {
-  display: inline-block;
+.essay-back svg {
+  display: block;
+  flex: none;
   transition: transform var(--dur-base) var(--ease-out);
 }
-.essay-back:hover span[aria-hidden] {
+.essay-back:hover svg {
   transform: translateX(-4px);
 }
 

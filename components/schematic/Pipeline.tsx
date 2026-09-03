@@ -278,130 +278,185 @@ export function Pipeline() {
     const btn = btnRef.current;
     const chart = chartRef.current;
     if (!stageEl || !ui || !vec || !wires || !btn || !chart) return;
-    const sr = stageEl.getBoundingClientRect();
-    const cr = ui.getBoundingClientRect();
-    const sig = [sr.width, sr.height, cr.left - sr.left, cr.top - sr.top, cr.width, cr.height]
-      .map(Math.round)
-      .join(",");
-    if (sig === builtSig.current) return;
-    builtSig.current = sig;
+    // Measured with the phone layout's card shift zeroed (see --y-shift in
+    // pipeline.css): the overlays are drawn in unshifted stage coordinates and
+    // travel with the card on the same transform, so a measurement taken
+    // while the card was centred would have drawn them 74px low once it rose.
+    stageEl.style.setProperty("--y-shift", "0px");
+    // And with the side panels fully in: their rows slide 8px as they fade,
+    // so measured at rest in the sketch stage every wire sat 8px right of
+    // its swatch.
+    stageEl.style.setProperty("--o-tok", "1");
+    stageEl.style.setProperty("--o-dom", "1");
+    try {
+      const sr = stageEl.getBoundingClientRect();
+      const cr = ui.getBoundingClientRect();
+      // The first swatch is in the key as well as the card: the token rows
+      // reflow when the mono font lands, and with only the card in the key
+      // the fonts.ready rebuild was skipped and the wires sat 8px off.
+      const sw0 = stageEl.querySelector(".tok .sw")?.getBoundingClientRect();
+      const sig = [
+        sr.width,
+        sr.height,
+        cr.left - sr.left,
+        cr.top - sr.top,
+        cr.width,
+        cr.height,
+        sw0 ? sw0.left - sr.left : 0,
+        sw0 ? sw0.top - sr.top : 0,
+      ]
+        .map(Math.round)
+        .join(",");
+      if (sig === builtSig.current) return;
+      builtSig.current = sig;
 
-    for (const sv of [vec, wires]) {
-      sv.setAttribute("width", String(sr.width));
-      sv.setAttribute("height", String(sr.height));
-      sv.innerHTML = "";
-    }
-    if (ancRef.current) ancRef.current.innerHTML = "";
-    if (tagsRef.current) tagsRef.current.innerHTML = "";
-
-    const m = (el: Element) => {
-      const r = el.getBoundingClientRect();
-      return { x: r.left - sr.left, y: r.top - sr.top, w: r.width, h: r.height };
-    };
-    const mk = (
-      svg: SVGSVGElement,
-      tag: string,
-      at: Record<string, string | number>,
-      txt?: string,
-    ) => {
-      const e = document.createElementNS(SNS, tag);
-      for (const k in at) e.setAttribute(k, String(at[k]));
-      if (tag === "line") e.setAttribute("pathLength", "1");
-      if (txt) e.textContent = txt;
-      svg.appendChild(e);
-      return e;
-    };
-    const label = (x: number, y: number, s: string) => {
-      const w = s.length * 5.6 + 8;
-      mk(vec, "rect", { x: x - w / 2, y: y - 7, width: w, height: 13 });
-      mk(vec, "text", { x, y: y + 3.5, "text-anchor": "middle" }, s);
-    };
-    const dimension = (horizontal: boolean, a: number, b: number, at: number, text: string) => {
-      if (horizontal) {
-        mk(vec, "line", { x1: a, y1: at, x2: b, y2: at });
-        mk(vec, "line", { x1: a, y1: at - 4, x2: a, y2: at + 4 });
-        mk(vec, "line", { x1: b, y1: at - 4, x2: b, y2: at + 4 });
-        label((a + b) / 2, at, text);
-      } else {
-        mk(vec, "line", { x1: at, y1: a, x2: at, y2: b });
-        mk(vec, "line", { x1: at - 4, y1: a, x2: at + 4, y2: a });
-        mk(vec, "line", { x1: at - 4, y1: b, x2: at + 4, y2: b });
-        label(at, (a + b) / 2, text);
+      for (const sv of [vec, wires]) {
+        sv.setAttribute("width", String(sr.width));
+        sv.setAttribute("height", String(sr.height));
+        sv.innerHTML = "";
       }
-    };
+      if (ancRef.current) ancRef.current.innerHTML = "";
+      if (tagsRef.current) tagsRef.current.innerHTML = "";
 
-    const card = m(ui);
-    const btnM = m(btn);
-    dimension(false, card.y, card.y + card.h, Math.max(card.x - 13, 16), ` ${Math.round(card.h)} `);
-    dimension(true, card.x, card.x + card.w, Math.max(card.y - 13, 10), ` ${Math.round(card.w)} `);
-    dimension(
-      true,
-      btnM.x,
-      btnM.x + btnM.w,
-      Math.min(btnM.y + btnM.h + 9, sr.height - 8),
-      ` ${Math.round(btnM.w)} `,
-    );
-
-    for (const b of [card, btnM]) {
-      for (const p of [
-        [b.x, b.y],
-        [b.x + b.w, b.y],
-        [b.x, b.y + b.h],
-        [b.x + b.w, b.y + b.h],
-      ]) {
-        const a = document.createElement("span");
-        a.className = "anc";
-        a.style.left = `${p[0]}px`;
-        a.style.top = `${p[1]}px`;
-        ancRef.current?.appendChild(a);
-      }
-    }
-
-    const bar = ui.querySelector(".ui-bar");
-    for (const [el, tag, dy] of [
-      [bar, "header", -20],
-      [chart, "svg.chart", -10],
-      [btn, "a.primary", -10],
-    ] as [Element | null, string, number][]) {
-      if (!el) continue;
-      const r = m(el);
-      const c = document.createElement("span");
-      c.className = "tagchip";
-      const b = document.createElement("b");
-      b.textContent = tag;
-      c.appendChild(b);
-      c.style.left = `${r.x + 4}px`;
-      c.style.top = `${r.y + dy}px`;
-      tagsRef.current?.appendChild(c);
-    }
-
-    // Each token chip draws a wire to whatever it paints.
-    for (const row of Array.from(stageEl.querySelectorAll<HTMLElement>(".tok[data-wire]"))) {
-      const rr = m(row);
-      for (const k of (row.dataset.wire ?? "").split(",")) {
-        const target = stageEl.querySelector(`[data-node="${k}"]`);
-        if (!target) continue;
-        const er = m(target);
-        let x1: number;
-        let y1: number;
-        let x2: number;
-        let y2: number;
-        if (rr.y > er.y + er.h) {
-          // Below 768px the panel becomes a strip under the card, so the wires
-          // have to come up rather than across.
-          x1 = rr.x + rr.w / 2;
-          y1 = rr.y;
-          x2 = er.x + er.w / 2;
-          y2 = er.y + er.h + 3;
+      const m = (el: Element) => {
+        const r = el.getBoundingClientRect();
+        return { x: r.left - sr.left, y: r.top - sr.top, w: r.width, h: r.height };
+      };
+      const mk = (
+        svg: SVGSVGElement,
+        tag: string,
+        at: Record<string, string | number>,
+        txt?: string,
+      ) => {
+        const e = document.createElementNS(SNS, tag);
+        for (const k in at) e.setAttribute(k, String(at[k]));
+        if (tag === "line") e.setAttribute("pathLength", "1");
+        if (txt) e.textContent = txt;
+        svg.appendChild(e);
+        return e;
+      };
+      const label = (x: number, y: number, s: string) => {
+        const w = s.length * 5.6 + 8;
+        mk(vec, "rect", { x: x - w / 2, y: y - 7, width: w, height: 13 });
+        mk(vec, "text", { x, y: y + 3.5, "text-anchor": "middle" }, s);
+      };
+      const dimension = (horizontal: boolean, a: number, b: number, at: number, text: string) => {
+        if (horizontal) {
+          mk(vec, "line", { x1: a, y1: at, x2: b, y2: at });
+          mk(vec, "line", { x1: a, y1: at - 4, x2: a, y2: at + 4 });
+          mk(vec, "line", { x1: b, y1: at - 4, x2: b, y2: at + 4 });
+          label((a + b) / 2, at, text);
         } else {
-          x1 = rr.x - 2;
-          y1 = rr.y + rr.h / 2;
-          x2 = er.x + er.w + 3;
-          y2 = er.y + Math.min(er.h / 2, 16);
+          mk(vec, "line", { x1: at, y1: a, x2: at, y2: b });
+          mk(vec, "line", { x1: at - 4, y1: a, x2: at + 4, y2: a });
+          mk(vec, "line", { x1: at - 4, y1: b, x2: at + 4, y2: b });
+          label(at, (a + b) / 2, text);
         }
-        mk(wires, "line", { x1, y1, x2, y2 });
-        mk(wires, "circle", { cx: x2, cy: y2, r: 2.5 });
+      };
+
+      const card = m(ui);
+      const btnM = m(btn);
+      dimension(
+        false,
+        card.y,
+        card.y + card.h,
+        Math.max(card.x - 13, 16),
+        ` ${Math.round(card.h)} `,
+      );
+      dimension(
+        true,
+        card.x,
+        card.x + card.w,
+        Math.max(card.y - 13, 10),
+        ` ${Math.round(card.w)} `,
+      );
+      dimension(
+        true,
+        btnM.x,
+        btnM.x + btnM.w,
+        Math.min(btnM.y + btnM.h + 9, sr.height - 8),
+        ` ${Math.round(btnM.w)} `,
+      );
+
+      for (const b of [card, btnM]) {
+        for (const p of [
+          [b.x, b.y],
+          [b.x + b.w, b.y],
+          [b.x, b.y + b.h],
+          [b.x + b.w, b.y + b.h],
+        ]) {
+          const a = document.createElement("span");
+          a.className = "anc";
+          a.style.left = `${p[0]}px`;
+          a.style.top = `${p[1]}px`;
+          ancRef.current?.appendChild(a);
+        }
       }
+
+      // Each chip sits clear of the text of the node it names: the header's
+      // above the card's top edge, the chart's inside the chart's empty
+      // top-left (the curve rises from the bottom-left, and the vectors-stage
+      // annotation that lives there is gone by the markup stage), the
+      // button's just below the button, in the card's own padding. Ten pixels
+      // into the node put them over the first word of the header and the "S"
+      // of "See the code"; above the chart, over the "YEARS" label.
+      const bar = ui.querySelector(".ui-bar");
+      for (const [el, tag, dy] of [
+        [bar, "header", -21],
+        [chart, "svg.chart", 2],
+        [btn, "a.primary", null],
+      ] as [Element | null, string, number | null][]) {
+        if (!el) continue;
+        const r = m(el);
+        const c = document.createElement("span");
+        c.className = "tagchip";
+        const b = document.createElement("b");
+        b.textContent = tag;
+        c.appendChild(b);
+        c.style.left = `${r.x + 4}px`;
+        c.style.top = dy === null ? `${r.y + r.h + 3}px` : `${r.y + dy}px`;
+        tagsRef.current?.appendChild(c);
+      }
+
+      // Each token chip draws a wire to whatever it paints.
+      for (const row of Array.from(stageEl.querySelectorAll<HTMLElement>(".tok[data-wire]"))) {
+        const rr = m(row);
+        for (const k of (row.dataset.wire ?? "").split(",")) {
+          const target = stageEl.querySelector(`[data-node="${k}"]`);
+          if (!target) continue;
+          const er = m(target);
+          let x1: number;
+          let y1: number;
+          let x2: number;
+          let y2: number;
+          if (rr.y > er.y + er.h) {
+            // Below 768px the panel becomes a strip under the card, so the wires
+            // have to come up rather than across, and they leave from the
+            // swatch itself. From the row's top-centre they stopped in the
+            // air 11px above the swatch and 37px to its right, over the label.
+            const sw = row.querySelector<HTMLElement>(".sw");
+            const swr = sw ? m(sw) : rr;
+            x1 = swr.x + swr.w / 2;
+            y1 = swr.y - 2;
+            // Not the bottom centre: the width dimension's "244" sits there
+            // under the button and the card, and the chart's "2020" axis
+            // label under the chart. A third of the way in clears all three.
+            x2 = er.x + er.w * 0.3;
+            y2 = er.y + er.h + 3;
+          } else {
+            x1 = rr.x - 2;
+            y1 = rr.y + rr.h / 2;
+            x2 = er.x + er.w + 3;
+            y2 = er.y + Math.min(er.h / 2, 16);
+          }
+          mk(wires, "line", { x1, y1, x2, y2 });
+          mk(wires, "circle", { cx: x2, cy: y2, r: 2.5 });
+        }
+      }
+    } finally {
+      stageEl.style.removeProperty("--y-shift");
+      stageEl.style.removeProperty("--o-tok");
+      stageEl.style.removeProperty("--o-dom");
     }
   }, []);
 
@@ -714,22 +769,26 @@ export function Pipeline() {
     // data-sec + id, so the measuring edge ticks it: the largest drawing on
     // the sheet was the one section the index didn't list.
     <div className="pipefig" ref={figRef} data-stage="0" data-sec="process" id="pipeline">
-      <div className="pipe-top">
-        {/* The plate number and the figure's name, the same pair every other
-            figure on the sheet carries. This was the label alone, so the
-            largest drawing on the page was the one absent from the document
-            outline: a reader moving by heading went straight past it. */}
-        <div className="pipe-head">
-          <span className="pipe-figlbl">fig. 6 · process</span>
-          <h2>Sketch to shipped</h2>
-        </div>
-        {/* Keyed on the stage so it replays `cap-in`: the note is a different
-              sentence at every position, and swapped in place it reads as a
-              flicker rather than as a caption changing. */}
-        <span className="pipe-note cap-in" key={stage}>
-          {STAGE_NOTE[stage]}
-        </span>
+      {/* The plate number and the figure's name, the same pair every other
+          figure on the sheet carries. This was the label alone, so the
+          largest drawing on the page was the one absent from the document
+          outline: a reader moving by heading went straight past it.
+
+          Head, note, stage and scrub are grid areas of the figure (see
+          pipeline.css): the note sits beside the head on a wide sheet and
+          under the control on a phone, where it also reserves two lines. As
+          a flex row above the stage it grew from one line to two between
+          stages and moved everything under it. */}
+      <div className="pipe-head">
+        <span className="pipe-figlbl">fig. 6 · process</span>
+        <h2>Sketch to shipped</h2>
       </div>
+      {/* Keyed on the stage so it replays `cap-in`: the note is a different
+          sentence at every position, and swapped in place it reads as a
+          flicker rather than as a caption changing. */}
+      <span className="pipe-note cap-in" key={stage}>
+        {STAGE_NOTE[stage]}
+      </span>
 
       <div className="pipe-stage" ref={stageRef}>
         <div className="pipe-mgrid" aria-hidden="true" />

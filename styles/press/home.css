@@ -1451,16 +1451,18 @@
   border-bottom: 1px solid transparent;
   transition: border-color var(--dur-fast) var(--ease-out);
 }
-.rev-all::after {
-  content: "\2192";
+.rev-all svg {
+  display: block;
+  flex: none;
+  align-self: center;
   transition: transform var(--dur-fast) var(--ease-out);
 }
 .rev-all:hover,
 .rev-all:focus-visible {
   border-color: var(--accent);
 }
-.rev-all:hover::after,
-.rev-all:focus-visible::after {
+.rev-all:hover svg,
+.rev-all:focus-visible svg {
   transform: translateX(3px);
 }
 

@@ -252,6 +252,19 @@ export default async function HomePage() {
           </div>
           <Link className="rev-all" href="/blog" data-analytics="nav:home.all-posts">
             all writing
+            {/* Drawn arrow, same as the essay's back link: a typed "→" fell
+                back to a different font on phones. Out of the accessible name
+                either way. */}
+            <svg width="14" height="10" viewBox="0 0 14 10" aria-hidden="true">
+              <path
+                d="M1 5h11.5M8.5 1l4 4-4 4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.25"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
           </Link>
         </div>
       </section>

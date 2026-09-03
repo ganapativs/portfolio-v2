@@ -1139,10 +1139,36 @@ colours is the whole event. A paper flip is not a band.
   `.lift polygon`, never bare `polygon` — at `[data-on] polygon` specificity
   the accent stroke out-ranks `.hit`'s `stroke: none` and inks the invisible
   hexagon.
-- **Fig. 6 is a figure like the rest and carries `fig. 6 · the pipeline` plus an
+- **Fig. 6 is a figure like the rest and carries `fig. 6 · process` plus an
   `<h2>`.** It had the plate label alone, so the largest drawing on the sheet was
   the only one absent from the document outline. It sits outside `.panel`, so
   `.pipe-head h2` restates `.panel h2` rather than inheriting it.
+- **Fig. 6 is a grid of four areas (head, note, stage, scrub), and on a phone
+  the note goes last and holds two lines.** As a flex row above the stage it
+  grew from one line to two between stages and moved everything under it.
+  Under 768px the card is centred in the stage while the slot below it is
+  empty (sketch, vectors) and rises as a side panel fades in: `--y-shift` on
+  `.pipe-stage` is `(1 - max(--o-tok, --o-dom, --o-live)) * 74px`, applied as
+  a transform to `.pipe-card` and every `.pipe-lay` overlay, so nothing
+  reflows. `build()` zeroes it while it measures, because the overlays are
+  drawn in unshifted stage coordinates and ride the shift with the card. It
+  also measures with `--o-tok` and `--o-dom` forced to 1 (the panel rows
+  slide 8px as they fade, and the wires sat 8px off their swatches), keys
+  its cache on the first swatch as well as the card (the fonts.ready rebuild
+  was otherwise skipped), starts each phone wire at the swatch itself and
+  lands it 30% into the node (the bottom centre is where the "244" dimension
+  and the "2020" axis label sit), and puts the markup chips clear of the
+  node's text: header above the card, chart inside the chart's empty
+  top-left, button below the button.
+- **On a phone (≤640px) the sheet has no frame.** `.sheet` loses its margin
+  and border and the registration ticks hide; the gutter is 16px. The frame
+  cost 26px of a 375px screen plus a band top and bottom. It returns at 641px.
+  The compass closes to zero width once the strip sticks there: it follows a
+  pointer the device does not have, and it straddled the rule over the
+  reader's content.
+- **Arrows are drawn, not typed.** The essay's back link and the home page's
+  "all writing" carry inline SVG arrows. The "←" and "→" glyphs fell back to
+  whichever font the phone had for them and rendered as specks.
 - **A control that swaps its own label reserves the wider string rather than
   resizing.** The copy chip grew 17.6px under the press that confirmed it. Both
   strings sit in one `.cp-slot` grid cell now with the idle one `visibility:

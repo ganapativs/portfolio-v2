@@ -34,7 +34,19 @@ export function EssayShell({ post, children }: { post: Post; children: React.Rea
   return (
     <article className="essay" id="essay" data-sec="essay">
       <Link href="/blog" className="essay-back" data-analytics="nav:essay.back">
-        <span aria-hidden="true">←</span> writing
+        {/* Drawn, not typed. The "←" glyph came from whichever font the
+            device fell back to for it, and on a phone it was a speck. */}
+        <svg width="14" height="10" viewBox="0 0 14 10" aria-hidden="true">
+          <path
+            d="M13 5H1.5M5.5 1 1.5 5l4 4"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.25"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+        writing
       </Link>
 
       <h1 className="essay-title">{post.title}</h1>
