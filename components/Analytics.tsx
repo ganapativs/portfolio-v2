@@ -106,7 +106,7 @@ function ClickCapture() {
         const href = declared?.getAttribute("href") ?? undefined;
         switch (kind) {
           case "nav":
-            track({ name: "nav", id, href: href ?? "" });
+            track({ name: "nav", id, href });
             break;
           case "cta":
             track({ name: "cta", id, href });
@@ -143,8 +143,17 @@ function ClickCapture() {
       track({ name: "outbound", url: url.href, label: labelOf(anchor) });
     };
 
+    // A middle-click opens the link in a new tab and fires `auxclick`, not
+    // `click` — without it every open-in-background-tab went uncounted.
+    const onAux = (e: MouseEvent) => {
+      if (e.button === 1) onClick(e);
+    };
     document.addEventListener("click", onClick);
-    return () => document.removeEventListener("click", onClick);
+    document.addEventListener("auxclick", onAux);
+    return () => {
+      document.removeEventListener("click", onClick);
+      document.removeEventListener("auxclick", onAux);
+    };
   }, []);
 
   return null;

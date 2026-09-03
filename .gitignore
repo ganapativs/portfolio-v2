@@ -17,6 +17,9 @@
 /.next/
 /out/
 
+# generated markdown mirrors (scripts/gen-md.ts, run by the dev/build scripts)
+/public/blog/
+
 # production
 /build
 
@@ -42,3 +45,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Cloudflare / OpenNext
+.open-next
+.wrangler
+.dev.vars
+
+# agent worktrees + the kannada subsetter's scratch file
+.claude/worktrees/
+.cache-anek-kannada.woff2

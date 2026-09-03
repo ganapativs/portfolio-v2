@@ -8,7 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { withViewTransition, type RecolorOrigin } from "@/lib/vt";
+import { installPhoneRouteSwap, withViewTransition, type RecolorOrigin } from "@/lib/vt";
 import { track } from "@/lib/analytics";
 
 type Theme = "light" | "dark";
@@ -16,56 +16,46 @@ type Ctx = { theme: Theme; toggle: (origin?: RecolorOrigin) => void };
 const ThemeContext = createContext<Ctx | null>(null);
 
 function readInitialTheme(): Theme {
-  // Server render: pick a default; the noFlash inline script in <head> already
-  // stamped data-theme on <html> client-side before React hydrates, so the
-  // initial state already matches the DOM.
   if (typeof document === "undefined") return "light";
   const fromDom = document.documentElement.dataset.theme;
   if (fromDom === "light" || fromDom === "dark") return fromDom;
   try {
-    const fromStorage = localStorage.getItem("mg_theme");
-    if (fromStorage === "light" || fromStorage === "dark") return fromStorage;
+    const stored = localStorage.getItem("mg_theme");
+    if (stored === "light" || stored === "dark") return stored;
   } catch {}
   return "light";
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  // Initialize from the DOM/localStorage so the first render already matches
-  // the noFlash script — no clobbering on mount.
   const [theme, setTheme] = useState<Theme>(readInitialTheme);
-  const isFirstSync = useRef(true);
+  // Seeded during render so StrictMode's remount cannot sweep on load — it
+  // compares the painted value, it does not count passes.
+  const painted = useRef<Theme>(theme);
   const pendingOrigin = useRef<RecolorOrigin>(null);
 
-  // Keep DOM + storage in sync after explicit toggles. Skip the initial pass
-  // because the noFlash script has already stamped these values; rewriting on
-  // mount would clobber a fresh choice from another tab. Wraps the DOM update
-  // in withViewTransition so the radial reveal radiates from the click origin
-  // (or crossfades when toggled via keyboard with no origin).
+  // On a phone the route swap runs no view transition; the iris keeps the
+  // native call. See installPhoneRouteSwap in lib/vt.ts.
+  useEffect(() => installPhoneRouteSwap(), []);
+
   useEffect(() => {
-    if (isFirstSync.current) {
-      isFirstSync.current = false;
-      return;
-    }
+    if (painted.current === theme) return;
+    painted.current = theme;
     const origin = pendingOrigin.current;
     pendingOrigin.current = null;
     withViewTransition(() => {
       const root = document.documentElement;
+      // Snap the ink with the ground. See :root[data-repapering] in tokens.css.
+      root.dataset.repapering = "";
       root.dataset.theme = theme;
       root.style.colorScheme = theme;
-      // Mirror the page background from the token rather than duplicating its
-      // value here — the canvas is painted from <html>, and the no-flash script
-      // has already written a literal there that this replaces.
       root.style.backgroundColor = getComputedStyle(root).getPropertyValue("--paper").trim();
+      setTimeout(() => {
+        delete root.dataset.repapering;
+      }, 0);
     }, origin);
     try {
       localStorage.setItem("mg_theme", theme);
     } catch {}
-    // Reported from here rather than from `toggle`, for two reasons: this runs
-    // only on a real change (the first-sync guard above already swallowed the
-    // mount), and `theme` here is the value that won rather than the one the
-    // handler happened to close over. An origin exists only when a pointer
-    // landed on a control — the keyboard path passes null — which is the
-    // cheapest honest read of how the flip was made.
     track({ name: "theme", to: theme, via: origin ? "pointer" : "key" });
   }, [theme]);
 

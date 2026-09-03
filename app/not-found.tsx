@@ -1,32 +1,42 @@
+// oxlint-disable next/no-html-link-for-pages -- deliberate: see the note
+// on NotFound below. A <Link> here drags the whole home page onto a 404.
 import type { Metadata } from "next";
-import Link from "next/link";
-import { SiteHeader } from "@/components/press/SiteHeader";
-import { PressFooter } from "@/components/press/PressFooter";
+import { Sheet } from "@/components/schematic/Sheet";
 
 export const metadata: Metadata = {
   title: "Not found",
   robots: { index: false, follow: false },
 };
 
-// The global 404 is rendered by the root layout, outside the press shell, so it
-// brings its own chrome.
+// The global 404 is rendered by the root layout, outside the (press) group, so
+// it brings its own sheet.
+//
+// The three ways out are plain anchors, not <Link>s, and that is worth 57 kB
+// gzip. `next/link`'s module resolves to the home page's chunk group in this
+// route's client-reference manifest, so referencing it here made a 404 download
+// and execute the entire home page -- the figures, the chart library, the
+// syntax highlighter -- to render three words of navigation. A 404 is a dead
+// end a reader is leaving; prefetching three routes from it buys nothing, and
+// a full page load out of a broken URL is the honest cost.
 export default function NotFound() {
   return (
-    <div className="doc">
-      <SiteHeader />
-      <main className="wrap wrap-doc doc-main">
-        <div className="cv-stamp">Error 404</div>
-        <h1 className="page-h1" style={{ marginTop: "12px" }}>
-          Nothing set on this sheet.
-        </h1>
-        <p className="page-lede">The page moved, never existed, or hasn&apos;t been written yet.</p>
-        <div className="entries-foot" style={{ marginTop: "clamp(32px, 5vh, 48px)" }}>
-          <Link href="/">Home</Link>
-          <Link href="/blog">Writing</Link>
-          <Link href="/resume">Résumé</Link>
+    <Sheet>
+      <main id="main-content" className="doc-head" data-sec="404">
+        <span className="sec-label">Error 404</span>
+        <h1>Page not found.</h1>
+        <p className="doc-lede">It moved or never existed. Try one of these.</p>
+        <div className="doc-links">
+          <a href="/" data-analytics="nav:404.home">
+            home
+          </a>
+          <a href="/blog" data-analytics="nav:404.writing">
+            writing
+          </a>
+          <a href="/resume" data-analytics="nav:404.resume">
+            résumé
+          </a>
         </div>
       </main>
-      <PressFooter width="wrap-doc" />
-    </div>
+    </Sheet>
   );
 }

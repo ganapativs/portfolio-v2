@@ -1,14 +1,14 @@
 /* =============================================================================
-   meetguns press — design system entry point.
+   THE SCHEMATIC — design system entry point.
 
-   One calibrated warm-paper surface, six Bengaluru inks, three press runs.
-   Nothing here is applied from JavaScript: the whole palette is keyed on
-   `[data-theme]` × `[data-ink]` × `[data-mode]` stamped on <html>, so the
-   no-flash script in app/layout.tsx is three attribute writes and there is no
-   palette duplicated between CSS and TypeScript.
+   A living engineering drawing of the engineer. One sheet, one ink at a time,
+   drawn in line weight rather than shadow. Nothing here is applied from
+   JavaScript: the whole palette is keyed on `[data-theme]` × `[data-ink]`
+   stamped on <html>, so the no-flash script in app/layout.tsx is two attribute
+   writes and there is no palette duplicated between CSS and TypeScript.
 
-   Import order is the cascade order. Tokens first, then the reset, then chrome,
-   then the pages. Keep it that way.
+   Import order is the cascade order. Tokens first, then the reset, then the
+   sheet everything sits on, then the pages. Keep it that way.
    ============================================================================ */
 
 @import "tailwindcss";
@@ -16,6 +16,7 @@
 @import "./press/base.css";
 @import "./press/chrome.css";
 @import "./press/home.css";
+@import "./press/pipeline.css";
 @import "./press/essay.css";
 @import "./press/microcharts-demos.css";
 @import "./press/resume.css";

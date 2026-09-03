@@ -1,4 +1,6 @@
-/* 5 — RESET + BASE ---------------------------------------------------------- */
+/* =============================================================================
+   RESET + BASE
+   ============================================================================ */
 
 * {
   box-sizing: border-box;
@@ -10,68 +12,112 @@ body {
 }
 html {
   -webkit-text-size-adjust: 100%;
-  /* Anchor jumps and in-page links glide. motion.css turns this off for
-     reduced-motion, and Element.scrollIntoView opts out explicitly there too. */
-  scroll-behavior: smooth;
+  /* No `scroll-behavior: smooth` here, on purpose. The ruler's ticks scroll
+     smoothly through scrollIntoView on their own; the CSS property also
+     applied to scroll RESTORATION, so a reload of a scrolled page eased from
+     the top over 600ms in Chromium, and Next's restore on Back animated the
+     same way and stopped short. Everything the browser scrolls for us is
+     instant now. */
+  scroll-behavior: auto;
   background: var(--paper);
-  overflow-x: hidden;
+  /* `clip`, not `hidden`, and this is load-bearing for the sticky header.
+     `overflow-x: hidden` makes the element a scroll container, so a sticky
+     child sticks to *its* box rather than to the viewport, and a box as tall as
+     the document never scrolls: the header simply left with the page. `clip`
+     contains a stray horizontal overflow the same way without creating a
+     scrollport. Safari has had it since 16, which is this site's floor. */
+  overflow-x: clip;
+  scrollbar-color: var(--rule) transparent;
+}
+/* The header is sticky, so the top of the scrollport is not the top of the
+   readable page. Every scroll the browser performs to a target — a ruler
+   tick, an anchor jump, focus moving into an off-screen control — lands it
+   under the condensed strip without this. The strip bottoms out 39px from
+   the viewport top once stuck; 56px clears it with a line of air.
+
+   On the targets, not `scroll-padding-top` on the scrollport. The padding
+   was tried and WebKit applies it to scroll RESTORATION too, so a reload of a
+   scrolled page came back 56px short of where the reader was, even with the
+   padding switched on after load. Anything with an id is a target: the
+   sections, the essay headings rehype-slug names, the skip link's main. */
+:where([id]) {
+  scroll-margin-top: 56px;
 }
 body {
   background: var(--paper);
   color: var(--ink);
   font-family: var(--f-sans);
+  font-size: 16px;
+  line-height: 1.55;
   font-variant-numeric: tabular-nums;
-  font-optical-sizing: auto;
   -webkit-font-smoothing: antialiased;
   min-height: 100svh;
-  overflow-x: hidden;
 }
 
-/* Theme swaps are snapshotted by the View Transitions API, so surfaces do not
-   need their own transition. Ink swaps are not — everything downstream of the
-   tokens interpolates because the tokens themselves do. Elements that paint a
-   token directly still need a colour transition for the mode ladder, where
-   `--plate` jumps between two already-resolved colours. */
-a,
-button,
-summary,
-[data-tint] {
-  transition:
-    color var(--dur-fast) var(--ease-out),
-    background-color var(--dur-fast) var(--ease-out),
-    border-color var(--dur-fast) var(--ease-out),
-    opacity var(--dur-fast) var(--ease-out);
+::-webkit-scrollbar {
+  width: 10px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--rule);
+  border: 2px solid var(--paper);
+  border-radius: var(--r-chip);
+}
+::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 a {
   color: inherit;
   text-decoration: none;
 }
-a:hover {
-  text-decoration: underline;
-  text-decoration-thickness: 1.5px;
-  text-underline-offset: 5px;
-  text-decoration-color: var(--accent);
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
 }
 :where(a, button, input, textarea, select, summary, [tabindex]):focus {
   outline: none;
 }
+/* Dashed, because on a drawing a selection is a construction line. 2px, not
+   1 — WCAG 2.4.11 wants the indicator at least 2px thick, and a 1px dash at
+   3px offset vanished against a busy figure. */
 :where(a, button, input, textarea, select, summary, [tabindex]):focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px dashed var(--accent);
   outline-offset: 3px;
   border-radius: var(--r-chip);
 }
+/* A selection is a mark on the sheet, so it prints as one: the live ink, with
+   the ground showing through the type. Both pairs clear AA in both themes.
+
+   `fill` is here because of SVG. Inside an <svg> the glyphs are painted with
+   `fill`, not `color`, so a selection that only set `color` left drawn text
+   sitting on an inked slab in whatever colour it already was. Firefox is the
+   only engine that honours it, which is why the drawings opt out of selection
+   entirely below. */
 ::selection {
-  background: var(--accent-soft);
-  color: var(--ink);
+  background: var(--accent);
+  color: var(--paper);
+  fill: var(--paper);
 }
 img,
 svg {
   max-width: 100%;
 }
-button {
-  font: inherit;
-  color: inherit;
+
+kbd {
+  font-family: var(--f-mono);
+  font-size: 0.78em;
+  padding: 1px 6px 2px;
+  border-radius: var(--r-chip);
+  border: 1px solid var(--rule-2);
+  /* The double-weight bottom edge is the whole trick: it reads as a key with a
+     side to it without a single shadow. */
+  border-bottom-width: 2px;
+  background: var(--raise);
 }
 
 .skip-link {
@@ -82,7 +128,7 @@ button {
   transform: translateY(-260%);
   background: var(--raise);
   color: var(--ink);
-  border: 2px solid var(--ink);
+  border: 1px solid var(--ink);
   padding: 9px 14px;
   font-family: var(--f-mono);
   font-size: 13px;
@@ -94,61 +140,84 @@ button {
 
 .wrap {
   width: 100%;
-  max-width: var(--w-page);
+  max-width: var(--w-sheet);
   margin: 0 auto;
   padding-inline: var(--gutter);
 }
-.wrap-doc {
-  max-width: var(--w-doc);
-}
-.wrap-essay {
-  max-width: var(--w-essay);
-}
-
 .mono {
   font-family: var(--f-mono);
-  letter-spacing: 0.02em;
 }
-.serif {
-  font-family: var(--f-serif);
-}
-.label {
-  font-family: var(--f-mono);
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+.dim {
   color: var(--ink-3);
 }
+.accent {
+  color: var(--accent);
+}
+.kn {
+  font-family: var(--f-kannada);
+  letter-spacing: 0;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
 
-/* View transitions ---------------------------------------------------------
-   Theme toggles run through withViewTransition (lib/vt.ts). Ink and press-run
-   changes deliberately do not — they are token interpolations. */
+/* -----------------------------------------------------------------------------
+   ROUTE TRANSITIONS
 
-::view-transition-old(root),
+   Palette changes do not all come through here. An ink pick is a glimm band
+   (`SweepProvider`). A paper flip is the iris in `.vt-recolor-radial` below,
+   because a band always enters from an edge and the control is not on that
+   edge. What is left in this block is the route swap.
+   --------------------------------------------------------------------------- */
+
+/* The root snapshot is not animated, and that is the fix for a real bug.
+   React names the routed content `route`; everything else on the sheet — the
+   header, the measuring edge, the title block — falls into the `root` group,
+   which the API cross-fades by default. Two identical headers cross-fading
+   still dip through a pair of half-opaque copies, and the place you see it is
+   the ink bar under the G: it read as the mark blinking out and back on every
+   navigation. The header does not change between routes, so it should not
+   move. */
+::view-transition-old(root) {
+  display: none;
+}
 ::view-transition-new(root) {
-  animation-duration: 420ms;
-  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
-}
-.dock {
-  view-transition-name: dock;
-}
-::view-transition-group(dock) {
   animation: none;
 }
-::view-transition-old(dock) {
-  animation: none;
-  opacity: 0;
-}
-::view-transition-new(dock) {
-  animation: none;
-  opacity: 1;
-}
-/* During a recolor we want the dock and footer captured into the single root
-   snapshot so the iris washes over them too. */
-:root.vt-recolor .dock {
-  view-transition-name: none;
+/* The root group's own animation is a 250ms no-op (its geometry does not
+   change) that kept the transition alive: on a phone, where the route swap
+   is instant, the finished sections sat above the bar in the pseudo-tree for
+   those 250ms. Zero-length, not none: WebKit hands the group its geometry
+   through this animation. */
+::view-transition-group(root) {
+  animation-duration: 0s;
 }
 
+/* On a phone the route swap is instant. The bar at the foot is fixed over the
+   content, and during the fade the new page's sections painted ON TOP of it
+   until the transition ended. Naming the bar as its own group fixed that in
+   Chromium and made WebKit drop the bar for the whole swap, the same failure
+   the header had. With nothing animating, the transition ends in a frame and
+   the live page, bar on top, is what the reader sees. */
+@media (max-width: 640px) {
+  ::view-transition-new(.vt-route) {
+    animation-duration: 0s;
+  }
+}
+
+/* Theme iris. Hard clip-path jumped a hairline-drawing ~25px per frame and
+   read as skipped frames. A feathered mask is the same circle with a mix
+   band, so old and new paper dissolve across the edge instead of tearing.
+   Gaussian blur on these snapshots is the other way to mix and it is also
+   how you drop frames: the capture is the whole sheet. */
 @keyframes vt-radial-reveal {
   from {
     --vt-r-now: 0px;
@@ -157,29 +226,70 @@ button {
     --vt-r-now: var(--vt-r, 100vmax);
   }
 }
+:root.vt-recolor-radial::view-transition-group(root),
+:root.vt-recolor-radial::view-transition-image-pair(root) {
+  animation: none;
+}
 :root.vt-recolor-radial::view-transition-old(root) {
+  display: block;
   animation: none;
   opacity: 1;
 }
 :root.vt-recolor-radial::view-transition-new(root) {
-  clip-path: circle(var(--vt-r-now, 0px) at var(--vt-x, 50%) var(--vt-y, 50%));
-  animation: vt-radial-reveal 600ms cubic-bezier(0.33, 1, 0.68, 1) both;
-  will-change: clip-path;
+  --iris-in: max(0px, calc(var(--vt-r-now, 0px) - var(--vt-feather)));
+  -webkit-mask-image: radial-gradient(
+    circle at var(--vt-x, 50%) var(--vt-y, 50%),
+    #000 0,
+    #000 var(--iris-in),
+    rgb(0 0 0 / 0.45) max(0px, calc(var(--vt-r-now, 0px) - 48px)),
+    transparent var(--vt-r-now, 0px)
+  );
+  mask-image: radial-gradient(
+    circle at var(--vt-x, 50%) var(--vt-y, 50%),
+    #000 0,
+    #000 var(--iris-in),
+    rgb(0 0 0 / 0.45) max(0px, calc(var(--vt-r-now, 0px) - 48px)),
+    transparent var(--vt-r-now, 0px)
+  );
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  animation: vt-radial-reveal var(--dur-iris) var(--ease-iris) both;
 }
 :root.vt-recolor-radial,
 :root.vt-recolor-radial body,
 :root.vt-recolor-radial body :where(*) {
   transition: none !important;
 }
+/* By class, not by name. React's <ViewTransition name="route"> names each
+   routed child `route_2`, `route_3`, ... and a selector on `route` matched
+   none of them; `default="vt-route"` in app/(press)/layout.tsx is the class
+   every one of them carries.
 
-::view-transition-group(route) {
-  animation-duration: 360ms;
+   The old page is not shown at all. Its snapshots are captured where they sat
+   on screen, which after a scroll is under the sticky strip, and a crossfade
+   drew them ON TOP of the new header: in Chromium the strip ghosted for six
+   frames, in Safari the old text stayed over the new page. Giving the header
+   its own group fixed Chromium and made Safari drop the header for the whole
+   transition. So: no old, the new sheet is simply there, and the routed
+   content fades in over it. Measured clean in both engines. */
+/* No group animation either. React pairs the Nth routed child of the old page
+   with the Nth of the new, and the browser's default group animation morphed
+   each new section from where its old namesake sat on screen: after a scroll,
+   the writing index slid up out of fig. 3's plate and the h1 landed over the
+   list. The new sections take their own geometry from the first frame.
+   Zero duration, not `animation: none`: WebKit hands the group its size and
+   position through that animation, and with none the routed content was a
+   0x0 box for the whole transition, a blank page for 400ms. */
+::view-transition-group(.vt-route) {
+  animation-duration: 0s;
 }
-::view-transition-old(route) {
-  animation: route-fade 180ms ease-in both reverse;
+::view-transition-old(.vt-route) {
+  display: none;
 }
-::view-transition-new(route) {
-  animation: route-fade 280ms ease-out 120ms both;
+::view-transition-new(.vt-route) {
+  animation: route-fade var(--dur-base) var(--ease-out) both;
 }
 @keyframes route-fade {
   from {

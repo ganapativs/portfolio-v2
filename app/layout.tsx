@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { pressFontVars } from "@/lib/fonts";
+import { SweepProvider } from "@/components/providers/SweepProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { FXProvider } from "@/components/providers/FXProvider";
 import { InkProvider } from "@/components/providers/InkProvider";
@@ -10,22 +11,24 @@ import { WebVitals } from "@/components/WebVitals";
 import { Analytics } from "@/components/Analytics";
 import { JsonLd, personSchema, websiteSchema, SITE_URL } from "@/lib/jsonld";
 import { GA_ENABLED, gaStub } from "@/lib/analytics/ga-id";
-import { identity } from "@/lib/resume";
-// eslint-disable-next-line import/no-unassigned-import
+import { BIO, identity } from "@/lib/resume";
 import "@/styles/press.css";
 
-const SITE_DESC =
-  "Engineer and engineering leader in Bengaluru. Eleven years at Tracxn, from first-week engineer to VP — still writing code most weeks.";
+// One string, shared with the manifest, the Person schema and llms.txt.
+// See lib/resume.ts for why it is not typed out here.
+const SITE_DESC = BIO;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: { default: "Ganapati V S — meetguns", template: "%s · meetguns" },
+  title: { default: "Ganapati V S · meetguns", template: "%s · meetguns" },
   description: SITE_DESC,
   applicationName: "meetguns",
   keywords: [
     "Ganapati V S",
     "meetguns",
-    "engineering leader",
+    "full-stack engineer",
+    "design engineer",
+    "design systems",
     "Bengaluru",
     "React",
     "Next.js",
@@ -49,14 +52,13 @@ export const metadata: Metadata = {
   // No `canonical` here — a layout-level canonical is inherited by every
   // segment that doesn't override it (including the 404 page, which would
   // then canonicalise to the homepage). Each page sets its own.
-  alternates: {
-    types: {
-      "application/rss+xml": [{ url: "/rss.xml", title: "meetguns blog" }],
-      // The curated plain-text map, advertised the same way the feed is, so an
-      // agent that reads <head> finds it without guessing the path.
-      "text/plain": [{ url: "/llms.txt", title: "meetguns for LLMs" }],
-    },
-  },
+  // No `alternates` here either, and the feed links are not in metadata at all.
+  // Next resolves `alternates` by replacement, not by merge
+  // (resolve-metadata.js: `newResolvedMetadata.alternates = resolveAlternates(...)`),
+  // so any page that sets its own `alternates.canonical` — which is every page,
+  // per the note above — dropped the two feed links with it. The only page that
+  // ever carried both was the 404, because it is the only one with no canonical
+  // of its own. They are plain <link> tags in <head> below instead.
   // Declared explicitly rather than left to the file conventions: the moment
   // an `icons` object exists, Next stops emitting the automatic <link> tags
   // for app/icon.tsx, app/apple-icon.tsx and app/favicon.ico, so everything
@@ -74,7 +76,7 @@ export const metadata: Metadata = {
   },
   appleWebApp: { capable: true, title: "meetguns", statusBarStyle: "default" },
   openGraph: {
-    title: "Ganapati V S — meetguns",
+    title: "Ganapati V S · meetguns",
     description: SITE_DESC,
     url: SITE_URL,
     siteName: "meetguns",
@@ -85,7 +87,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     creator: "@Ganapativs",
     site: "@Ganapativs",
-    title: "Ganapati V S — meetguns",
+    title: "Ganapati V S · meetguns",
     description: SITE_DESC,
   },
   // Carried over from meetguns.com v1 — keeps Search Console ownership intact
@@ -109,19 +111,23 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#e7eee4" },
-    { media: "(prefers-color-scheme: dark)", color: "#03180c" },
+    { media: "(prefers-color-scheme: light)", color: "#f5f3ec" },
+    { media: "(prefers-color-scheme: dark)", color: "#131417" },
   ],
 };
 
-// The whole palette lives in styles/press/tokens.css keyed on these three data
-// attributes, so preventing a flash is just a matter of stamping them before
-// first paint. The only values duplicated here are the two paper hexes, which
-// have to be inline because they paint the canvas before any stylesheet has
-// been parsed — everything else the CSS derives on its own.
-const noFlash = `(function(){try{var d=document.documentElement;var t=localStorage.getItem('mg_theme');if(t!=='light'&&t!=='dark'){t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}d.dataset.theme=t;d.style.colorScheme=t;d.style.backgroundColor=t==='dark'?'#03180c':'#e7eee4';var i=localStorage.getItem('mg_ink');if(!/^(bottle|brass|oxblood|dustblue|aubergine|umber)$/.test(i||''))i='bottle';d.dataset.ink=i;var m=localStorage.getItem('mg_mode');if(m!=='mono'&&m!=='plain')m='colorful';d.dataset.mode=m;}catch(e){}})();`;
+// The whole palette lives in styles/press/tokens.css keyed on two data
+// attributes, so preventing a flash is a matter of stamping them before first
+// paint. The only values duplicated here are the two ground hexes, which have
+// to be inline because they paint the canvas before any stylesheet has been
+// parsed — everything else the CSS derives on its own.
+//
+// The ink regex has to list every id in lib/ink.ts. A miss is silent: it falls
+// back to the default rather than throwing, so a renamed ink looks like a
+// forgetful browser rather than a bug.
+const noFlash = `(function(){try{var d=document.documentElement;var t=localStorage.getItem('mg_theme');if(t!=='light'&&t!=='dark'){t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}d.dataset.theme=t;d.style.colorScheme=t;d.style.backgroundColor=t==='dark'?'#131417':'#f5f3ec';var i=localStorage.getItem('mg_ink');if(!/^(amber|bottle|oxblood|dustblue|aubergine|olive)$/.test(i||''))i='dustblue';d.dataset.ink=i;}catch(e){}})();`;
 
-const consoleSig = `(function(){var a=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#1b6c46';console.log('%cmeetguns press · set by hand · vsg.inbox@gmail.com','font-family:Georgia,serif;font-style:italic;font-size:18px;color:'+a+';line-height:1.6;');})();`;
+const consoleSig = `(function(){var a=getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()||'#8f5c0c';console.log('%cmeetguns · built with care in Bengaluru · vsg.inbox@gmail.com','font-family:ui-monospace,monospace;font-size:13px;letter-spacing:.08em;color:'+a+';line-height:1.8;');})();`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -129,7 +135,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     // in styles/press/base.css. Without it Next warns, because a router
     // navigation would otherwise animate the jump back to the top of the next
     // page — the attribute is what lets it suppress that while leaving in-page
-    // anchor jumps (the dock's Work / Off-screen links) gliding as designed.
+    // anchor jumps (the ruler's section links) gliding as designed.
     <html
       lang="en"
       className={pressFontVars}
@@ -144,6 +150,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {GA_ENABLED && <script dangerouslySetInnerHTML={{ __html: gaStub }} />}
         <JsonLd data={[personSchema, websiteSchema]} />
         <link rel="author" href="/humans.txt" />
+        {/* Hand-written rather than routed through `alternates`, so they
+            survive on every page. See the note on the metadata export. */}
+        <link rel="alternate" type="application/rss+xml" title="meetguns blog" href="/rss.xml" />
+        {/* The curated plain-text map, advertised the same way the feed is, so
+            an agent reading <head> finds it without guessing the path. */}
+        <link rel="alternate" type="text/plain" title="meetguns for LLMs" href="/llms.txt" />
         {identity.social
           .filter((s) => s.kind !== "mail")
           .map((s) => (
@@ -151,17 +163,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           ))}
       </head>
       <body>
-        <ThemeProvider>
-          <FXProvider>
-            <ShortcutProvider>
-              <InkProvider>
-                {children}
-                <HintLayer />
-                <ShortcutHelp />
-              </InkProvider>
-            </ShortcutProvider>
-          </FXProvider>
-        </ThemeProvider>
+        {/* SweepProvider is outermost of the four because both of the
+            providers below it hand their state change to the sweep to carry. */}
+        <SweepProvider>
+          <ThemeProvider>
+            <FXProvider>
+              <ShortcutProvider>
+                <InkProvider>
+                  {children}
+                  <HintLayer />
+                  <ShortcutHelp />
+                </InkProvider>
+              </ShortcutProvider>
+            </FXProvider>
+          </ThemeProvider>
+        </SweepProvider>
         <WebVitals />
         <Analytics />
       </body>

@@ -1,0 +1,123 @@
+# Cloudflare Workers static assets headers — wrangler parses this file at
+# deploy (it ships as out/_headers via public/). These are the rules
+# next.config.ts declared in headers() when the site ran on a server, plus the
+# /_next/static rule Next's own server used to add by itself. Change a header
+# here, not in next.config.ts — `output: "export"` ignores headers() entirely.
+
+# Lighthouse / best-practices security baseline on every response.
+# The CSP is deliberately script-less: the no-flash script and the gtag stub
+# are inline, and a static export cannot mint nonces, so a script-src would
+# need 'unsafe-inline' and assert nothing. These four directives cost no
+# inline anything and close what X-Frame-Options does not: base-tag injection,
+# form exfiltration and plugin content.
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: DENY
+  X-DNS-Prefetch-Control: on
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), browsing-topics=(), payment=()
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+  Content-Security-Policy: base-uri 'self'; form-action 'self'; object-src 'none'; frame-ancestors 'none'
+
+# The static export writes an RSC payload beside every page (index.txt,
+# blog.txt, /blog/<slug>.txt, the __next.*.txt segment files) for the client
+# router to prefetch. They are full-text duplicates of the pages, so they get
+# the same treatment as the .md mirrors: served, never indexed. This also
+# catches llms.txt and humans.txt, which is fine — both are machine surfaces
+# with nothing to win in a results page.
+/*.txt
+  X-Robots-Tag: noindex
+
+# Next content-hashes everything under /_next/static — safe to cache forever.
+/_next/static/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/portrait/*
+  Cache-Control: public, max-age=2592000
+
+/posts/*
+  Cache-Control: public, max-age=2592000
+
+/brand/*
+  Cache-Control: public, max-age=2592000
+
+/rss.xml
+  Cache-Control: public, max-age=3600, s-maxage=3600
+
+/llms.txt
+  Cache-Control: public, max-age=3600, s-maxage=3600
+
+# The markdown mirrors (scripts/gen-md.ts). noindex: they are the same words
+# as the post pages and must not compete with them in a results page.
+/blog/:slug.md
+  Cache-Control: public, max-age=3600, s-maxage=3600
+  X-Robots-Tag: noindex
+
+# The generated icon family. A day, with a long stale window: the artwork only
+# changes when the mark does, but a browser holding a stale favicon for a year
+# is its own kind of bug. The Content-Type lines are load-bearing: Next's
+# metadata routes export as extensionless files, which static assets serve with
+# no Content-Type at all — and an SVG favicon is never content-sniffed.
+/favicon.ico
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+/icon
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+  Content-Type: image/svg+xml
+
+/icon-192
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+  Content-Type: image/png
+
+/icon-512
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+  Content-Type: image/png
+
+/icon-512-maskable
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+  Content-Type: image/png
+
+/apple-icon
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+  Content-Type: image/png
+
+# The OG cards are extensionless too (see above). Social scrapers check the
+# type before they will show a card. Cached like the icons — every unfurl,
+# scraper and retry refetches a 50 kB PNG that only changes with a deploy.
+/opengraph-image
+  Content-Type: image/png
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+/twitter-image
+  Content-Type: image/png
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+# The suffixes are Next's route-path hashes — they change only if the files
+# move. If a build renames them, curl the new paths and update (the smoke
+# checklist in AGENTS.md catches it).
+/blog/opengraph-image-1o7cft
+  Content-Type: image/png
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+/blog/twitter-image-1o7cft
+  Content-Type: image/png
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+/blog/:slug/opengraph-image-87ry9z
+  Content-Type: image/png
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+/blog/:slug/twitter-image-87ry9z
+  Content-Type: image/png
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+/resume/opengraph-image-aw9yz6
+  Content-Type: image/png
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+/resume/twitter-image-aw9yz6
+  Content-Type: image/png
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+
+/manifest.webmanifest
+  Cache-Control: public, max-age=86400

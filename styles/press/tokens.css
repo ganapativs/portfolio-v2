@@ -1,99 +1,231 @@
 /* =============================================================================
-   meetguns press — the design system.
+   THE SCHEMATIC — the design system.
 
-   One calibrated oyster surface, six press inks, three press runs.
-   Nothing here is applied from JavaScript: the whole palette is keyed on
-   `[data-theme]` × `[data-ink]` × `[data-mode]` stamped on <html>, so the
-   no-flash script is three attribute writes and there is no palette duplicated
-   between CSS and TS.
+   A living engineering drawing. One sheet, drawn in line weight rather than
+   shadow, on warm drawing paper by day and graphite by night, in one of six
+   inks. Nothing here is applied from JavaScript: the whole palette is keyed on
+   `[data-theme]` × `[data-ink]` stamped on <html>, so the no-flash script is
+   two attribute writes and there is no palette duplicated between CSS and TS.
+
+   Three systems carry the whole design, and they are deliberately small:
+
+     Radius   0 is drawing geometry — every rule, panel, slab and axis.
+              2px is a touched thing — chips, buttons, swatches, kbd.
+              50% is a point — the loupe, station dots, the portrait ripple.
+              There is no third box radius. A drawing has no rounded corners.
+
+     Depth    line weight, never shadow. 0.75px faint (--rule-3), 1px standard
+              (--rule), 1.5px emphasised (--rule-2). There is not one box-shadow
+              in the design; a sheet of paper does not float.
+
+     Motion   --dur-fast 140ms for hover and focus, --dur-base 260ms for
+              everything the reader caused, --dur-ink 340ms for the coordinated
+              ink tween. The palette sweep (ink) and the paper iris (theme)
+              are longer than any of them, and they are not this scale: the
+              sweep belongs to glimm, the iris to --dur-iris. Direct
+              manipulation has no duration at all, because the hand sets it.
 
    Structure
-     1  registered properties        6  chrome (folio, dock, footers, header)
-     2  tokens + surfaces            7  home
-     3  ink matrix                   8  writing index + essay
-     4  press runs (modes)           9  resume
-     5  reset + base                10  print + reduced motion
+     1  registered properties        5  patterns and materials
+     2  surfaces                     6  reset + base is in base.css
+     3  ink matrix                   7  shared-component bridge
+     4  type, space, motion
    ============================================================================ */
 
 /* 1 — REGISTERED PROPERTIES --------------------------------------------------
-   Typing the ink tokens as <color> is what makes an ink change a real 340ms
-   oklch interpolation instead of a hard swap. Unregistered custom properties
-   are token streams and cannot be transitioned. */
+   Typing --accent as <color> is what makes an ink change a real 340ms
+   interpolation instead of a hard swap. Unregistered custom properties are
+   token streams and cannot be transitioned. */
 
 @property --accent {
   syntax: "<color>";
   inherits: true;
-  initial-value: oklch(0.472 0.098 158);
+  /* The default ink's light value, mirroring DEFAULT_INK in lib/ink.ts. Nothing
+     normally reads it — `:root` always sets --accent — but it is what paints if
+     a declaration is ever invalid at computed-value time, and an initial value
+     from a retired default is a silent way to print last season's ink. */
+  initial-value: #2b6083;
 }
-@property --accent-ink {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: oklch(0.36 0.077 166);
-}
-@property --accent-soft {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: oklch(0.926 0.029 136);
-}
-@property --plate {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: oklch(0.472 0.098 158);
-}
-@property --wash {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: oklch(0.926 0.029 136);
-}
-/* The off-register second pass behind the display names. Typed like the rest so
-   it travels with them when the run changes — see the press-run block for why
-   it is its own token and not just `--plate`. */
-@property --misreg {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: oklch(0.472 0.098 158);
-}
-/* The ink tuned for the opposite surface. The "Say hello." slab paints --ink
-   and sets its type in --paper; the on-paper ink is far too close to that
-   ground to be legible on it, so inverted blocks reach for this instead. */
-@property --accent-flip {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: oklch(0.758 0.092 150);
-}
-/* Iris radius for the theme reveal — see lib/vt.ts for why this is a typed
-   length rather than an interpolated clip-path. */
+
 @property --vt-r-now {
   syntax: "<length>";
   initial-value: 0px;
-  inherits: true;
+  inherits: false;
 }
 
-/* 2 — TOKENS + SURFACES ----------------------------------------------------- */
+/* 2 — SURFACES ---------------------------------------------------------------
+   Light is drawing paper: a warm off-white with the yellow of aged tracing
+   stock, ruled in a dusty ochre-grey. Dark is graphite — a cool near-black with
+   a blue cast, ruled in the same grey the pencil leaves.
+
+   The two are not inversions of one another. The light ramp warms as it
+   darkens (paper is warm, and the line on it is warmer still); the dark ramp
+   cools as it lightens. That is why the dark run reads as a different material
+   rather than as the light run with the lamp off. */
 
 :root {
-  /* Faces. next/font supplies the variables; the fallback stacks are already
-     metric-matched by `adjustFontFallback`. */
-  --f-sans: var(--font-anek), "Helvetica Neue", Helvetica, Arial, sans-serif;
-  /* Kannada first, deliberately. Putting Anek Latin ahead of it saves the
-     40 kB latin subset this face would otherwise be asked for just to set the
-     spaces in the name — but it also hands those spaces a different word-space
-     advance, and the name comes out measurably wider. The two faces are the
-     same design, not the same metrics. Correct setting wins. */
-  --f-kannada: var(--font-anek-kannada), var(--font-anek), sans-serif;
-  --f-serif: var(--font-piazzolla), Georgia, "Times New Roman", serif;
-  --f-mono: var(--font-fragment), ui-monospace, Menlo, monospace;
+  --paper: #f5f3ec;
+  --raise: #faf8f1;
+  --sunk: #f0ede2;
+  --ink: #1d1e1a;
+  --ink-2: #42433c;
+  --ink-3: #68695f;
+  --rule-3: #e6e1d2;
+  --rule: #cfc9b6;
+  --rule-2: #98937f;
 
-  /* Type scale, ratio 1.25 — 12 · 15 · 19 · 24 · 30 · 37 · 46 · 58 · 73 */
-  --t-1: 12px;
-  --t-2: 15px;
-  --t-3: 19px;
-  --t-4: 24px;
-  --t-5: 30px;
-  --t-6: 37px;
-  --t-7: 46px;
-  --t-8: 58px;
-  --t-9: 73px;
+  --dither-dot: rgb(29 30 26 / 0.055);
+
+  /* Box-model tints for the pipeline's markup stage. Margin / padding /
+     content, in the colours every browser inspector has used for twenty years,
+     because that is the one convention worth borrowing outright. */
+  --bm-margin: rgb(214 138 58 / 0.32);
+  --bm-pad: rgb(114 158 90 / 0.32);
+  --bm-content: rgb(88 126 190 / 0.3);
+
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --paper: #131417;
+  --raise: #191b1f;
+  --sunk: #15171b;
+  --ink: #e8e9e4;
+  --ink-2: #b6b9bd;
+  --ink-3: #8e9299;
+  --rule-3: #23262b;
+  --rule: #2e3238;
+  --rule-2: #4c525c;
+
+  --dither-dot: rgb(232 233 228 / 0.06);
+
+  --bm-margin: rgb(246 178 107 / 0.38);
+  --bm-pad: rgb(147 196 125 / 0.38);
+  --bm-content: rgb(111 168 220 / 0.4);
+
+  color-scheme: dark;
+}
+
+/* 3 — INK MATRIX ------------------------------------------------------------
+   Six inks, two tuned values each, mirrored as flat hexes in lib/ink.ts for the
+   OG renderer and the portrait canvas. Change one, change the other.
+
+   The six live here as --sw-* and --accent is aliased to whichever one is
+   active. That indirection is not decoration: the header's picker has to paint
+   all six swatches at once and cannot read --accent, which is only ever the
+   active one. Without --sw-* the picker needs a second hand-maintained copy of
+   the whole palette, and nothing fails loudly when the two drift.
+
+   Dust blue is the default. It is the ink a drawing office reproduced in:
+   blueprint stock, the diazo line, the pencil-blue a draughtsman set out with.
+   It is a working colour rather than a brand one, which is the whole test the
+   other five have to pass too. Drafting amber sits beside it as the colour of a
+   hard pencil on tracing paper.
+
+   Two rules govern the pairs, and neither is arithmetic:
+
+   1. The dark value is not the light value lightened. Amber goes from a burnt
+      #8F5C0C on paper to a brighter, yellower #D9962B on graphite, because a
+      dark ground swallows chroma and a lit amber has to shout a little to stay
+      amber. Every pair moves in hue, not only in lightness.
+
+   2. Every pair clears AA against its own ground as text (the weakest is amber
+      on paper at 5.11:1, then olive at 5.32:1) and 3:1 as a line. The palette
+      is checked as type, not as swatches, because --accent sets live values
+      and actions. */
+
+:root {
+  --sw-dustblue: oklch(0.47 0.08 240);
+  --sw-amber: #8f5c0c;
+  --sw-bottle: oklch(0.45 0.095 158);
+  --sw-oxblood: oklch(0.46 0.115 25);
+  --sw-aubergine: oklch(0.44 0.112 316);
+  --sw-olive: oklch(0.5 0.095 112);
+}
+[data-theme="dark"] {
+  --sw-dustblue: oklch(0.75 0.075 245);
+  --sw-amber: #d9962b;
+  --sw-bottle: oklch(0.75 0.092 154);
+  --sw-oxblood: oklch(0.73 0.11 29);
+  --sw-aubergine: oklch(0.72 0.105 320);
+  --sw-olive: oklch(0.78 0.11 108);
+}
+
+/* The default MUST be the first rule in this run, and it is not a style
+   preference. `:root` and `[data-ink="x"]` are both specificity 0,1,0, so the
+   cascade falls through to source order: whichever is written last wins on an
+   element that matches both, and <html> matches both. Declared here, every ink
+   below overrides it. Declared halfway down the list, it silently kills every
+   ink above it and those swatches paint the default instead. */
+:root,
+[data-ink="dustblue"] {
+  --accent: var(--sw-dustblue);
+}
+[data-ink="amber"] {
+  --accent: var(--sw-amber);
+}
+[data-ink="bottle"] {
+  --accent: var(--sw-bottle);
+}
+[data-ink="oxblood"] {
+  --accent: var(--sw-oxblood);
+}
+[data-ink="aubergine"] {
+  --accent: var(--sw-aubergine);
+}
+[data-ink="olive"] {
+  --accent: var(--sw-olive);
+}
+
+/* Derived weights. These are plain custom properties rather than registered
+   ones on purpose: color-mix() re-evaluates every frame as --accent tweens, so
+   they travel with it for free and there is one value to maintain per ink
+   instead of four. */
+:root {
+  --accent-soft: color-mix(in oklab, var(--accent) 10%, transparent);
+  --accent-line: color-mix(in oklab, var(--accent) 45%, transparent);
+
+  /* The coordinated ink tween. One transition on the token itself, so every
+     consumer moves together. A pointer pick has the glimm band over the top of
+     it, so the tween is what the reader sees underneath the band rather than
+     something competing with it. See components/providers/SweepProvider.tsx. */
+  transition: --accent var(--dur-ink) var(--ease-out);
+}
+
+/* ...except when the paper changes under it.
+
+   The ground swaps in one frame at the band's midpoint; the ink took 340ms to
+   follow. Everywhere under the band that lag is invisible, but the header sits
+   above it (z-index 70 over 60, so the control that caused the flip stays
+   legible), and the bar under the G is painted in --accent. Flipping to
+   graphite therefore left the light-ground ink — oxblood at oklch(.46 …), 1.9:1
+   on #131417 — sitting on the dark ground for the whole tween, and the bar read
+   as gone. Going the other way it was a washed-out light-ground value on paper.
+
+   A theme flip is not an interpolation between two inks, it is the same ink
+   repigmented for a different ground, and the band is what carries it. So the
+   token snaps with everything else. ThemeProvider stamps data-repapering for
+   the one frame it takes to commit the swap, and the tween is back for the
+   next ink pick. */
+:root[data-repapering] {
+  transition: none;
+}
+
+/* 4 — TYPE, SPACE, MOTION --------------------------------------------------- */
+
+:root {
+  --f-sans: var(--font-hanken), "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --f-mono: var(--font-plex-mono), ui-monospace, Menlo, monospace;
+  /* Kannada first, deliberately. Putting the Latin face ahead of it stops Anek
+     Kannada being fetched for the spaces in the name — but it also hands those
+     spaces a different word-space advance, and the name comes out measurably
+     narrow. Correct setting wins; the cut is 9.7 kB either way. */
+  --f-kannada: var(--font-anek-kannada), var(--font-hanken), sans-serif;
+
+  /* How far a control gives under a press. One value, because four sibling
+     controls pressing by four different amounts (0.88 / 0.92 / 0.94 / 0.97)
+     reads as four different mechanisms. `.chip` documents its own exception. */
+  --press: 0.94;
 
   /* Spacing — 4 · 8 · 12 · 16 · 24 · 32 · 48 · 64 · 96 · 144 */
   --s-1: 4px;
@@ -107,255 +239,72 @@
   --s-9: 96px;
   --s-10: 144px;
 
-  /* Radius — four values, each with a job. */
+  /* Radius — three values and no more. `--r-rule` is the default everything
+     already has, so it is here to be named rather than to be set. */
   --r-rule: 0;
   --r-chip: 2px;
-  --r-block: 6px;
   --r-point: 50%;
 
-  /* Motion */
+  /* Motion. The sheet settles on --ease-out (houseEase in JS). The paper mix
+     has its own curve: houseEase dumps too much radius into the first frames
+     and a hard circle on this drawing reads as skipped frames. --ease-in-out
+     was declared beside it, referenced zero times, and deleted. */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
-  --ease-quart: cubic-bezier(0.25, 1, 0.5, 1);
-  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   --dur-fast: 140ms;
   --dur-base: 260ms;
   --dur-ink: 340ms;
-  --dur-slow: 520ms;
+  --dur-iris: 720ms;
+  --vt-feather: 160px;
+  --ease-iris: cubic-bezier(0.45, 0.02, 0.18, 1);
 
-  /* Measures */
-  --w-page: 1240px;
-  --w-doc: 1020px;
-  --w-essay: 840px;
-  --gutter: clamp(16px, 4vw, 54px);
-  --dock-safe: calc(104px + env(safe-area-inset-bottom));
-
-  /* Surfaces — light is the default run. Oyster stock: a grey with a green cast,
-     printed in bottle-green-black.
-
-     Two rules run down this ramp, and they are the whole reason it does not read
-     as one hue picked and multiplied out:
-
-     1. Hue rotates with value. Green pigment deepens toward blue as it is laid
-        on thick, so the ramp swings 128° at the lit sheet to 162° at full
-        density. A ramp that holds one hue at every step is a tint of a swatch,
-        not a colour that was mixed.
-     2. Chroma climbs the whole way down. Thinnest on the sheet (0.008) — oyster
-        is barely tinted, which is what makes it read as paper rather than as a
-        colour — and fullest in the ink itself (0.046), because the bottle green
-        is the most saturated thing on the page. That is the reverse of the usual
-        arrangement, where the ground is tinted and the ink is a near-neutral.
-
-     --ink is therefore not a black: it is a bottle green dense enough to read as
-     one, which is exactly what apothecary glass does. */
-  --paper: oklch(0.942 0.016 134);
-  --raise: oklch(0.986 0.008 128);
-  --sunk: oklch(0.894 0.024 142);
-  --ink: oklch(0.19 0.046 162);
-  --ink-2: oklch(0.394 0.038 160);
-  --ink-3: oklch(0.504 0.03 158);
-  --rule: oklch(0.848 0.026 148);
-  --rule-2: oklch(0.754 0.028 154);
-  --chip-on-bg: oklch(0.19 0.046 162);
-  --chip-on-fg: oklch(0.942 0.016 134);
-  --chip-off-fg: oklch(0.504 0.03 158);
-  /* Overprint blend. Multiply on light paper, screen on dark — a real second
-     ink pass behaves the same way. */
-  --blend: multiply;
-  color-scheme: light;
+  /* Measures. --w-sheet is the drawing's own width; --w-essay is a reading
+     measure and is narrower because prose has a different job than a drawing. */
+  --w-sheet: 1040px;
+  --w-essay: 760px;
+  /* Where a page starts: the gap between the header's rule and the first
+     thing on the sheet, the same on every route. The rule's own box carries
+     9px under its hairline, so the first element's top sits 45px below the
+     line. Home had 36, writing and the essay 52, the résumé 44 to a card
+     edge; every page opened at a different height. */
+  --page-top: 36px;
+  --sheet-margin: 24px;
+  --gutter: 32px;
 }
 
-/* The dark run is not the light run inverted. It is a different material: the
-   oyster stock is gone and the ground is the bottle green at full density, so
-   the same two rules apply but read from the other end — hue rotates 164° in the
-   deepest well up to 100° at the brightest text, and chroma thins as it climbs
-   rather than thickening. The wells go very deep here (0.126) because a green
-   this saturated needs the room; matching the light ramp step for step is what
-   would have flattened it. */
-[data-theme="dark"] {
-  --paper: oklch(0.186 0.038 158);
-  --raise: oklch(0.246 0.034 152);
-  --sunk: oklch(0.126 0.032 164);
-  --ink: oklch(0.948 0.01 100);
-  --ink-2: oklch(0.8 0.014 112);
-  --ink-3: oklch(0.668 0.02 126);
-  --rule: oklch(0.33 0.03 146);
-  --rule-2: oklch(0.42 0.026 138);
-  --chip-on-bg: oklch(0.948 0.01 100);
-  --chip-on-fg: oklch(0.186 0.038 158);
-  --chip-off-fg: oklch(0.688 0.02 122);
-  --blend: screen;
-  color-scheme: dark;
-}
+/* 5 — PATTERNS AND MATERIALS -------------------------------------------------
+   One drawn material, inline SVG so it costs no request:
 
-/* 3 — INK MATRIX ------------------------------------------------------------
-   --accent      the ink itself: rails, plates, fills, rules that carry meaning
-   --accent-ink  text that is a live value or an action; never headings or chrome
-   --accent-soft the wash: hover rows, ::selection, quiet fills
-   --accent-flip the ink tuned for the opposite ground
+   --hex-url   the hex mesh a panel brightens under the cursor
 
-   Three things govern this matrix, and none of them are arithmetic.
+   The stroke colours are literals rather than tokens because a data: URI cannot
+   read a custom property. That is the one place in the design where a colour is
+   written twice; both are ruled greys and neither takes the ink. */
 
-   1. Hue rotates within each ink. Every weight of an ink is a different hue, not
-      the same colour at a different opacity: bottle green runs 136° at the wash
-      to 166° at text weight, oxblood 50° to 15°. Warm pigments go yellow as they
-      are let down and red as they are laid on thick; green and blue go the other
-      way, deepening toward blue. Holding one hue across an ink's four weights is
-      the loudest tell that a palette was generated rather than mixed.
-
-   2. Each ink is its own pigment, not one colour at six angles. Brass cannot be
-      dark and stay brass, so it lives at 0.618 while aubergine lives at 0.442 —
-      a 0.176 lightness spread. Burnt umber is genuinely low-chroma at 0.054;
-      oxblood is genuinely high at 0.118.
-
-   3. These are pigments, not signals, and that is deliberate. The six accents on
-      microcharts.dev all sit between L .498 and .553 at mean chroma .152 —
-      forced, because chart colours must be equiluminant or one series shouts
-      over another. A press has the opposite job. These six average .095 chroma
-      across a .176 lightness spread, so the two properties cannot be mistaken
-      for one another even though both offer six inks.
-
-   The one hand-made exception is brass. Its dark --accent-flip is NOT its light
-   --accent, the way the other five are: that flip paints onto the dark run's
-   near-white --ink slab, and a yellow light enough to be brass cannot hold 3:1
-   there. It is pulled to 0.566 and toward amber. Yellow has no dark form. */
-
-[data-ink="bottle"] {
-  --accent: oklch(0.472 0.098 158);
-  --accent-ink: oklch(0.36 0.077 166);
-  --accent-soft: oklch(0.926 0.029 136);
-  --accent-flip: oklch(0.758 0.092 150);
-}
-[data-ink="brass"] {
-  --accent: oklch(0.618 0.106 84);
-  --accent-ink: oklch(0.506 0.099 77);
-  --accent-soft: oklch(0.926 0.032 103);
-  --accent-flip: oklch(0.758 0.1 91);
-}
-[data-ink="oxblood"] {
-  --accent: oklch(0.488 0.118 24);
-  --accent-ink: oklch(0.376 0.11 15);
-  --accent-soft: oklch(0.926 0.035 50);
-  --accent-flip: oklch(0.758 0.111 33);
-}
-[data-ink="dustblue"] {
-  --accent: oklch(0.502 0.078 240);
-  --accent-ink: oklch(0.39 0.073 231);
-  --accent-soft: oklch(0.926 0.023 266);
-  --accent-flip: oklch(0.758 0.073 249);
-}
-[data-ink="aubergine"] {
-  --accent: oklch(0.442 0.116 316);
-  --accent-ink: oklch(0.33 0.108 308);
-  --accent-soft: oklch(0.926 0.035 338);
-  --accent-flip: oklch(0.758 0.109 324);
-}
-[data-ink="umber"] {
-  --accent: oklch(0.466 0.054 54);
-  --accent-ink: oklch(0.354 0.05 49);
-  --accent-soft: oklch(0.926 0.016 70);
-  --accent-flip: oklch(0.758 0.051 60);
-}
-
-/* The dark run keeps a real ladder: --accent and --accent-ink are different
-   values, so a live value still reads hotter than the structure beside it. */
-[data-theme="dark"][data-ink="bottle"] {
-  --accent: oklch(0.748 0.094 154);
-  --accent-ink: oklch(0.8 0.088 148);
-  --accent-soft: oklch(0.298 0.041 162);
-  --accent-flip: oklch(0.472 0.098 158);
-}
-[data-theme="dark"][data-ink="brass"] {
-  --accent: oklch(0.826 0.102 88);
-  --accent-ink: oklch(0.878 0.095 92);
-  --accent-soft: oklch(0.298 0.045 80);
-  --accent-flip: oklch(0.566 0.104 72);
-}
-[data-theme="dark"][data-ink="oxblood"] {
-  --accent: oklch(0.732 0.113 29);
-  --accent-ink: oklch(0.784 0.106 35);
-  --accent-soft: oklch(0.298 0.05 19);
-  --accent-flip: oklch(0.488 0.118 24);
-}
-[data-theme="dark"][data-ink="dustblue"] {
-  --accent: oklch(0.746 0.075 245);
-  --accent-ink: oklch(0.798 0.07 251);
-  --accent-soft: oklch(0.298 0.033 235);
-  --accent-flip: oklch(0.502 0.078 240);
-}
-[data-theme="dark"][data-ink="aubergine"] {
-  --accent: oklch(0.708 0.111 320);
-  --accent-ink: oklch(0.76 0.104 326);
-  --accent-soft: oklch(0.298 0.049 312);
-  --accent-flip: oklch(0.442 0.116 316);
-}
-[data-theme="dark"][data-ink="umber"] {
-  --accent: oklch(0.728 0.052 57);
-  --accent-ink: oklch(0.78 0.049 61);
-  --accent-soft: oklch(0.298 0.023 51);
-  --accent-flip: oklch(0.466 0.054 54);
-}
-
-/* 4 — PRESS RUNS ------------------------------------------------------------
-   colorful (2 ink) — ink and its wash, the full run
-   mono     (spot)  — washes off; large fills drop to the text colour, so the
-                      ink survives only as spots: rules, ticks, live values
-   plain    (1 ink) — one ink on paper. No colour anywhere.                */
-
-/* `--misreg` is the off-register second pass behind the two display names. It
-   cannot ride on `--plate`: in mono and plain `--plate` collapses onto `--ink`,
-   which is the colour the name itself is set in, so the second pass stopped
-   reading as a misprint and became a solid duplicate of the word shifted 5px —
-   the name went unreadable in two of the three runs. Off-register printing is
-   two inks failing to line up, so the ghost has to stay a different value from
-   the text no matter which run is showing. In mono and plain it falls back to a
-   rule tone: still an offset, still legible, no colour. */
-:root,
-[data-mode="colorful"] {
-  --plate: var(--accent);
-  --wash: var(--accent-soft);
-  --misreg: var(--accent);
-}
-[data-mode="mono"] {
-  --plate: var(--ink);
-  --wash: transparent;
-  --misreg: var(--rule-2);
-}
-[data-mode="plain"] {
-  --accent: var(--ink);
-  --accent-ink: var(--ink);
-  --accent-soft: var(--sunk);
-  --accent-flip: var(--paper);
-  --plate: var(--ink);
-  --wash: transparent;
-  --misreg: var(--rule-2);
-}
-
-/* The coordinated ink tween. One transition, on the tokens themselves, so
-   every consumer moves together — DESIGN.md calls for 340ms ease-out-quart. */
 :root {
-  transition:
-    --accent var(--dur-ink) var(--ease-quart),
-    --accent-ink var(--dur-ink) var(--ease-quart),
-    --accent-soft var(--dur-ink) var(--ease-quart),
-    --accent-flip var(--dur-ink) var(--ease-quart),
-    --plate var(--dur-ink) var(--ease-quart),
-    --misreg var(--dur-ink) var(--ease-quart),
-    --wash var(--dur-ink) var(--ease-quart);
+  --hex-url: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15.59' height='27'%3E%3Cpath d='M0 4.5 L7.795 0 L15.59 4.5 M0 4.5 V13.5 M0 13.5 L7.795 18 L15.59 13.5 M7.795 18 V27' fill='none' stroke='%23b5ae97' stroke-width='1'/%3E%3C/svg%3E");
 }
 
-/* ---- Shared-component bridge ---------------------------------------------
+[data-theme="dark"] {
+  --hex-url: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15.59' height='27'%3E%3Cpath d='M0 4.5 L7.795 0 L15.59 4.5 M0 4.5 V13.5 M0 13.5 L7.795 18 L15.59 13.5 M7.795 18 V27' fill='none' stroke='%23414854' stroke-width='1'/%3E%3C/svg%3E");
+}
+
+/* 7 — SHARED-COMPONENT BRIDGE ------------------------------------------------
    The shortcut overlay, the MDX code block, zoomable images and the microcharts
    demos were written against an older set of token names. Rather than rewrite
-   four stylesheets, those names are mapped onto press values here, so those
-   components inherit the ink, the paper and the type unchanged.
+   four stylesheets, those names are mapped onto the drawing's values here, so
+   those components inherit the ink, the ground and the type unchanged.
 
-   These are live, not leftovers: every alias below is referenced by
-   components/shortcuts/shortcuts.css, styles/press/microcharts-demos.css or
-   styles/press/essay.css. Deleting one breaks a real rule. If you ever want the
-   bridge gone, rewrite those stylesheets to the press names first, then drop
-   this block — don't drop it and see what breaks. */
+   Every alias below is referenced by styles/press/microcharts-demos.css or
+   styles/press/essay.css, and the list is kept honest: an earlier version of
+   this block carried four aliases nothing referenced and three
+   (--ease-spring, --dur-slow, --shadow-*) that smuggled in values the design's
+   own header notes say it does not have. If an alias stops being used, delete
+   it rather than leaving it here under a comment claiming it is load-bearing. */
 
 :root {
+  --accent-ink: var(--accent);
+  --wash: var(--accent-soft);
+
   --bg-surface: var(--raise);
   --bg-sunken: var(--sunk);
   --border-1: var(--rule);
@@ -365,37 +314,71 @@
   --fg-2: var(--ink-2);
   --fg-3: var(--ink-3);
   --font-display: var(--f-sans);
+  --font-sans: var(--f-sans);
   --font-mono: var(--f-mono);
   --fw-display: 400;
+  --fw-regular: 400;
   --fw-medium: 500;
   --fw-semibold: 600;
   --lh-tight: 1.2;
-  --r-xs: var(--r-chip);
-  --r-lg: var(--r-block);
-  --font-sans: var(--f-sans);
-  --fw-regular: 400;
-  --r-pill: 999px;
-  --r-xl: var(--r-block);
-  --ring: 0 0 0 3px color-mix(in oklab, var(--accent) 35%, transparent);
   --t-micro: 10.5px;
   --t-overline: 10.5px;
   --t-caption: 12px;
-  --t-small: 15px;
-  --t-body: 16.5px;
+  --t-small: 14px;
+  --t-body: 16px;
   --t-h5: 19px;
   --t-h4: 24px;
   --t-h3: 30px;
   --t-h2: 37px;
   --track-mega: 0.14em;
-  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --shadow-sm: 0 1px 2px oklch(0.19 0.046 162 / 0.08);
-  --shadow-xl: 0 24px 60px oklch(0.19 0.046 162 / 0.22);
-  --khadi: oklch(0.986 0.008 128);
-  --turmeric: oklch(0.894 0.024 142);
-  --peat: oklch(0.3 0.036 158);
-  --moonless: oklch(0.126 0.032 164);
+}
+
+/* ---- @microcharts/react ----------------------------------------------------
+   The library ships its tokens in `@layer microcharts.tokens` behind `:where()`
+   and tunes dark mode with `prefers-color-scheme`. This site's theme is user
+   controlled via `data-theme`, so the OS query would desync every chart from
+   the page it sits on. Re-assert both palettes here (unlayered beats layered)
+   and bind ink, surface and type to the drawing's own tokens.
+
+   Bound at :root rather than at .prose because the real charts are no longer
+   only in essays: fig. 2 on the home sheet is a tray of them.
+
+   Valence and the categorical hues keep their own values on purpose. Chart
+   series have to be near-equiluminant to be readable against one another,
+   which is precisely the thing a press ink must not be — see the ink matrix
+   above. Green-means-up is not a brand surface. */
+
+:root {
+  --mc-stroke: var(--ink-2);
+  --mc-neutral: var(--ink-3);
+  --mc-accent: var(--accent);
+  --mc-band: color-mix(in oklab, var(--ink-2) 8%, transparent);
+  --mc-surface: var(--raise);
+  --mc-surface-ink: var(--ink);
+  --mc-surface-edge: var(--rule);
+  --mc-font: var(--f-sans);
+  --mc-font-numeric: var(--f-mono);
+  /* Valence renders as text (the delta numerals), so it has to clear 4.5:1
+     against the darkest surface it can land on, which is a chart row washed
+     with --accent-soft. */
+  --mc-positive: #0d7158;
+  --mc-negative: #a94328;
+  --mc-moon: #8a6417;
+  --mc-cat-1: #8a6417;
+  --mc-cat-2: #2f6b96;
+  --mc-cat-3: #1f6b4c;
+  --mc-cat-4: #285788;
+  --mc-cat-5: #a3402a;
+  --mc-cat-6: #83446b;
 }
 [data-theme="dark"] {
-  --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.4);
-  --shadow-xl: 0 24px 60px oklch(0 0 0 / 0.55);
+  --mc-positive: #4cb392;
+  --mc-negative: #e38b6e;
+  --mc-moon: #e0be6f;
+  --mc-cat-1: #e2b45c;
+  --mc-cat-2: #6fb0e0;
+  --mc-cat-3: #4fb08d;
+  --mc-cat-4: #6e9bd1;
+  --mc-cat-5: #e07e5e;
+  --mc-cat-6: #c486b0;
 }

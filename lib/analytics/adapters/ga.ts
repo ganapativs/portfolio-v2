@@ -33,7 +33,9 @@ export const gaAdapter: AnalyticsAdapter = {
         gtagEvent("select_content", {
           content_type: "nav",
           item_id: event.id,
-          link_url: event.href,
+          // Guarded like `cta` below: the measuring edge's ticks are buttons
+          // with no href, and an undefined-valued param is noise.
+          ...(event.href ? { link_url: event.href } : {}),
         });
         break;
       case "cta":
@@ -61,9 +63,6 @@ export const gaAdapter: AnalyticsAdapter = {
         break;
       case "ink":
         gtagEvent("ink_change", { ink: event.id, method: event.via });
-        break;
-      case "press_run":
-        gtagEvent("press_run_change", { press_run: event.mode });
         break;
       case "sound":
         gtagEvent("sound_toggle", { enabled: event.on });

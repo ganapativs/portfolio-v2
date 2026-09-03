@@ -1,8 +1,9 @@
-import { SiteHeader } from "@/components/press/SiteHeader";
-import { PressFooter } from "@/components/press/PressFooter";
-import { PrintCV } from "@/components/press/PrintCV";
+import Link from "next/link";
+import { PrintCV } from "@/components/schematic/PrintCV";
 import {
+  CAREER_YEARS,
   identity,
+  PUBLIC_WORK,
   roles,
   flagships,
   education,
@@ -10,7 +11,8 @@ import {
   speaking,
   lastUpdatedISO,
 } from "@/lib/resume";
-import { getStars, STAR_FLOOR } from "@/lib/github";
+import { getStars } from "@/lib/github";
+import { StarSuffix, StatNumber } from "@/components/LiveStars";
 import { JsonLd, profilePageSchema, routeBreadcrumb, SITE_URL } from "@/lib/jsonld";
 import { pageMetadata } from "@/lib/metadata";
 import { ROLE_COPY, SUMMARY } from "./copy";
@@ -18,8 +20,7 @@ import { ROLE_COPY, SUMMARY } from "./copy";
 export const metadata = pageMetadata({
   title: "Résumé",
   path: "/resume",
-  description:
-    "Résumé — Ganapati V S. VP, Technology at Tracxn. Eleven years, four promotions. The AI assistant and docs portal, microcharts, and a decade of open source.",
+  description: `Résumé of ${identity.name}. ${identity.jobTitle} at ${identity.worksFor.name}. ${CAREER_YEARS} years, four promotions. The AI assistant and knowledge base, microcharts, and open source going back to 2013.`,
   ogType: "profile",
 });
 
@@ -35,155 +36,171 @@ const DEGREE = education.find((e) => e.kind === "degree");
 export default async function ResumePage() {
   const stars = await getStars();
   return (
-    <div className="doc">
+    <>
       <JsonLd
         data={[profilePageSchema(`${SITE_URL}/resume`), routeBreadcrumb("Résumé", "/resume")]}
       />
-      <SiteHeader />
 
-      <div className="wrap wrap-doc doc-main">
-        <div className="cv">
-          <div className="cv-topline">
-            <span className="cv-stamp">Résumé · one or two sheets on print</span>
-            <PrintCV />
+      <section className="cv" id="resume" data-sec="résumé">
+        <div className="cv-topline">
+          <span className="cv-stamp">Résumé · prints on two pages</span>
+          <PrintCV />
+        </div>
+
+        <header className="cv-head">
+          <div>
+            <h1 className="cv-name">{identity.name}</h1>
+            <div className="cv-role">
+              {identity.jobTitle} at {identity.worksFor.name} · {identity.location}
+            </div>
           </div>
-
-          <header className="cv-head">
+          <div className="cv-contact">
             <div>
-              <h1 className="cv-name">{identity.name}</h1>
-              <div className="cv-role">
-                {identity.jobTitle} at {identity.worksFor.name} · {identity.location}
-              </div>
+              <a href={`mailto:${identity.email}`} data-analytics="mail:resume">
+                {identity.email}
+              </a>
             </div>
-            <div className="cv-contact">
-              <div>
-                <a href={`mailto:${identity.email}`}>{identity.email}</a>
-              </div>
-              <div>
-                <a href={SITE_URL}>meetguns.com</a>
-              </div>
-              <div>
-                <a href="https://github.com/ganapativs">github.com/ganapativs</a>
-              </div>
+            <div>
+              {/* A <Link>, not an <a href={SITE_URL}>. It is an internal
+                  navigation and was doing a full page load to reach a route
+                  the client already has. It also puts `next/link` in this
+                  route's own entry graph -- see the note in AGENTS.md about
+                  the home-page chunks this route used to drag along. */}
+              <Link href="/" data-analytics="cta:resume.site">
+                meetguns.com
+              </Link>
             </div>
-          </header>
-
-          <p className="cv-summary">{SUMMARY}</p>
-
-          <div className="cv-cols">
-            <div className="cv-main">
-              <h2 className="cv-h2">Experience</h2>
-              <div className="cv-block">
-                <div className="cv-org">{identity.worksFor.name}</div>
-                <div className="cv-orgmeta">2015 to now · Bengaluru · four promotions</div>
-                {TRACXN.map((r, i) => (
-                  <div key={r.role} className={`cv-job${i === 0 ? " cv-job--now" : ""}`}>
-                    <h3>{r.role}</h3>
-                    <div className="cv-range">
-                      {r.start} — {r.end}
-                    </div>
-                    <ul>
-                      {(ROLE_COPY[r.role] ?? r.bullets).map((b) => (
-                        <li key={b}>{b}</li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </div>
-
-              <h2 className="cv-h2">Earlier</h2>
-              <div className="cv-block">
-                {EARLIER.map((r) => (
-                  <div key={r.role} className="cv-job">
-                    <h3>{r.role}</h3>
-                    <div className="cv-range">
-                      {r.org} · {r.location} · {r.start} — {r.end}
-                    </div>
-                    <ul>
-                      {(ROLE_COPY[r.role] ?? r.bullets).map((b) => (
-                        <li key={b}>{b}</li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </div>
+            <div>
+              <a href="https://github.com/ganapativs" data-analytics="cta:resume.github">
+                github.com/ganapativs
+              </a>
             </div>
+          </div>
+        </header>
 
-            <div className="cv-side">
-              <h2 className="cv-h2">Open source</h2>
-              <div className="cv-block cv-list">
-                {OSS.map((f) => {
-                  // Live count where GitHub gave us one, otherwise the checked
-                  // value. Small numbers are left off entirely.
-                  const n = stars.byRepo[f.repo.split("/").pop() ?? ""] ?? f.stars;
-                  return (
-                    <div key={f.name} className="cv-item">
-                      <div className="cv-item-name">
-                        <a href={f.repo}>{f.name}</a>
-                        {n >= STAR_FLOOR ? ` · ${n.toLocaleString("en-US")}★` : ""}
-                      </div>
-                      <div className="cv-item-note">{f.blurb}</div>
-                    </div>
-                  );
-                })}
-                <div className="cv-item">
-                  <div className="cv-item-name">
-                    <a href="https://github.com/ganapativs?tab=repositories">and the rest</a>
-                  </div>
-                  <div className="cv-item-note">
-                    55 public repos, 15 npm packages, {stars.total.toLocaleString("en-US")} stars
-                    between them.
-                  </div>
-                </div>
-              </div>
+        <p className="cv-summary">{SUMMARY}</p>
 
-              <h2 className="cv-h2">Skills</h2>
-              <div className="cv-block cv-skills">
-                {skills.map((g) => (
-                  <div key={g.label}>
-                    <div className="cv-skill-label">{g.label}</div>
-                    <div className="cv-skill-items">
-                      {g.items.map((it, i) => (
-                        <span key={it}>
-                          {i > 0 ? ", " : ""}
-                          {g.strong?.includes(it) ? <b>{it}</b> : it}
-                        </span>
-                      ))}
-                    </div>
+        <div className="cv-cols">
+          <div className="cv-main">
+            <h2 className="cv-h2">Experience</h2>
+            <div className="cv-block">
+              <div className="cv-org">{identity.worksFor.name}</div>
+              <div className="cv-orgmeta">2015 to now · Bengaluru · four promotions</div>
+              {TRACXN.map((r, i) => (
+                <div key={r.role} className={`cv-job${i === 0 ? " cv-job--now" : ""}`}>
+                  <h3>{r.role}</h3>
+                  <div className="cv-range">
+                    {r.start} - {r.end}
                   </div>
-                ))}
-              </div>
-
-              {DEGREE && (
-                <>
-                  <h2 className="cv-h2">Education</h2>
-                  <div className="cv-block">
-                    <div className="cv-org">{DEGREE.title}</div>
-                    <div className="cv-item-note">
-                      {DEGREE.org} · {DEGREE.range}
-                      {DEGREE.detail ? ` · ${DEGREE.detail}` : ""}
-                    </div>
-                  </div>
-                </>
-              )}
-
-              <h2 className="cv-h2">Speaking</h2>
-              {speaking.map((t) => (
-                <div key={t.event} className="cv-block cv-item-note">
-                  {t.event}, {t.place} · {t.year} — {t.detail}
+                  <ul>
+                    {(ROLE_COPY[r.role] ?? r.bullets).map((b) => (
+                      <li key={b}>{b}</li>
+                    ))}
+                  </ul>
                 </div>
               ))}
+            </div>
 
-              <h2 className="cv-h2">Languages</h2>
-              <div className="cv-block cv-item-note">English, Hindi, Kannada.</div>
+            <h2 className="cv-h2">Earlier</h2>
+            <div className="cv-block">
+              {EARLIER.map((r) => (
+                <div key={r.role} className="cv-job">
+                  <h3>{r.role}</h3>
+                  <div className="cv-range">
+                    {r.org} · {r.location} · {r.start} - {r.end}
+                  </div>
+                  <ul>
+                    {(ROLE_COPY[r.role] ?? r.bullets).map((b) => (
+                      <li key={b}>{b}</li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
             </div>
           </div>
 
-          <div className="cv-updated">Last updated {lastUpdatedISO}</div>
-        </div>
-      </div>
+          <div className="cv-side">
+            <h2 className="cv-h2">Open source</h2>
+            <div className="cv-block cv-list">
+              {OSS.map((f) => {
+                // Live count where GitHub gave us one, otherwise the checked
+                // value. Small numbers are left off entirely (StarSuffix owns
+                // the floor, and refreshes the count in the browser).
+                const repo = f.repo.split("/").pop() ?? "";
+                const n = stars.byRepo[repo] ?? f.stars;
+                return (
+                  <div key={f.name} className="cv-item">
+                    <div className="cv-item-name">
+                      <a href={f.repo} data-analytics={`cta:resume.oss.${f.name}`}>
+                        {f.name}
+                      </a>
+                      <StarSuffix initial={n} repo={repo} />
+                    </div>
+                    <div className="cv-item-note">{f.blurb}</div>
+                  </div>
+                );
+              })}
+              <div className="cv-item">
+                <div className="cv-item-name">
+                  <a
+                    href="https://github.com/ganapativs?tab=repositories"
+                    data-analytics="cta:resume.all-repos"
+                  >
+                    and the rest
+                  </a>
+                </div>
+                <div className="cv-item-note">
+                  <StatNumber initial={stars.repos} stat="repos" /> original public repos,{" "}
+                  {PUBLIC_WORK.npm} npm packages, <StatNumber initial={stars.total} stat="total" />{" "}
+                  stars between them.
+                </div>
+              </div>
+            </div>
 
-      <PressFooter width="wrap-doc" />
-    </div>
+            <h2 className="cv-h2">Skills</h2>
+            <div className="cv-block cv-skills">
+              {skills.map((g) => (
+                <div key={g.label}>
+                  <div className="cv-skill-label">{g.label}</div>
+                  <div className="cv-skill-items">
+                    {g.items.map((it, i) => (
+                      <span key={it}>
+                        {i > 0 ? ", " : ""}
+                        {g.strong?.includes(it) ? <b>{it}</b> : it}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {DEGREE && (
+              <>
+                <h2 className="cv-h2">Education</h2>
+                <div className="cv-block">
+                  <div className="cv-org">{DEGREE.title}</div>
+                  <div className="cv-item-note">
+                    {DEGREE.org} · {DEGREE.range}
+                    {DEGREE.detail ? ` · ${DEGREE.detail}` : ""}
+                  </div>
+                </div>
+              </>
+            )}
+
+            <h2 className="cv-h2">Speaking</h2>
+            {speaking.map((t) => (
+              <div key={t.event} className="cv-block cv-item-note">
+                {t.event}, {t.place} · {t.year} · {t.detail}
+              </div>
+            ))}
+
+            <h2 className="cv-h2">Spoken languages</h2>
+            <div className="cv-block cv-item-note">English, Hindi, Kannada.</div>
+          </div>
+        </div>
+
+        <div className="cv-updated">Last updated {lastUpdatedISO}</div>
+      </section>
+    </>
   );
 }

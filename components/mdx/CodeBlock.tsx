@@ -35,7 +35,7 @@ export function CodeBlock(props: CodeBlockProps) {
     status === "copied"
       ? "Code copied to clipboard"
       : status === "failed"
-        ? "Copy failed — press ⌘C to copy manually"
+        ? "Copy failed. Press ⌘C to copy manually"
         : "Copy code to clipboard";
 
   return (

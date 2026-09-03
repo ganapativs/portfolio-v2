@@ -1,8 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useEffect } from "react";
-import { SiteHeader } from "@/components/press/SiteHeader";
-import { PressFooter } from "@/components/press/PressFooter";
+import { Sheet } from "@/components/schematic/Sheet";
 
 export default function Error({
   error,
@@ -16,28 +15,26 @@ export default function Error({
   }, [error]);
 
   return (
-    <div className="doc">
-      <SiteHeader />
-      <main className="wrap wrap-doc doc-main">
-        <div className="cv-stamp">Press jam</div>
-        <h1 className="page-h1" style={{ marginTop: "12px" }}>
-          Something broke.
-        </h1>
-        <p className="page-lede">
-          Not your fault — a piece of this site tripped on its own shoelaces.
+    <Sheet>
+      <main id="main-content" className="doc-head" data-sec="error">
+        <span className="sec-label">Error</span>
+        <h1>Something broke.</h1>
+        <p className="doc-lede">
+          Part of this page failed to render. Trying again usually fixes it.
         </p>
-        {error?.digest ? <p className="cv-stamp">digest: {error.digest}</p> : null}
-        <div className="cv-topline" style={{ marginTop: "clamp(28px, 4vh, 40px)" }}>
-          <button type="button" className="cv-print" onClick={() => unstable_retry()}>
-            Try again
+        {error?.digest ? <p className="meta">digest: {error.digest}</p> : null}
+        <div className="doc-links">
+          <button type="button" onClick={() => unstable_retry()}>
+            try again
           </button>
-        </div>
-        <div className="entries-foot">
-          <Link href="/">Home</Link>
-          <Link href="/blog">Writing</Link>
+          <Link href="/" data-analytics="nav:error.home">
+            home
+          </Link>
+          <Link href="/blog" data-analytics="nav:error.writing">
+            writing
+          </Link>
         </div>
       </main>
-      <PressFooter width="wrap-doc" />
-    </div>
+    </Sheet>
   );
 }

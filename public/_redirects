@@ -1,0 +1,7 @@
+# Cloudflare Workers static assets redirects — wrangler parses this file at
+# deploy. The homepage absorbed both /about and /work, so those URLs no longer
+# exist as pages; they are indexed and linked from outside, so they redirect
+# permanently to the sections that replaced them rather than 404ing. These were
+# redirects() in next.config.ts before `output: "export"`.
+/about /#subject 308
+/work /#work 308

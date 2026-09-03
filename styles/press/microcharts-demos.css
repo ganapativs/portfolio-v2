@@ -24,27 +24,28 @@
   color: var(--fg-2);
   background: var(--bg-surface);
   border: 1px solid var(--border-1);
-  border-radius: var(--r-pill);
+  border-radius: var(--r-chip);
   padding: 4px 12px;
   cursor: pointer;
   transition:
     color var(--dur-fast) var(--ease-out),
     border-color var(--dur-fast) var(--ease-out),
-    background var(--dur-fast) var(--ease-out);
+    background var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
 }
 .mcx-chip:hover {
   color: var(--fg-1);
   border-color: var(--accent);
 }
+/* The one press token, eased like every sibling control — this was a bare
+   0.96 with no transform in the transition list, the only press on the site
+   that snapped down and back. */
 .mcx-chip:active {
-  transform: scale(0.96);
+  transform: scale(var(--press));
 }
-.mcx-chip:focus-visible,
-.mcx-ops-svc:focus-visible,
-.codeblock-copy:focus-visible {
-  outline: none;
-  box-shadow: var(--ring);
-}
+/* No focus override here any more: these three used to swap the sheet's 2px
+   dashed outline for a soft --ring shadow, which gave a keyboard user two
+   different focus answers on one page. The global rule in base.css applies. */
 .mcx-chip[data-active] {
   color: var(--fg-1);
   background: var(--accent-soft);
@@ -75,7 +76,7 @@
   padding: var(--s-4) var(--s-3);
   background: var(--bg-surface);
   border: 1px solid var(--border-1);
-  border-radius: var(--r-lg);
+  border-radius: var(--r-chip);
   transition:
     border-color var(--dur-fast) var(--ease-out),
     transform var(--dur-fast) var(--ease-out),
@@ -83,7 +84,17 @@
 }
 /* Entrance stagger — armed until the grid scrolls into view (data-in). */
 @media (prefers-reduced-motion: no-preference) {
+  /* The scroll reveal these tiles shipped with is the one thing the motion law
+   forbids outright, so it is neutralised here rather than in the component:
+   the tiles are simply present. Overriding it in this stylesheet keeps the
+   component identical to the one in the sibling repo it came from. */
+  .mcx-wall-grid .mcx-tile,
   .mcx-wall-grid:not([data-in]) .mcx-tile {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+  .mcx-wall-grid:not([data-in]) .mcx-tile:where(.__never) {
     opacity: 0;
     transform: translateY(10px);
   }
@@ -105,7 +116,6 @@
 .mcx-tile:hover {
   border-color: color-mix(in oklab, var(--accent) 45%, var(--border-1));
   transform: translateY(-2px);
-  box-shadow: var(--shadow-sm);
 }
 .mcx-tile-chart {
   display: flex;
@@ -127,6 +137,11 @@
   background: var(--accent-soft);
   border-color: color-mix(in oklab, var(--accent) 35%, var(--border-1));
 }
+/* --ink-2, not the annotation grey: at 10.5px on the accent wash the label
+   measured 4.28:1 on paper — the one AA miss on the site. */
+.mcx-tile--more .mcx-tile-label {
+  color: var(--ink-2);
+}
 .mcx-tile-more-figure {
   font-family: var(--font-display);
   font-style: italic;
@@ -136,7 +151,7 @@
     "opsz" 60,
     "SOFT" 80,
     "WONK" 1;
-  transition: font-variation-settings var(--dur-base) var(--ease-spring);
+  transition: font-variation-settings var(--dur-base) var(--ease-out);
 }
 .mcx-tile--more:hover .mcx-tile-more-figure {
   font-variation-settings:
@@ -168,7 +183,7 @@
   padding: var(--s-5) var(--s-6);
   background: var(--bg-surface);
   border: 1px solid var(--border-1);
-  border-radius: var(--r-xl);
+  border-radius: var(--r-chip);
 }
 .mcx-kpi-label {
   font-family: var(--font-mono);
@@ -204,7 +219,7 @@
   padding: var(--s-6);
   background: var(--bg-surface);
   border: 1px solid var(--border-1);
-  border-radius: var(--r-xl);
+  border-radius: var(--r-chip);
 }
 .mcx-a11y-stage {
   display: flex;
@@ -251,7 +266,7 @@
 .mcx-stream {
   margin: var(--s-6) 0;
   border: 1px solid var(--border-1);
-  border-radius: var(--r-xl);
+  border-radius: var(--r-chip);
   background: var(--bg-surface);
   overflow: hidden;
 }
@@ -316,9 +331,11 @@
   height: 1.05em;
   vertical-align: text-bottom;
   background: var(--accent);
-  border-radius: 1px;
+  border-radius: var(--r-chip);
   margin-left: 2px;
-  animation: mcx-caret-blink 0.9s steps(2, start) infinite;
+  /* No blink. An unbounded loop is motion nobody asked for, and the caret
+     reads perfectly well as a caret standing still. */
+  animation: none;
 }
 @keyframes mcx-caret-blink {
   to {
@@ -334,7 +351,7 @@
 .mcx-console {
   margin: var(--s-6) 0;
   border: 1px solid var(--border-1);
-  border-radius: var(--r-xl);
+  border-radius: var(--r-chip);
   background: var(--bg-surface);
   overflow: hidden;
 }
@@ -425,7 +442,7 @@
 .mcx-ops {
   margin: var(--s-6) 0;
   border: 1px solid var(--border-1);
-  border-radius: var(--r-xl);
+  border-radius: var(--r-chip);
   background: var(--bg-surface);
   overflow: hidden;
 }
@@ -497,7 +514,7 @@
   border: none;
   padding: 2px 0;
   cursor: pointer;
-  border-radius: var(--r-xs);
+  border-radius: var(--r-chip);
 }
 .mcx-ops-svc:hover span {
   color: var(--accent);
@@ -577,19 +594,23 @@
 .mcx-stream,
 .mcx-a11y,
 .mcx-chip {
-  /* Square the corners off. The press radius set is 0 / 2 / 6 / 50%, and a
-     28px pill in the middle of an essay reads as a different website. */
-  --r-lg: var(--r-block);
-  --r-xl: var(--r-block);
+  /* Square the corners off. The drawing has three radii — 0 for geometry, 2px
+     for a touched control, 50% for a point — and a 28px pill in the middle of
+     an essay reads as a different website. These are the library's own token
+     names, overridden locally rather than in tokens.css so the override sits
+     next to the thing it overrides. */
+  --r-lg: var(--r-chip);
+  --r-xl: var(--r-chip);
   --r-pill: var(--r-chip);
 }
+/* The demos use the whole plate, not the reading measure. They are laid out for
+   a wider column than 68ch and drop a tile from every row inside one.
+
+   They used to break out past the plate with `margin-left: 50%` and a fixed
+   880px width, which was correct when the essay sat directly on the page. Now
+   that it sits on its own plate, that overflowed the plate's edges by 60px on
+   each side. Filling the plate is the same intent without the arithmetic. */
 .prose > :is(.mcx-wall, .mcx-kpi, .mcx-ops, .mcx-console, .mcx-stream, .mcx-a11y) {
-  max-width: none;
-}
-@media (min-width: 1000px) {
-  .prose > :is(.mcx-wall, .mcx-kpi, .mcx-ops, .mcx-console, .mcx-stream, .mcx-a11y) {
-    width: min(880px, calc(100vw - 2 * var(--gutter)));
-    margin-left: 50%;
-    transform: translateX(-50%);
-  }
+  max-width: 100%;
+  width: 100%;
 }

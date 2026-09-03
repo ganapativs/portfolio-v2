@@ -2,8 +2,18 @@
    A document, not a page: two columns, tight leading, and a print pass that
    lands it on one or two sheets with 16mm margins. */
 
+/* Same reasoning as the essay: a CV is a document, and it sits on the board
+   rather than being printed through it. */
 .cv {
-  margin-top: clamp(20px, 3vh, 30px);
+  /* The card's edge is this page's first thing, and it sits where every
+     page's first thing sits. */
+  margin-top: var(--page-top);
+  /* Less above than at the sides: the card's edge is where the page opens,
+     and 44px of inset put the first line 99px under the rule against 45 on
+     every other route. */
+  padding: clamp(22px, 2.6vw, 30px) clamp(28px, 4vw, 44px) clamp(28px, 4vw, 44px);
+  background: var(--raise);
+  border: 1px solid var(--rule);
 }
 .cv-topline {
   display: flex;
@@ -80,7 +90,7 @@
   margin: 13px 0 0;
   padding-top: 13px;
   border-top: 1px solid var(--rule);
-  font-family: var(--f-serif);
+  font-family: var(--f-sans);
   font-size: 16.5px;
   line-height: 1.58;
   color: var(--ink-2);
@@ -224,6 +234,48 @@
   color: var(--ink-3);
 }
 
+/* On a phone the card's clamp(28px) padding plus the sheet margin and the gutter
+   left a 259px column for a document. The card keeps a thin frame, the contact
+   lines stop being right-aligned once they sit under the name, and the topline
+   stacks. */
+/* Once the head wraps and the contact lines sit under the name, three
+   right-aligned lines read as a ragged column. They run on as one line with
+   middots, wrapping where they must. 760 is where .cv-head wraps. */
+@media (max-width: 760px) {
+  .cv-contact {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 0;
+    text-align: left;
+    line-height: 1.7;
+    margin-top: 2px;
+  }
+  /* The separator trails each item rather than leading the next, so a wrap
+     never starts a line with a middot. */
+  .cv-contact > div:not(:last-child)::after {
+    content: "·";
+    margin-inline: 8px;
+    color: var(--ink-3);
+  }
+}
+@media (max-width: 640px) {
+  .cv {
+    padding: 20px 16px 24px;
+  }
+  .cv-topline {
+    margin-bottom: 18px;
+  }
+  .cv-summary {
+    font-size: 16px;
+  }
+  .cv-job li {
+    font-size: 15px;
+  }
+  .cv-cols {
+    gap: 28px;
+  }
+}
+
 /* 10 — PRINT ---------------------------------------------------------------- */
 
 @page {
@@ -237,19 +289,18 @@
   [data-theme="dark"] {
     --paper: #fff;
     --raise: #fff;
-    --sunk: #eef3ec;
-    --ink: #0d1a12;
-    --ink-2: #33463a;
-    --ink-3: #56655b;
-    --rule: #c8d4c8;
-    --rule-2: #a8b7ab;
-    --accent: #1b6c46;
-    --accent-ink: #145436;
-    --wash: transparent;
-    --plate: #1b6c46;
+    --sunk: #f2f0e8;
+    --ink: #16170f;
+    --ink-2: #3c3d36;
+    --ink-3: #5d5e55;
+    --rule-3: #e6e2d6;
+    --rule: #cdc8b8;
+    --rule-2: #a29c88;
+    --accent: #22587a;
+    --accent-soft: transparent;
   }
   /* `!important` is load-bearing. The no-flash script in app/layout.tsx sets
-     `style.backgroundColor` on <html> inline (#e7eee4 light, #03180c dark) so
+     `style.backgroundColor` on <html> inline (#f5f3ec light, #131417 dark) so
      the first paint isn't a white flash. An inline declaration outranks a normal
      rule from a stylesheet, so a plain `background: #fff` here lost — and the
      canvas, which is painted from <html>, kept the paper colour. Body's white
@@ -266,27 +317,23 @@
   body {
     background: #fff !important;
   }
-  .dock,
-  .reg-mark,
-  .site-head,
+  /* Everything that is chrome for a screen and furniture on paper. The sheet
+     frame goes too: a printed page already has edges. */
+  .dither,
+  .ruler,
+  .progress,
+  .hd,
+  .tick-c,
+  .fl,
+  .tb-wrap,
   .cv-topline,
-  .doc > footer,
-  .press-foot,
-  .skip-link,
-  .read-line {
+  .skip-link {
     display: none !important;
   }
-  /* `.doc` is a full-height flex column on screen so the footer sits at the
-     bottom of short pages. In print that guarantees at least one page of height
-     and stretches `.doc-main`, which is what was emitting a trailing blank
-     sheet. Print wants ordinary block flow. */
-  .doc {
+  .sheet {
+    margin: 0;
     min-height: 0;
-    display: block;
-  }
-  .doc-main {
-    flex: none;
-    padding-top: 0;
+    border: 0;
   }
   .wrap {
     max-width: none;
@@ -294,6 +341,9 @@
   }
   .cv {
     margin-top: 0;
+    padding: 0;
+    background: none;
+    border: 0;
   }
   /* Two columns are a screen idea. In print a flex line cannot split across
      sheets — Chrome moves the whole row to the next page and leaves a blank —
@@ -390,10 +440,15 @@
     content: " · ";
     color: var(--rule-2);
   }
+  /* 1.32, not 1.36. The bullets are the bulk of the sheet, so their leading is
+     the cheapest lever on total length, and the note above says to adjust the
+     print scale rather than the screen one when the length drifts. Measured at
+     the real A4 content box (178 x 265mm at 96dpi): this is what takes the CV
+     from spilling onto a third page to two with room to spare. */
   .cv-job li {
     margin-top: 1px;
     font-size: 9.5pt;
-    line-height: 1.36;
+    line-height: 1.32;
     max-width: none;
   }
   .cv-list {

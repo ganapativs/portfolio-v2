@@ -1,0 +1,1092 @@
+/* =============================================================================
+   FIG. 6 · THE PIPELINE
+
+   One interface, scrubbed through its own making: sketch → vectors → tokens →
+   markup → shipped. The card it builds is a real summary of the work on this
+   page, and by the last stage it is a working control — the button sends mail,
+   the chart answers questions, the panel reads its own computed styles.
+
+   The scrub position t lives in [0,4]. JS maps it onto six opacity weights that
+   this stylesheet consumes:
+
+     --o-wire  the sketch
+     --o-ink   colour poured in
+     --o-vec   vector annotations and the pen handles
+     --o-tok   the token panel and its wires
+     --o-dom   the markup panel and its tag chips
+     --o-live  shipped
+
+   Everything the scrub drives is opacity or transform. Nothing slides, nothing
+   is swapped out: it is one continuous morph of a single object.
+
+   The parse-time values below are the sketch state, which is exactly what the
+   JS initialises to. That equality is the whole reason there is no flash on
+   first paint, and it is also why the server renders the sketch.
+   ============================================================================ */
+
+.pipefig {
+  position: relative;
+  border: 1px solid var(--rule);
+  background: var(--raise);
+  padding: 14px 20px 16px;
+  --o-wire: 1;
+  --o-ink: 0;
+  --o-vec: 0;
+  --o-tok: 0;
+  --o-dom: 0;
+  --o-live: 0;
+}
+/* Four areas. On a wide sheet the note sits at the head's right, on the same
+   baseline; under 768px it goes to the foot, below the control, and holds
+   two lines whether it needs them or not. */
+.pipefig {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "head note"
+    "stage stage"
+    "scrub scrub";
+  column-gap: 12px;
+}
+.pipe-head {
+  grid-area: head;
+}
+.pipe-note {
+  grid-area: note;
+  align-self: end;
+  padding-bottom: 3px;
+  min-width: 0;
+}
+.pipe-stage {
+  grid-area: stage;
+  margin-top: 12px;
+}
+.pipe-scrub {
+  grid-area: scrub;
+}
+.pipe-head {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.pipe-figlbl {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  color: var(--ink-3);
+}
+/* Set as `.panel h2` is, because it is the same thing: this figure sits outside
+   the panels and so cannot inherit their rule. */
+.pipe-head h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.pipe-note {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  color: var(--ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pipe-stage {
+  position: relative;
+  background: var(--sunk);
+  border: 1px solid var(--rule-3);
+  /* Flat, not a clamp on the viewport. The card is 343px and the vector and
+     token stages hang dimension anchors, a width dimension and the token wires
+     outside it, which needs 424. `clamp(340px, 36vw, 424px)` only reaches 424
+     at a 1178px viewport, so everything from the 768px layout switch up to
+     1178 was drawing those callouts into a stage 40px too short and `overflow:
+     hidden` was cutting them off, bottom and top. The stage is a sheet the
+     drawing sits on; it does not get smaller because the window did. The
+     max-width: 768px block below resets this to 0, where the side panel
+     reflows to a row and the whole arrangement is different. */
+  min-height: 424px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  user-select: none;
+  -webkit-user-select: none;
+  overflow: hidden;
+}
+/* The margin grid behind the drawing, keyed to the vector stage — the artboard
+   grid appears when the design tool does. */
+.pipe-mgrid {
+  position: absolute;
+  inset: 10px;
+  pointer-events: none;
+  opacity: calc(var(--o-vec) * 0.55);
+  background:
+    repeating-linear-gradient(to right, var(--rule-3) 0 1px, transparent 1px 24px),
+    repeating-linear-gradient(to bottom, var(--rule-3) 0 1px, transparent 1px 24px);
+}
+.pipe-lay {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+/* Under the panels they connect, not over them.
+   
+   The wire layer is the last child of the stage and the three side panels come
+   before it, so with everything at `z-index: auto` the wires won on source
+   order and drew straight across the token swatches. A leader line crossing the
+   thing it leads to is backwards on a drawing: it should arrive at the edge and
+   stop. */
+.pipe-lay {
+  z-index: 0;
+}
+.pipe-side {
+  z-index: 1;
+}
+/* pathLength=1 on every measured line, so one dashoffset drives the draw. */
+.pipe-vec line {
+  stroke: var(--accent);
+  stroke-width: 1;
+  stroke-dasharray: 1;
+  stroke-dashoffset: calc((1 - var(--o-vec)) * 1px);
+}
+.pipe-vec text {
+  font-family: var(--f-mono);
+  font-size: 9px;
+  fill: var(--accent);
+  opacity: var(--o-vec);
+}
+.pipe-vec rect {
+  fill: var(--sunk);
+  opacity: var(--o-vec);
+}
+.pipe-wires line {
+  stroke: var(--accent);
+  stroke-width: 1;
+  opacity: 0.8;
+  stroke-dasharray: 1;
+  stroke-dashoffset: calc((1 - var(--o-tok)) * 1px);
+}
+.pipe-wires circle {
+  fill: var(--accent);
+  opacity: var(--o-tok);
+}
+.anc {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  margin: -3px 0 0 -3px;
+  background: var(--raise);
+  border: 1px solid var(--accent);
+  opacity: var(--o-vec);
+}
+.tagchip {
+  position: absolute;
+  white-space: nowrap;
+  opacity: var(--o-dom);
+  background: var(--raise);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-chip);
+  padding: 2px 7px;
+  font-family: var(--f-mono);
+  font-size: 9.5px;
+  color: var(--ink-3);
+}
+.tagchip b {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+/* ---- the interface being made ------------------------------------------- */
+
+.pipe-card {
+  position: relative;
+  width: 300px;
+  flex: none;
+  padding: 14px;
+  pointer-events: none;
+}
+.pipefig[data-stage="3"] .pipe-card,
+.pipefig[data-stage="4"] .pipe-card {
+  pointer-events: auto;
+}
+.pipe-card > .skin {
+  position: absolute;
+  inset: 0;
+  background: var(--raise);
+  border: 1px solid var(--rule);
+  opacity: calc(1 - var(--o-wire));
+  pointer-events: none;
+}
+/* The wireframe skin. The half-degree rotation is the point: a sketch is drawn
+   by a hand, and a hand does not hold square. */
+.wf {
+  position: absolute;
+  inset: -1px;
+  border: 1px dashed var(--rule-2);
+  opacity: var(--o-wire);
+  pointer-events: none;
+  transform: rotate(calc(var(--o-wire) * 0.5deg));
+}
+.wf.alt {
+  transform: rotate(calc(var(--o-wire) * -0.5deg));
+}
+.pipe-card > .wf {
+  transform: rotate(calc(var(--o-wire) * 0.3deg));
+}
+.wf svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.wf line {
+  stroke: var(--rule-2);
+  stroke-width: 1;
+  opacity: 0.55;
+}
+/* Every string is a grey bar until the tokens pour in and the real type
+   arrives underneath it. */
+.tx {
+  position: relative;
+  display: inline-block;
+}
+.tx-r {
+  opacity: var(--o-ink);
+}
+.tx-b {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 20%;
+  bottom: 20%;
+  background: var(--rule);
+  border-radius: var(--r-chip);
+  opacity: calc((1 - var(--o-wire)) * (1 - var(--o-ink)));
+}
+/* Both highlights need a stacking position, and this is the whole bug.
+   
+   `.pipe-card > .skin` is the card's surface: absolutely positioned, opaque,
+   `z-index: auto`. Painting order puts a positioned descendant above the
+   backgrounds of its non-positioned in-flow siblings, so the skin covers the
+   background and the outline of any highlight target that is `position: static`
+   while leaving the ones that are `relative` alone. Six of the eight
+   `[data-node]` targets happen to be relative and lit up correctly; `.ui-stats`
+   and `.ui-list` are static, and hovering the two of them did nothing at all.
+   It reads as the highlight being broken for those rows specifically, which is
+   exactly what it was. Relative here is a no-op on the six that already are. */
+.ui-hi,
+.insp-hi {
+  position: relative;
+}
+.ui-hi {
+  outline: 1px solid var(--accent);
+  outline-offset: 2px;
+}
+.ui-bar {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px 7px;
+  padding-bottom: 10px;
+}
+.ui-kicker {
+  font-family: var(--f-mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-right: auto;
+}
+.ui-kicker .tx-r {
+  color: var(--ink-3);
+}
+.ui-bar .ui-title {
+  width: 100%;
+  margin-right: 0;
+}
+.ui-bar .rule,
+.ui-row .rule {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--rule-3);
+  opacity: calc(1 - var(--o-wire));
+}
+.ui-bar .rule {
+  bottom: 0;
+}
+.ui-title {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  margin-right: auto;
+}
+.ui-chip {
+  position: relative;
+  font-family: var(--f-mono);
+  font-size: 9px;
+  line-height: 1.5;
+  color: var(--ink-3);
+  padding: 1px 7px;
+}
+.ui-chip .bd {
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--rule);
+  border-radius: var(--r-chip);
+  opacity: calc((1 - var(--o-wire)) * (1 - var(--o-ink)));
+}
+.ui-chip .ck {
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--accent-line);
+  background: var(--accent-soft);
+  border-radius: var(--r-chip);
+  opacity: var(--o-ink);
+}
+.ui-chip .tx-r {
+  color: var(--accent);
+}
+.ui-stats {
+  display: flex;
+  gap: 22px;
+  padding: 10px 0 8px;
+}
+.ui-stat {
+  position: relative;
+  flex: 1;
+  padding: 2px 0;
+}
+.ui-stat b {
+  display: block;
+  font-family: var(--f-mono);
+  font-weight: 500;
+  font-size: 21px;
+  line-height: 1.15;
+}
+.ui-stat b .tx-r {
+  color: var(--accent);
+}
+.ui-stat i {
+  font-style: normal;
+  font-family: var(--f-mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.ui-chart {
+  position: relative;
+  height: 86px;
+  margin: 2px 0 4px;
+}
+.ui-chartlbl {
+  position: absolute;
+  left: 2px;
+  bottom: 0;
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: var(--ink-3);
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ui-chart svg {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  width: 100%;
+  height: calc(100% - 22px);
+  display: block;
+  overflow: visible;
+}
+.ui-chart .ax-t line {
+  stroke: var(--rule-2);
+  stroke-width: 1;
+  opacity: calc((1 - var(--o-wire)) * 0.7);
+}
+.ui-chart .ax-y text {
+  font-family: var(--f-mono);
+  font-size: 8px;
+  fill: var(--ink-3);
+  opacity: calc(1 - var(--o-wire));
+}
+.ui-chart .pm circle {
+  fill: var(--accent);
+  stroke: var(--raise);
+  stroke-width: 1;
+}
+.ui-chart .pk-t {
+  stroke: var(--accent);
+  stroke-width: 1;
+  opacity: var(--o-ink);
+}
+.ui-peak {
+  position: absolute;
+  left: calc(75% - 8px);
+  top: 0;
+  font-family: var(--f-mono);
+  font-size: 9.5px;
+  color: var(--accent);
+  opacity: var(--o-ink);
+  white-space: nowrap;
+  pointer-events: none;
+}
+.ui-bend {
+  position: absolute;
+  left: 2px;
+  top: 0;
+  font-family: var(--f-mono);
+  font-size: 9px;
+  letter-spacing: 0.03em;
+  color: var(--accent);
+  opacity: var(--o-vec);
+  white-space: nowrap;
+  pointer-events: none;
+}
+.ui-chart .ax {
+  stroke: var(--rule-3);
+  stroke-width: 1;
+  opacity: calc(1 - var(--o-wire));
+}
+.ui-chart .ln-rough {
+  stroke: var(--rule-2);
+  fill: none;
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+  opacity: var(--o-wire);
+}
+.ui-chart .ln-grey {
+  stroke: var(--rule-2);
+  fill: none;
+  stroke-width: 1.4;
+  opacity: calc((1 - var(--o-wire)) * (1 - var(--o-ink)));
+}
+.ui-chart .g-ink {
+  opacity: var(--o-ink);
+}
+.ui-chart .ln-ink {
+  stroke: var(--accent);
+  fill: none;
+  stroke-width: 1.6;
+}
+.ui-chart .ar-ink {
+  fill: var(--accent);
+  opacity: 0.12;
+}
+.ui-chart .g-h {
+  opacity: var(--o-vec);
+  pointer-events: none;
+}
+.ui-chart .g-h line {
+  stroke: var(--accent);
+  stroke-width: 1;
+  opacity: 0.75;
+}
+.ui-chart .g-h circle {
+  fill: var(--raise);
+  stroke: var(--accent);
+  stroke-width: 1.2;
+}
+.ui-chart .g-h rect {
+  fill: var(--accent);
+}
+.ui-chart .g-h .hit {
+  fill: transparent;
+  stroke: none;
+  cursor: grab;
+  touch-action: none;
+}
+.ui-chart .g-h .hit:active {
+  cursor: grabbing;
+}
+.ui-chart .g-h .hit:focus-visible {
+  outline: 2px dashed var(--accent);
+  outline-offset: 2px;
+}
+.pipefig[data-stage="1"] .g-h .hit {
+  pointer-events: auto;
+}
+.ui-chart .g-dot {
+  opacity: 0;
+}
+.ui-chart .g-dot circle {
+  fill: var(--accent);
+}
+.ui-chart .g-dot text {
+  font-family: var(--f-mono);
+  font-size: 9px;
+  fill: var(--accent);
+}
+.ui-chart .g-dot[data-on="true"] {
+  opacity: 1;
+}
+.ui-list {
+  margin-top: 2px;
+}
+.ui-row {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 2px;
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  color: var(--ink);
+}
+.ui-row .rule {
+  top: 0;
+}
+.ui-row .v .tx-r {
+  color: var(--accent);
+}
+.pipefig[data-stage="4"] .ui-row {
+  transition: background var(--dur-fast) var(--ease-out);
+}
+.pipefig[data-stage="4"] .ui-row:hover {
+  background: var(--accent-soft);
+}
+/* The type lives here rather than on `.fill`, and that is not cosmetic.
+   
+   The shipped stage reads this element's computed style back to the reader as
+   "COMPUTED · a.primary". With the label's type declared on the `.fill` overlay
+   instead, the anchor computed to the inherited body face and the panel
+   reported `400 16px Hanken Grotesk` and `#E8E9E4` under a button that is
+   plainly 12px, 600, and set in the paper colour on an accent fill. Three of
+   its five rows were wrong about the thing being pointed at, in the one figure
+   whose entire claim is that the readout is live and true. `.fill` inherits
+   all four, so nothing moves. */
+.ui-btn {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 32px;
+  margin-top: 12px;
+  border-radius: var(--r-chip);
+  pointer-events: none;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--paper);
+}
+.pipefig[data-stage="4"] .ui-btn {
+  pointer-events: auto;
+  cursor: pointer;
+}
+.ui-btn .bd {
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r-chip);
+  opacity: calc((1 - var(--o-wire)) * (1 - var(--o-ink)));
+}
+.ui-btn > .tx-b {
+  left: 26%;
+  right: 26%;
+  top: 38%;
+  bottom: 38%;
+}
+.ui-btn .fill {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent);
+  border-radius: var(--r-chip);
+  opacity: var(--o-ink);
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+/* A deeper ink, not a brighter one. `filter: brightness(1.08)` was the closest
+   thing to a glow anywhere in the repo, and a drawing office does not have a
+   light source: pressure lays down more pigment. */
+.pipefig[data-stage="4"] .ui-btn:hover .fill,
+.pipefig[data-stage="4"] .ui-btn:focus-visible .fill {
+  background: color-mix(in oklab, var(--accent) 88%, var(--ink));
+}
+.pipefig[data-stage="4"] .ui-btn:active .fill {
+  transform: translateY(1px);
+}
+.ui-stamp {
+  position: absolute;
+  top: -13px;
+  right: -13px;
+  transform: rotate(-6deg) scale(calc(1.25 - 0.25 * var(--o-live)));
+  opacity: var(--o-live);
+  pointer-events: none;
+  font-family: var(--f-mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  background: var(--raise);
+  border: 1.5px solid var(--accent);
+  border-radius: var(--r-chip);
+  padding: 2px 7px;
+}
+/* Box-model tints, pulsed once on arriving at the markup stage. */
+.bmov {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  border-radius: var(--r-chip);
+}
+.ui-bar .bmov {
+  background: var(--bm-margin);
+}
+.ui-chart .bmov {
+  background: var(--bm-content);
+}
+.ui-btn .bmov {
+  background: var(--bm-pad);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pipefig[data-pulse="bm"] .bmov {
+    animation: bm-pulse 600ms var(--ease-out);
+  }
+  .pipefig[data-pulse="chart"] .ln-ink {
+    stroke-dasharray: 1;
+    animation: pipe-draw 700ms var(--ease-out) both;
+  }
+  .pipefig[data-pulse="chart"] .ar-ink {
+    animation: pipe-fill 700ms var(--ease-out) both;
+  }
+}
+@keyframes bm-pulse {
+  0% {
+    opacity: 0;
+  }
+  35% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes pipe-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes pipe-fill {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 0.12;
+  }
+}
+
+/* ---- side panels: tokens ⇆ dom tree ⇆ computed, one slot ----------------- */
+
+.pipe-slot {
+  position: relative;
+  width: 186px;
+  height: 300px;
+  flex: none;
+  pointer-events: none;
+}
+.pipe-side {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+}
+.pipe-tok {
+  opacity: var(--o-tok);
+  transform: translateX(calc((1 - var(--o-tok)) * 8px));
+}
+.pipe-dom {
+  opacity: var(--o-dom);
+  transform: translateX(calc((1 - var(--o-dom)) * 8px));
+}
+.pipefig[data-stage="3"] .pipe-dom {
+  pointer-events: auto;
+}
+.pipe-insp {
+  opacity: var(--o-live);
+  transform: translateX(calc((1 - var(--o-live)) * 8px));
+}
+/* `cap-in` is declared once, in home.css, beside the caption slots. The note
+   and the computed readout use it for the same reason: they are the text that
+   changes while the reader is looking straight at it. */
+.insp-idle {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  color: var(--ink-3);
+  line-height: 1.7;
+  max-width: 22ch;
+}
+/* The unfilled schedule. Same `.ir` rows as the readout, so the panel holds the
+   same height and rhythm empty as it does full and nothing shifts when the
+   values arrive. The rule is dashed because that is what an unfilled field on a
+   drawing looks like. */
+.insp-blank .ir s {
+  color: var(--rule-2);
+}
+.ir-empty {
+  flex: 1;
+  min-width: 0;
+  align-self: center;
+  border-bottom: 1px dashed var(--rule-3);
+}
+.insp-cue {
+  margin: 12px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--rule-3);
+  color: var(--ink-3);
+}
+.insp-body {
+  display: flex;
+  flex-direction: column;
+}
+.insp-body[hidden] {
+  display: none;
+}
+.insp-tag {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--accent);
+  margin-bottom: 5px;
+}
+.ir {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-family: var(--f-mono);
+  font-size: 10px;
+  padding: 2.5px 0;
+}
+.ir s {
+  text-decoration: none;
+  color: var(--ink-3);
+  flex: 0 0 50px;
+}
+.ir b {
+  font-weight: 400;
+  color: var(--ink);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.ir .sw2 {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--r-chip);
+  border: 1px solid var(--rule);
+  vertical-align: -1px;
+  margin-right: 5px;
+}
+.insp-hi {
+  outline: 1px solid var(--accent);
+  outline-offset: 1px;
+  background: var(--bm-content);
+}
+.ps-h {
+  font-family: var(--f-mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--rule-3);
+  margin-bottom: 6px;
+}
+.tok {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  color: var(--ink);
+  padding: 4px 0;
+}
+/* The emphasised rule weight, not the standard one. Two of the three swatches
+   carry a surface token, and a surface token is by definition close to the
+   ground it sits on: on graphite `--raise` is #191b1f against a #15171b stage,
+   so at `--rule` the chip had no edge and read as an empty box rather than as
+   a filled one. Line weight is how this design carries depth, so the fix is the
+   heavier line, not a fill that lies about the colour. */
+.tok .sw {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--r-chip);
+  border: 1px solid var(--rule-2);
+  flex: none;
+}
+.tramp {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+.tr {
+  font-family: var(--f-mono);
+  font-size: 9px;
+  color: var(--ink-3);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-chip);
+  padding: 2px 6px;
+  white-space: nowrap;
+}
+.tr b {
+  font-family: var(--f-sans);
+  font-weight: 600;
+  color: var(--ink);
+  margin-right: 3px;
+}
+.tr.t1 b {
+  font-size: 13px;
+}
+.tr.t2 b {
+  font-size: 11px;
+}
+.tr.t3 b {
+  font-size: 9.5px;
+}
+.dn {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  color: var(--ink-3);
+  padding: 2px 6px;
+  border: 1px solid transparent;
+  border-radius: var(--r-chip);
+  align-self: flex-start;
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out);
+}
+.dn.i1 {
+  margin-left: 12px;
+}
+.dn.i2 {
+  margin-left: 24px;
+}
+.dn:hover,
+.dn[data-hi="true"] {
+  color: var(--accent);
+  border-color: var(--rule);
+  background: var(--accent-soft);
+}
+
+/* ---- the scrubber, a drawn instrument ------------------------------------ */
+
+.pipe-scrub {
+  position: relative;
+  margin-top: 12px;
+  height: 52px;
+  touch-action: none;
+  cursor: pointer;
+}
+.scrub-in {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top: 0;
+  bottom: 0;
+}
+.scrub-rail {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 15px;
+  height: 1px;
+  background: var(--rule-2);
+}
+.scrub-fill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 15px;
+  height: 1px;
+  background: var(--accent);
+  transform-origin: left;
+  transform: scaleX(0);
+}
+.scrub-det {
+  position: absolute;
+  top: 11px;
+  width: 1px;
+  height: 9px;
+  background: var(--rule-2);
+  margin-left: -0.5px;
+  transform-origin: center;
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+/* The detent the head is sitting on. It is the part of the control that marks
+   the position, and it was the only part that never acknowledged being at it. */
+.scrub-det[data-on="true"] {
+  background: var(--accent);
+  transform: scaleY(1.45);
+}
+.scrub-lbl {
+  position: absolute;
+  top: 30px;
+  transform: translateX(-50%);
+  font-family: var(--f-mono);
+  /* Big enough to read as the five positions of a control rather than as a
+     caption under a picture. */
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: var(--ink-3);
+  white-space: nowrap;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+.scrub-lbl.first {
+  transform: none;
+}
+.scrub-lbl.last {
+  transform: translateX(-100%);
+}
+.scrub-lbl[data-on="true"] {
+  color: var(--accent);
+}
+/* A plumb line, not a knob: the head is a weight on a string, which is what a
+   drawing uses to find a vertical. */
+.scrub-head {
+  position: absolute;
+  top: 0;
+  left: 0%;
+  width: 20px;
+  height: 26px;
+  margin-left: -10px;
+  pointer-events: none;
+  transform-origin: 50% 15px;
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.scrub-head svg {
+  display: block;
+}
+.scrub-head .hd-s {
+  stroke: var(--accent);
+  stroke-width: 1;
+}
+.scrub-head .hd-t {
+  fill: var(--raise);
+  stroke: var(--accent);
+  stroke-width: 1.25;
+  transition: fill var(--dur-fast) var(--ease-out);
+}
+.pipe-scrub:hover .scrub-head,
+.pipe-scrub:focus-visible .scrub-head {
+  transform: scale(1.12);
+}
+.pipe-scrub[data-dragging="true"] .scrub-head .hd-t {
+  fill: var(--accent);
+}
+
+@media (max-width: 768px) {
+  .pipefig {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "head"
+      "stage"
+      "scrub"
+      "note";
+  }
+  .pipe-note {
+    white-space: normal;
+    overflow: visible;
+    line-height: 1.6;
+    /* Two lines, always. */
+    min-height: 32px;
+    margin-top: 2px;
+    padding-bottom: 0;
+    align-self: start;
+  }
+  .pipe-stage {
+    flex-direction: column;
+    gap: 16px;
+    /* 24 above: the shipped stamp hangs 13px over the card's top corner,
+       rotated, and at 16 the stage's overflow clipped its top edge. */
+    padding: 24px 12px 16px;
+    min-height: 0;
+    /* The card stays at the top of the stage in every stage. Centring it
+       while the slot below was empty, and letting it rise as a panel faded
+       in, was tried on 2026-09-03 and it read as the card lurching up and
+       down on every stage change. Nothing in the stage moves now; only
+       opacity does, which is the figure's rule everywhere else. */
+  }
+  .pipe-card {
+    width: min(272px, 100%);
+  }
+  .pipe-slot {
+    width: 100%;
+    height: auto;
+    /* The tallest side panel on a phone is the DOM tree at 106px. Reserved,
+       not measured, so the stage cannot change height between stages. */
+    min-height: 110px;
+  }
+  .pipe-side {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    gap: 4px 8px;
+  }
+  .ps-h {
+    width: 100%;
+    flex: none;
+  }
+  .dn.i1,
+  .dn.i2 {
+    margin-left: 0;
+  }
+  .dn {
+    border-color: var(--rule-3);
+  }
+  .tok {
+    padding: 2px 0;
+  }
+  .tramp {
+    margin-top: 0;
+  }
+  .insp-body {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 2px 12px;
+    width: 100%;
+  }
+  .insp-tag {
+    width: 100%;
+    margin-bottom: 2px;
+  }
+  .ir {
+    padding: 1px 0;
+  }
+  .ir s {
+    flex: none;
+  }
+  .insp-idle {
+    max-width: none;
+    width: 100%;
+  }
+}
+@media (max-width: 640px) {
+  .pipefig {
+    padding: 14px 12px 16px;
+  }
+  .scrub-lbl {
+    font-size: 9px;
+    letter-spacing: 0;
+  }
+}

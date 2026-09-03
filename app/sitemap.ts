@@ -1,15 +1,20 @@
 import type { MetadataRoute } from "next";
+
+// Required by `output: "export"`.
+export const dynamic = "force-static";
 import { published } from "@/lib/posts";
 import { SITE_URL } from "@/lib/jsonld";
 
 // Hand-maintained content dates — bump a surface's entry when its copy
 // meaningfully changes. Deliberately NOT the build date: a lastmod that
 // moves on every deploy teaches crawlers to ignore it.
-// /about and /work are gone — the press homepage absorbed both, and
-// next.config.ts redirects them. They must not reappear here.
+// /about and /work are gone — the home page absorbed both, and
+// public/_redirects sends them here. They must not reappear.
 const SURFACE_UPDATED: Record<string, string> = {
-  "": "2026-07-30",
-  "/resume": "2026-07-30",
+  // The schematic redesign: the home sheet and the CV were both rewritten,
+  // then swept for copy and metadata drift in the pre-ship review.
+  "": "2026-08-31",
+  "/resume": "2026-08-31",
 };
 
 // Relative priority *within this site* — not a claim about the wider web.
@@ -23,13 +28,21 @@ const PRIORITY: Record<string, number> = {
 };
 
 export default function sitemap(): MetadataRoute.Sitemap {
+  // The index changed when its newest post landed *or* when the page itself was
+  // rewritten, whichever is later. Taking only the post date would have claimed
+  // the redesigned index was untouched since July.
+  const newestPost = published[0]?.updated ?? published[0]?.date ?? SURFACE_UPDATED[""];
   const surfaceDates: Record<string, string> = {
     ...SURFACE_UPDATED,
-    "/blog": published[0]?.date ?? SURFACE_UPDATED[""],
+    "/blog": newestPost > SURFACE_UPDATED[""] ? newestPost : SURFACE_UPDATED[""],
   };
   const surfaces = Object.entries(surfaceDates).map(([path, date]) => ({
-    // Root serves at "/", so emit the trailing slash there to match.
-    url: path === "" ? `${SITE_URL}/` : `${SITE_URL}${path}`,
+    // No trailing slash on root. Every other surface that names the home page
+    // names it without one: the canonical, og:url, Person.url, WebSite.url and
+    // ProfilePage's @id are all `https://meetguns.com`. The sitemap was the
+    // only place emitting `https://meetguns.com/`, which is a second URL for
+    // the same page as far as a crawler is concerned.
+    url: `${SITE_URL}${path}`,
     lastModified: new Date(date),
     changeFrequency: (path === "/blog" ? "weekly" : "monthly") as "weekly" | "monthly",
     priority: PRIORITY[path] ?? 0.5,

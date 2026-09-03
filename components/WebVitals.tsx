@@ -3,8 +3,6 @@
 import { useReportWebVitals } from "next/web-vitals";
 import { GA_ENABLED } from "@/lib/analytics/ga-id";
 
-const ENDPOINT = "/api/vitals";
-
 type Metric = Parameters<Parameters<typeof useReportWebVitals>[0]>[0];
 
 /**
@@ -28,6 +26,9 @@ function toGA(metric: Metric) {
   });
 }
 
+// GA4 is the only sink. There used to be a second POST to /api/vitals carrying
+// the identical payload; the static export has no server to receive it, and it
+// never held anything GA4 wasn't already given.
 function report(metric: Metric) {
   if (!GA_ENABLED) {
     console.debug("[web-vitals]", metric.name, Math.round(metric.value), metric.rating);
@@ -37,29 +38,6 @@ function report(metric: Metric) {
     toGA(metric);
   } catch {
     /* no-op — never let a vitals beacon throw into user-land */
-  }
-  try {
-    const body = JSON.stringify({
-      name: metric.name,
-      value: metric.value,
-      rating: metric.rating,
-      delta: metric.delta,
-      id: metric.id,
-      navigationType: metric.navigationType,
-      path: window.location.pathname,
-    });
-    if (navigator.sendBeacon) {
-      navigator.sendBeacon(ENDPOINT, new Blob([body], { type: "application/json" }));
-    } else {
-      fetch(ENDPOINT, {
-        body,
-        method: "POST",
-        keepalive: true,
-        headers: { "content-type": "application/json" },
-      });
-    }
-  } catch {
-    /* no-op */
   }
 }
 

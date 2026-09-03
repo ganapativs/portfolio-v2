@@ -1,27 +1,26 @@
 "use client";
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import {
-  DEFAULT_INK,
-  INKS,
-  MODES,
-  STORAGE_KEYS,
-  isInkId,
-  isMode,
-  type InkId,
-  type Mode,
-} from "@/lib/ink";
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { DEFAULT_INK, INK_HEX_DARK, INKS, STORAGE_KEYS, isInkId, type InkId } from "@/lib/ink";
 import { useFX } from "@/components/providers/FXProvider";
+import { useGlimm } from "glimm/react";
+import { sweepApply } from "@/lib/sweep";
 import { track } from "@/lib/analytics";
 
-/** Which surface the pick came from — the dock popover or the page's library. */
-export type InkVia = "popover" | "library";
+/** Which surface the pick came from. Today there is one: the header tray. */
+export type InkVia = "tray" | "key";
+type Origin = { x: number; y: number } | null;
 
 type Ctx = {
   ink: InkId;
-  mode: Mode;
-  setInk: (id: InkId, via?: InkVia) => void;
-  setMode: (next: Mode) => void;
-  cycleMode: () => void;
+  setInk: (id: InkId, origin?: Origin, via?: InkVia) => void;
   cycleInk: (dir?: 1 | -1) => void;
   inks: typeof INKS;
 };
@@ -29,8 +28,8 @@ type Ctx = {
 const InkContext = createContext<Ctx | null>(null);
 
 // Read from the DOM first. The no-flash script in app/layout.tsx has already
-// stamped both attributes before React sees the page, so the first render
-// matches what is on screen and mounting never causes a repaint.
+// stamped the attribute before React sees the page, so the first render matches
+// what is on screen and mounting never causes a repaint.
 function readInk(): InkId {
   if (typeof document === "undefined") return DEFAULT_INK;
   const fromDom = document.documentElement.dataset.ink;
@@ -42,88 +41,89 @@ function readInk(): InkId {
   return DEFAULT_INK;
 }
 
-function readMode(): Mode {
-  if (typeof document === "undefined") return "colorful";
-  const fromDom = document.documentElement.dataset.mode;
-  if (isMode(fromDom)) return fromDom;
-  try {
-    const stored = localStorage.getItem(STORAGE_KEYS.mode);
-    if (isMode(stored)) return stored;
-  } catch {}
-  return "colorful";
-}
-
 export function InkProvider({ children }: { children: React.ReactNode }) {
   const [ink, setInkState] = useState<InkId>(DEFAULT_INK);
-  const [mode, setModeState] = useState<Mode>("colorful");
   const [hydrated, setHydrated] = useState(false);
-  const fx = useFX();
+  // The ink that is currently painted, so the sweep band can be a real
+  // transition from the old ink to the new one rather than a flat wash of the
+  // destination. Held in a ref: the effect below needs the previous value at
+  // the moment the new one lands.
+  const painted = useRef<InkId>(DEFAULT_INK);
+  // The origin of the pick that produced the ink now in state, held next to it
+  // so the sync effect knows whether a pointer or a key did it. In state rather
+  // than a ref because two picks of the same swatch are the same `ink` value,
+  // and a ref would leave the second one holding the first one's origin.
+  const [origin, setOrigin] = useState<Origin>(null);
+  const { sweep } = useGlimm();
 
   useEffect(() => {
-    setInkState(readInk());
-    setModeState(readMode());
+    const initial = readInk();
+    painted.current = initial;
+    setInkState(initial);
     setHydrated(true);
   }, []);
 
-  // No withViewTransition here, deliberately. An ink change is a 340ms oklch
-  // interpolation of the registered colour properties (styles/press/tokens.css);
-  // a view transition would freeze a snapshot of the page and crossfade over
-  // the top of that tween, which reads as a stutter. Theme changes are the
-  // opposite case and do go through the iris — see ThemeProvider.
+  // The band is painted from the ink being replaced to the ink replacing it,
+  // which makes the sweep itself the interpolation rather than something laid
+  // over one. A paper flip is a different event: the iris in lib/vt.ts.
+  //
+  // A keyboard pick sweeps top to bottom instead of left to right. There is no
+  // point on the page behind a number key, and saying so with the axis is
+  // better than a wipe that pretends to start somewhere.
   useEffect(() => {
     if (!hydrated) return;
-    const root = document.documentElement;
-    root.dataset.ink = ink;
-    root.dataset.mode = mode;
+    const from: InkId = painted.current;
+    painted.current = ink;
+    const write = () => {
+      document.documentElement.dataset.ink = ink;
+    };
+    if (from === ink) write();
+    else {
+      // Always the lit (dark-ground) values, on either paper — the flat band
+      // is a veil of light, and the light-ground pigments are too dark to be
+      // one.
+      const hex = INK_HEX_DARK;
+      sweepApply(sweep, write, {
+        band: { kind: "pair", hexes: [hex[from], hex[ink]] },
+        direction: origin ? "ltr" : "ttb",
+      });
+    }
     try {
       localStorage.setItem(STORAGE_KEYS.ink, ink);
-      localStorage.setItem(STORAGE_KEYS.mode, mode);
     } catch {}
-  }, [ink, mode, hydrated]);
+  }, [ink, origin, hydrated, sweep]);
 
-  // Every one of these chimes *outside* the state updater. An updater passed to
-  // setState has to be pure — React is free to call it more than once, and to
-  // call it during a render — so a beep in there fires at unpredictable times
-  // and warns about updating an unmounted component.
+  const fx = useFX();
+
+  // The chime is outside the state updater on purpose. An updater passed to
+  // setState has to be pure — React is free to call it more than once, and
+  // during a render — so a beep in there fires at unpredictable times.
   const setInk = useCallback(
-    (id: InkId, via: InkVia = "popover") => {
+    (id: InkId, from: Origin = null, via: InkVia = "tray") => {
       if (id !== ink) {
-        fx?.click(INKS.find((i) => i.id === id)?.freq ?? 660, 0.05, "sine");
+        // Six inks, six pitches, rising with the tray order. Playing the picker
+        // left to right plays a scale, which is the point.
+        fx?.pluck(INKS.find((i) => i.id === id)?.freq ?? 520);
         fx?.haptic(6);
         track({ name: "ink", id, via });
       }
+      setOrigin(from);
       setInkState(id);
     },
     [ink, fx],
   );
 
-  const setMode = useCallback(
-    (next: Mode) => {
-      if (next !== mode) {
-        fx?.toggle();
-        fx?.haptic(6);
-        track({ name: "press_run", mode: next });
-      }
-      setModeState(next);
-    },
-    [mode, fx],
-  );
-
-  const cycleMode = useCallback(() => {
-    setMode(MODES[(MODES.indexOf(mode) + 1) % MODES.length]);
-  }, [mode, setMode]);
-
   const cycleInk = useCallback(
     (dir: 1 | -1 = 1) => {
       const i = INKS.findIndex((x) => x.id === ink);
-      setInk(INKS[(i + dir + INKS.length) % INKS.length].id);
+      setInk(INKS[(i + dir + INKS.length) % INKS.length].id, null, "key");
     },
     [ink, setInk],
   );
 
   const value = useMemo<Ctx>(
-    () => ({ ink, mode, setInk, setMode, cycleMode, cycleInk, inks: INKS }),
-    [ink, mode, setInk, setMode, cycleMode, cycleInk],
+    () => ({ ink, setInk, cycleInk, inks: INKS }),
+    [ink, setInk, cycleInk],
   );
 
   return <InkContext.Provider value={value}>{children}</InkContext.Provider>;

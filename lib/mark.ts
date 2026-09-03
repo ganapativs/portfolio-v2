@@ -1,12 +1,13 @@
 /**
  * The G, as raw path data.
  *
- * One copy, because it is drawn in five places that cannot share a component:
- * the inline chrome mark (components/press/Mark.tsx renders it with
- * `currentColor`), the SVG favicon (app/icon.tsx, a string of markup), and the
- * three rasters the OG renderer produces (lib/icon-png.tsx). Satori and a
- * hand-built SVG string have nothing in common except the `d` attribute, so
- * that is what lives here.
+ * One copy, because it is drawn by four renderers that cannot share a
+ * component: the inline mark in the header (components/schematic/Mark.tsx,
+ * which paints the bar in the live ink), the SVG favicon (app/icon.tsx, a
+ * string of markup), the PNG icon family (lib/icon-png.tsx, through satori),
+ * and the share card (lib/og.tsx, also satori). A React component, a
+ * hand-built SVG string and satori have nothing in common except the `d`
+ * attribute, so that is what lives here.
  */
 export const MARK_VIEWBOX = { width: 84, height: 131.615 } as const;
 

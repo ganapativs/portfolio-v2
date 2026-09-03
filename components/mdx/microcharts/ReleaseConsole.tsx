@@ -13,7 +13,7 @@ import { StatusDot } from "@microcharts/react/status-dot";
 
 // One coherent story: the week checkout-v2 shipped. Ten chart types, each
 // answering the question a release owner actually asks, at the size the
-// answer deserves. Every panel is its own ~2–7 kB import.
+// answer deserves. Every panel is its own ~2-7 kB import.
 const MRR = [38.2, 41.5, 40.1, 44.8, 43.2, 47.9, 46.4, 51.3, 54.8, 53.1, 58.6, 62.4];
 
 const T0 = Date.UTC(2026, 6, 20);
@@ -69,7 +69,7 @@ export function ReleaseConsole() {
             height={52}
             style={{ width: "100%" }}
           />
-          <span className="mcx-panel-read">9% visitor → paid — the leak is activation</span>
+          <span className="mcx-panel-read">9% visitor → paid: the leak is activation</span>
         </div>
 
         <div className="mcx-panel">
@@ -86,7 +86,7 @@ export function ReleaseConsole() {
             height={34}
             style={{ width: "100%" }}
           />
-          <span className="mcx-panel-read">plateaus at 38% — healthy for self-serve</span>
+          <span className="mcx-panel-read">plateaus at 38%: healthy for self-serve</span>
         </div>
 
         <div className="mcx-panel">
@@ -179,7 +179,7 @@ export function ReleaseConsole() {
             height={36}
             style={{ width: "100%" }}
           />
-          <span className="mcx-panel-read">two reds Thursday — both rolled back clean</span>
+          <span className="mcx-panel-read">two reds Thursday: both rolled back clean</span>
         </div>
 
         <div className="mcx-panel">
@@ -197,7 +197,7 @@ export function ReleaseConsole() {
             height={34}
             style={{ width: "100%" }}
           />
-          <span className="mcx-panel-read">62% left — spend it on the next migration</span>
+          <span className="mcx-panel-read">62% left: spend it on the next migration</span>
         </div>
 
         <div className="mcx-panel">
@@ -224,7 +224,7 @@ export function ReleaseConsole() {
       </div>
 
       <p className="mcx-console-note">
-        Ten chart types, one story, no dashboard framework — a CSS grid where every cell answers one
+        Ten chart types, one story, no dashboard framework: a CSS grid where every cell answers one
         question. Every panel here is the interactive build: hover or arrow keys to read values,
         click to pin. Each type also ships a static twin that renders the same geometry with zero
         client JavaScript.

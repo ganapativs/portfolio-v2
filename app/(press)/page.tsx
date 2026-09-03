@@ -1,13 +1,44 @@
 import type { Metadata } from "next";
+import dynamic from "next/dynamic";
 import Link from "next/link";
-import { Folio } from "@/components/press/Folio";
-import { Masthead } from "@/components/press/Masthead";
-import { PressRun } from "@/components/press/PressRun";
-import { PortraitCoin } from "@/components/press/PortraitCoin";
-import { InkLibrary } from "@/components/press/InkLibrary";
-import { PressFooter } from "@/components/press/PressFooter";
+import { Career } from "@/components/schematic/Career";
+import { CopyEmail } from "@/components/schematic/CopyEmail";
+import { PartsList } from "@/components/schematic/PartsList";
+import { Portrait } from "@/components/schematic/Portrait";
+import { Socials } from "@/components/schematic/Socials";
+
+/**
+ * The three heavy figures load as their own chunks.
+ *
+ * Between them the specimen tray (25 static chart builds so a shuffle can pick
+ * eight), the pipeline and the loupe were 60 kB gzipped in this route's chunk
+ * group. Next records `next/link`'s client module against that group, so every
+ * other route that renders a Link pulled the whole thing in: /resume was
+ * downloading and executing all of it and rendering none of it, and a blog post
+ * with no charts in it was shipping the entire chart library.
+ *
+ * `ssr` stays on for all of them. The pipeline's server markup IS its
+ * no-flash guarantee (the sketch state in the markup equals the state the JS
+ * initialises to), and the loupe's sentence is content.
+ *
+ * Specimens is NOT in this list any more: it is a server component now (the
+ * build draws the sets, the client only flips visibility), so it ships as
+ * HTML and its twenty-five chart builds never enter a client chunk at all.
+ */
+const Exploded = dynamic(() => import("@/components/schematic/Exploded").then((m) => m.Exploded));
+const SgbFigure = dynamic(() =>
+  import("@/components/schematic/SgbFigure").then((m) => m.SgbFigure),
+);
+const SpectrumDemo = dynamic(() =>
+  import("@/components/schematic/SpectrumDemo").then((m) => m.SpectrumDemo),
+);
+const Loupe = dynamic(() => import("@/components/schematic/Loupe").then((m) => m.Loupe));
+const Pipeline = dynamic(() => import("@/components/schematic/Pipeline").then((m) => m.Pipeline));
+import { Specimens } from "@/components/schematic/Specimens";
 import { published } from "@/lib/posts";
-import { identity, speaking } from "@/lib/resume";
+import { CAREER_YEARS, PUBLIC_WORK, speaking } from "@/lib/resume";
+import { getStars } from "@/lib/github";
+import { StatNumber } from "@/components/LiveStars";
 import {
   JsonLd,
   employmentSchema,
@@ -15,311 +46,230 @@ import {
   projectsSchema,
   SITE_URL,
 } from "@/lib/jsonld";
-import {
-  ROLES,
-  LEDGER,
-  SOCIAL,
-  STRIP_BARS,
-  SPIKE_BARS,
-  BTTN_STARS,
-  STACK,
-  ASSISTANT,
-  SGB,
-} from "./content";
+import { ASSISTANT, MICROCHARTS, SGB, SPECTRUM } from "./content";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
-const TEASERS = published.slice(0, 3);
+const DATE = new Intl.DateTimeFormat("en-CA", { timeZone: "UTC" });
 
-export default function HomePage() {
+export default async function HomePage() {
+  // The same build-time fetch the résumé makes, so the two pages cannot print
+  // different counts of the same account. LiveStars refreshes it in the browser.
+  const stars = await getStars();
   return (
-    <div className="home">
-      {/* The home page absorbed /about and /work, so it carries the schema
-          for both: who this is, where he has worked, and what he has shipped. */}
+    <>
+      {/* The home page absorbed /about and /work, so it carries the schema for
+          both: who this is, where he has worked, and what he has shipped. */}
       <JsonLd
         data={[profilePageSchema(SITE_URL), projectsSchema(), employmentSchema()].filter(
           (s) => s !== null,
         )}
       />
-      <Folio />
 
-      <header className="wrap masthead">
-        <div className="name-wrap">
-          <Masthead name={identity.name} />
-          <div className="stamp-row">
-            <span className="stamp">VP, Technology</span>
-            <span className="stamp-meta">Tracxn · Bengaluru · eleven years, one company</span>
-          </div>
-        </div>
-
-        <div className="lede-row">
-          <p className="lede">
-            I&apos;ve been at Tracxn since 2015. I joined as an engineer and I run part of
-            technology there now. Most weeks I&apos;m still writing code.
+      {/* ---- fold 1 · the subject ----------------------------------------
+          Short sentences, one idea each, first person, present tense. A person
+          reading this has about eight seconds and has read a hundred of these. */}
+      <section className="subject" id="subject" data-sec="about">
+        <div className="intro">
+          {/* The claim, at size, before anything else. This page had no h1 and
+              nothing above 22px: a reader got atmosphere for three seconds and
+              then had to go looking for the point. */}
+          <h1>I build the interfaces people work in.</h1>
+          <p className="intro-lede">
+            Full-stack engineer with a design mind. {CAREER_YEARS} years in, based in Bengaluru.
           </p>
-          <p className="note">
-            Bengaluru.
-            <br />
-            Public work since 2013.
-            <br />
-            Replies in IST: slowest in March, fastest on Sundays.
-          </p>
-        </div>
-
-        <div className="kn-row">
-          <div className="kn-name">
-            <span className="kn-ghost" aria-hidden="true">
-              ಗಣಪತಿ ವಿ ಎಸ್
-            </span>
-            <span className="kn-real">ಗಣಪತಿ ವಿ ಎಸ್</span>
-          </div>
-          <div className="made-in">Karnataka · made in India</div>
-        </div>
-      </header>
-
-      <div className="wrap home-main">
-        {/* ---- The long one ------------------------------------------------ */}
-        <section id="work" data-section="the long one">
-          <div className="sechead-open">
-            <h2>The long one</h2>
-            <p className="standfirst">
-              Eleven years at Tracxn while the industry moved every eighteen months. Wind the press
-              back and the years come off one at a time.
-            </p>
-          </div>
-
-          <PressRun />
-
-          <div className="roles">
-            {ROLES.map((r) => (
-              <article
-                key={r.title}
-                className={`role${r.now ? " role--now" : ""}${r.before ? " role--before" : ""}`}
-              >
-                <div className="role-era">{r.era}</div>
-                <h3 className="role-title">{r.title}</h3>
-                <p className="role-body">{r.body}</p>
-                {r.aside && <p className="role-body role-body--live">{r.aside}</p>}
-              </article>
-            ))}
-          </div>
-
-          {/* What the recent work is actually built out of. Ten names, not the
-              résumé's full list — that lives on /resume. */}
-          <div className="stack">
-            <span className="stack-label">Working with</span>
-            <ul className="stack-list">
-              {STACK.map((s) => (
-                <li key={s}>{s}</li>
-              ))}
-            </ul>
-          </div>
-        </section>
-
-        {/* ---- Things I made ----------------------------------------------- */}
-        <section data-section="things I made">
-          <div className="sechead">
-            <h2>Things I made</h2>
-            <span className="sechead-meta">55 public repos · 15 npm packages</span>
-          </div>
-
-          {/* The lead runs full measure, above the two-up. It is the only block
-              on the page that argues rather than lists, so it gets the room. */}
-          <article className="made-lead">
-            <div className="made-head">
-              <a
-                className="made-title"
-                href={ASSISTANT.href}
-                data-analytics="cta:project.assistant"
-              >
-                {ASSISTANT.name}
-              </a>
-              <span className="made-meta made-meta--live">{ASSISTANT.meta}</span>
-            </div>
-            <p className="made-body made-lead-open">{ASSISTANT.what}</p>
-            <p className="made-body">{ASSISTANT.how}</p>
-            <p className="made-body">{ASSISTANT.extension}</p>
-            <p className="made-body made-body--quiet">{ASSISTANT.caveat}</p>
-          </article>
-
-          <div className="made">
-            <article>
-              <div className="made-head">
-                <a
-                  className="made-title"
-                  href="https://microcharts.dev"
-                  data-analytics="cta:project.microcharts"
-                >
-                  microcharts
-                </a>
-                <span className="made-meta made-meta--live">2026 · microcharts.dev</span>
-              </div>
-              <p className="made-body">
-                106 word-sized chart types for React, small enough to sit inside a sentence or a
-                table cell. Zero runtime dependencies, accessible by default. Entirely my own time.
-              </p>
-              <span className="strip" aria-hidden="true">
-                {STRIP_BARS.map((h, i) => (
-                  <i key={i} style={{ ["--h" as string]: `${h}%`, ["--i" as string]: i }} />
-                ))}
-              </span>
-              <div className="made-cap">One bar per type</div>
-            </article>
-
-            <article>
-              <div className="made-head">
-                <a
-                  className="made-title"
-                  href="https://github.com/ganapativs/bttn.css"
-                  data-analytics="cta:project.bttn-css"
-                >
-                  bttn.css
-                </a>
-                <span className="made-meta">
-                  2016 · {BTTN_STARS.toLocaleString("en-US")} stars
-                  <span className="spark" aria-hidden="true">
-                    {SPIKE_BARS.map((h, i) => (
-                      <i key={i} style={{ ["--h" as string]: `${h}%` }} />
-                    ))}
-                  </span>
-                </span>
-              </div>
-              <p className="made-body">
-                A CSS button library. Product Hunt picked it up in 2016 and it&apos;s still in
-                people&apos;s projects. Most of those stars came from a week I wasn&apos;t
-                expecting.
-              </p>
-              <p className="made-body made-body--quiet">
-                Ten years on, it is still the thing strangers write to me about.
-              </p>
-            </article>
-
-            <article>
-              <div className="made-head">
-                <a className="made-title" href={SGB.href} data-analytics="cta:project.sgb">
-                  {SGB.name}
-                </a>
-                <span className="made-meta made-meta--live">{SGB.meta}</span>
-              </div>
-              <p className="made-body">{SGB.what}</p>
-              <p className="made-body made-body--quiet">{SGB.caveat}</p>
-            </article>
-          </div>
-
-          <div className="ledger">
-            <div className="ledger-head" aria-hidden="true">
-              <span className="ledger-year">Year</span>
-              <span className="ledger-name">Name</span>
-              <span className="ledger-what">What it is</span>
-            </div>
-            {LEDGER.map((row) => (
-              <div key={row.name} className="ledger-row">
-                <span className="ledger-year">{row.year}</span>
-                <span className="ledger-name">
-                  {row.href ? (
-                    <a href={row.href} data-analytics={`cta:ledger.${row.name}`}>
-                      {row.name}
-                    </a>
-                  ) : (
-                    row.name
-                  )}
-                </span>
-                <span className="ledger-what">{row.what}</span>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* ---- Off-screen --------------------------------------------------- */}
-        <section id="about" data-section="off-screen" className="offscreen">
-          <figure className="plate-fig">
-            <PortraitCoin />
-            <figcaption className="plate-cap">A decade of public work, sampled as dots</figcaption>
-          </figure>
-          <div className="off-body">
-            <h2>Off-screen</h2>
-            <p className="off-lede">
-              Travel and photography, mostly together. Soccer, badminton, the occasional video game.
-              English, Hindi, Kannada.
-            </p>
-            <p className="off-quiet">
-              I still write code most weeks. The AI tooling made it fast enough to get from an idea
-              to something real that I came back to the keyboard.
-            </p>
-            <p className="off-edu">
-              BE, Computer Science · RNSIT, Bengaluru · 2011–2014
-              <br />
-              College football team
-            </p>
-          </div>
-        </section>
-
-        {/* ---- Writing ------------------------------------------------------ */}
-        <section id="writing" data-section="writing">
-          <div className="sechead">
-            <h2>Writing</h2>
-            <Link className="sechead-meta" href="/blog" data-analytics="nav:home.all-posts">
-              All posts →
-            </Link>
-          </div>
-          <div className="teasers">
-            {TEASERS.map((p) => (
-              <Link
-                key={p.slug}
-                className="teaser"
-                href={`/blog/${p.slug}`}
-                data-analytics={`nav:home.teaser.${p.slug}`}
-              >
-                <span className="teaser-read">{p.read}</span>
-                <span className="teaser-title">{p.title}</span>
-                <span className="teaser-sub">{p.spoiler}</span>
-              </Link>
-            ))}
-          </div>
-
-          {/* Talks belong next to writing — same job, different room. */}
-          {speaking.map((t) => (
-            <p key={t.event} className="spoke">
-              <span className="spoke-label">Spoke at</span> {t.event}, {t.place} ·{" "}
-              <span className="spoke-year">{t.year}</span> — {t.detail}
-            </p>
-          ))}
-        </section>
-
-        {/* ---- Say hello ---------------------------------------------------- */}
-        <section data-section="say hello" className="hello">
-          <h2>Say hello.</h2>
+          {/* The internship was at Thinkappz in 2013. Tracxn was 2015, as a
+              software engineer, and three earlier drafts of this page got that
+              wrong in four places at once. */}
           <p>
-            Hiring, mentoring, architecture, open source. Replies in IST: slowest in March, fastest
-            on Sundays.
+            I joined Tracxn in 2015 as a software engineer. I am <strong>VP of Technology</strong>{" "}
+            now. Most of the job is the team, the hiring and what we build next. I still write a lot
+            of code.
           </p>
-          <a
-            className="hello-mail"
-            href={`mailto:${identity.email}?subject=${encodeURIComponent("Hello from the press")}`}
-            data-analytics="mail:say-hello"
-            aria-label={`Email ${identity.email}`}
-          >
-            Write to me →
-          </a>
-          <div className="hello-links">
-            {SOCIAL.map((s) => (
-              <a key={s.href} href={s.href} rel="me" data-analytics={`cta:social.${s.label}`}>
-                {s.label}
-              </a>
-            ))}
-            <Link href="/resume" data-analytics="nav:home.resume">
-              Résumé
-            </Link>
-            <span className="quiet">all ganapativs</span>
+          <p>
+            Right now that code is a customer-facing <span className="accent">AI assistant</span>{" "}
+            over private-market data, and <span className="accent">106 word-sized chart types</span>{" "}
+            built on my own time.
+          </p>
+          <p className="intro-ask">
+            Open to talking about architecture, hiring loops and open source.
+          </p>
+          {/* One row. The chip and the five marks are both "how to reach me",
+              and stacked they cost the introduction a whole line of height it
+              was spending against the portrait beside it. */}
+          <div className="intro-actions">
+            <CopyEmail />
+            <Socials />
           </div>
-        </section>
+        </div>
 
-        <InkLibrary />
-      </div>
+        <Portrait />
+      </section>
 
-      <PressFooter />
-    </div>
+      {/* ---- fold 2 · the mechanisms ------------------------------------- */}
+      <section className="mechs" id="mechanisms" data-sec="projects">
+        <article className="panel">
+          <h2>The assistant</h2>
+          {/* The link sits in the meta line, the way every other plate on this
+              sheet carries its links. It used to trail the body paragraph, and
+              the body is now the figure's own note slot: a link inside a block
+              that swaps on hover leaves and re-enters the tab order under the
+              reader, which is how you lose a link to the keyboard. */}
+          <p className="meta">
+            {ASSISTANT.meta} ·{" "}
+            <a
+              href={ASSISTANT.href}
+              target="_blank"
+              rel="noopener"
+              data-analytics="cta:project.assistant"
+            >
+              w.tracxn.com
+            </a>
+          </p>
+          <Exploded fig="fig. 1 · exploded view" body={ASSISTANT.body} />
+        </article>
+
+        <article className="panel">
+          <span className="p-fig">fig. 2 · detail callout</span>
+          <h2>microcharts</h2>
+          <p className="meta">
+            {MICROCHARTS.meta} ·{" "}
+            <a
+              href={MICROCHARTS.site}
+              target="_blank"
+              rel="noopener"
+              data-analytics="cta:project.microcharts"
+            >
+              microcharts.dev
+            </a>{" "}
+            ·{" "}
+            <a
+              href={MICROCHARTS.href}
+              target="_blank"
+              rel="noopener"
+              data-analytics="cta:project.microcharts-github"
+            >
+              github
+            </a>{" "}
+            ·{" "}
+            <Link
+              href="/blog/microcharts-word-sized-charts"
+              data-analytics="nav:home.microcharts-post"
+            >
+              the post
+            </Link>
+          </p>
+          <Loupe />
+          <Specimens />
+        </article>
+      </section>
+
+      <section className="mechs2">
+        <article className="panel">
+          <h2>sgb</h2>
+          <p className="meta">
+            {SGB.meta} ·{" "}
+            <a href={SGB.href} target="_blank" rel="noopener" data-analytics="cta:project.sgb">
+              sgb.vercel.app
+            </a>
+          </p>
+          <SgbFigure fig="fig. 3 · general arrangement" body={SGB.body} />
+        </article>
+
+        <article className="panel">
+          <span className="p-fig">fig. 4 · live specimen</span>
+          <h2>react-spectrum</h2>
+          <p className="meta">
+            {SPECTRUM.meta} ·{" "}
+            <a
+              href={SPECTRUM.href}
+              target="_blank"
+              rel="noopener"
+              data-analytics="cta:project.react-spectrum"
+            >
+              github
+            </a>{" "}
+            ·{" "}
+            <a
+              href={SPECTRUM.npm}
+              target="_blank"
+              rel="noopener"
+              data-analytics="cta:project.react-spectrum-npm"
+            >
+              npm
+            </a>
+          </p>
+          <p className="p-body">{SPECTRUM.body}</p>
+          <SpectrumDemo />
+        </article>
+      </section>
+
+      {/* ---- fold 3 · the records ---------------------------------------- */}
+      <section className="records" id="work" data-sec="career">
+        <div className="panel">
+          <span className="p-fig">fig. 5 · timeline</span>
+          <h2>The career</h2>
+          <p className="meta">2013 to now · at Tracxn since 2015</p>
+          <Career />
+        </div>
+
+        <div className="panel">
+          <h2 className="sec-label">Open source</h2>
+          <p className="meta">
+            <StatNumber initial={stars.repos} stat="repos" /> original public repos ·{" "}
+            <StatNumber initial={stars.total} stat="total" /> stars · {PUBLIC_WORK.npm} npm packages
+          </p>
+          <PartsList />
+        </div>
+
+        <div className="panel" id="writing">
+          <h2 className="sec-label">Writing</h2>
+          <p className="meta">newest first</p>
+          <div className="rev">
+            {published.map((p) => (
+              <div className="rev-row" key={p.slug}>
+                <span className="d">{DATE.format(new Date(p.date))}</span>
+                <span className="t">
+                  <Link href={`/blog/${p.slug}`} data-analytics={`nav:home.revision.${p.slug}`}>
+                    {p.title}
+                  </Link>
+                </span>
+                <span className="rt">{p.read}</span>
+              </div>
+            ))}
+            {/* A talk is a revision too: same job, different room. */}
+            {speaking.map((t) => (
+              <div className="rev-row" key={t.event}>
+                <span className="d">{t.year}</span>
+                <span className="t">
+                  {t.event}, {t.place}: {t.detail}
+                </span>
+                <span className="rt">talk</span>
+              </div>
+            ))}
+          </div>
+          <Link className="rev-all" href="/blog" data-analytics="nav:home.all-posts">
+            all writing
+            {/* Drawn arrow, same as the essay's back link: a typed "→" fell
+                back to a different font on phones. Out of the accessible name
+                either way. */}
+            <svg width="14" height="10" viewBox="0 0 14 10" aria-hidden="true">
+              <path
+                d="M1 5h11.5M8.5 1l4 4-4 4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.25"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </Link>
+        </div>
+      </section>
+
+      <Pipeline />
+    </>
   );
 }

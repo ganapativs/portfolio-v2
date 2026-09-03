@@ -38,11 +38,11 @@ const AI_AGENTS = [
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
-      // /api/ is machinery — the vitals beacon and the markdown mirror's
-      // internal route. The mirror's *public* URL (/blog/<slug>.md) is a
-      // rewrite and stays crawlable.
-      { userAgent: "*", allow: "/", disallow: ["/api/"] },
-      { userAgent: AI_AGENTS, allow: "/", disallow: ["/api/"] },
+      // Nothing is disallowed: the static export has no /api/ any more, and
+      // the markdown mirrors are real files that stay crawlable (though
+      // _headers marks them noindex so the HTML page is the one that ranks).
+      { userAgent: "*", allow: "/" },
+      { userAgent: AI_AGENTS, allow: "/" },
     ],
     sitemap: `${SITE_URL}/sitemap.xml`,
     host: SITE_URL,

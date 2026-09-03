@@ -1,719 +1,1516 @@
-/* 6 — CHROME ---------------------------------------------------------------
-   Folio bar, sticky site header, the dock and its ink popover, the footer.
-   Everything that persists across routes lives here. */
+/* =============================================================================
+   THE SHEET — the chrome every page shares.
 
-/* Registration crosshairs, the way a printer marks a sheet. Decorative only,
-   and out of the way of the dock. */
-.reg-mark {
+   grounds · sheet frame · measuring edge · header · panels · title block
+   ============================================================================ */
+
+/* ---- the light under the hand ------------------------------------------- */
+
+/* One ground, and only one. There were three at one point — a fine 8px grid, a
+   48px plus grid and this — and three parallaxing layers behind a page of prose
+   is a texture you have to read through rather than a room the drawing sits in.
+   The dither is the one that is actually alive, so it is the one that stayed. */
+.dither {
   position: fixed;
-  bottom: 9px;
-  width: 13px;
-  height: 13px;
-  z-index: 5;
+  inset: 0;
+  /* Load-bearing, and not the same thing as `inset: 0`.
+  
+     A canvas is a replaced element, so `width: auto` resolves to its *intrinsic*
+     size — the width attribute — and the `right: 0` constraint is dropped as
+     over-constrained. Without these two lines the element's CSS box is whatever
+     the buffer happens to be, which is twice the viewport at DPR 2: the 2D
+     field then drew the light at double the distance from the origin, so a
+     pointer on the left of the screen lit the middle and a pointer on the right
+     lit nothing. And the GPU field, whose surface sizes the buffer *from* the
+     CSS box, doubled itself every resize until the canvas was 16 million pixels
+     across. Same missing declaration, two very different symptoms. */
+  width: 100%;
+  height: 100%;
+  z-index: 0;
   pointer-events: none;
-  opacity: 0.55;
-  color: var(--ink-3);
 }
-.reg-mark[data-side="left"] {
-  left: 9px;
+
+/* ---- the sheet ----------------------------------------------------------- */
+
+.sheet {
+  position: relative;
+  z-index: 1;
+  margin: var(--sheet-margin);
+  min-height: calc(100vh - var(--sheet-margin) * 2);
+  border: 1px solid var(--rule-2);
 }
-.reg-mark[data-side="right"] {
-  right: 9px;
+
+/* Corner registration ticks — crosses that miss the corner, the way a printer's
+   marks sit outside the trim. */
+.tick-c {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  pointer-events: none;
 }
-.reg-mark::before,
-.reg-mark::after {
+.tick-c::before,
+.tick-c::after {
   content: "";
   position: absolute;
-  background: currentColor;
+  background: var(--rule-2);
 }
-.reg-mark::before {
-  left: 6px;
-  top: 0;
-  bottom: 0;
-  width: 1px;
-}
-.reg-mark::after {
-  top: 6px;
-  left: 0;
-  right: 0;
+.tick-c::before {
+  width: 10px;
   height: 1px;
 }
-@media (max-width: 700px) {
-  .reg-mark {
-    display: none;
-  }
+.tick-c::after {
+  width: 1px;
+  height: 10px;
+}
+.tc-tl {
+  top: -6px;
+  left: -6px;
+}
+.tc-tl::before {
+  top: 5px;
+}
+.tc-tl::after {
+  left: 5px;
+}
+.tc-tr {
+  top: -6px;
+  right: -6px;
+}
+.tc-tr::before {
+  top: 5px;
+}
+.tc-tr::after {
+  right: 5px;
+}
+.tc-bl {
+  bottom: -6px;
+  left: -6px;
+}
+.tc-bl::before {
+  bottom: 5px;
+}
+.tc-bl::after {
+  left: 5px;
+}
+.tc-br {
+  bottom: -6px;
+  right: -6px;
+}
+.tc-br::before {
+  bottom: 5px;
+}
+.tc-br::after {
+  right: 5px;
 }
 
-/* ---- Folio bar (home) ---------------------------------------------------- */
+/* No frame wipe any more: the four ground-coloured masks that ruled the
+   frame in over 400ms were retired with the figure draw-ins — line appearance
+   on load read as motion nobody caused. The frame is simply there. */
 
-.folio {
-  position: sticky;
-  top: 0;
-  z-index: 30;
-  background: color-mix(in oklab, var(--paper) 88%, transparent);
-  backdrop-filter: saturate(1.4) blur(10px);
-  border-bottom: 1px solid var(--rule);
+/* ---- the measuring edge: ruler, section labels, scroll traveller --------- */
+
+.ruler {
+  position: fixed;
+  left: var(--sheet-margin);
+  top: var(--sheet-margin);
+  bottom: var(--sheet-margin);
+  width: 0;
+  z-index: 4;
 }
-.folio-in {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 20px;
-  justify-content: space-between;
-  align-items: center;
-  padding-block: 9px;
-  font-family: var(--f-mono);
-  font-size: 11px;
-  letter-spacing: 0.14em;
-  white-space: nowrap;
-  color: var(--ink-3);
-}
-.folio-lead {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 7px;
-}
-.folio-right {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-}
-.folio-dot {
-  width: 8px;
-  height: 8px;
-  border: 1.5px solid var(--accent);
-  border-radius: var(--r-point);
-  flex: none;
-}
-/* The folio number is the page's live state. Each new section slides its label
-   up into place — 12px of travel, no fade to nothing, so it reads as a counter
-   ticking over rather than a crossfade. */
-.folio-no {
-  display: inline-block;
-  animation: folio-tick 260ms var(--ease-out) both;
-}
-@keyframes folio-tick {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-/* Reading progress, drawn as the rule under the bar rather than a new object. */
-.folio-rail {
+/* Two repeating gradients: a 12px minor tick and a 48px major one, exactly the
+   way a scale rule is engraved. */
+.ruler-ticks {
   position: absolute;
-  left: 0;
   right: 0;
-  bottom: -1px;
-  height: 2px;
-  background: var(--accent);
-  transform: scaleX(var(--p, 0));
-  transform-origin: 0 50%;
-  will-change: transform;
-}
-
-@media (max-width: 560px) {
-  .folio-lead {
-    display: none;
-  }
-  .folio-in {
-    justify-content: flex-end;
-  }
-}
-
-/* ---- Sticky site header (writing, essay, resume) -------------------------- */
-
-.site-head {
-  position: sticky;
   top: 0;
-  z-index: 40;
-  background: color-mix(in oklab, var(--raise) 90%, transparent);
-  backdrop-filter: saturate(1.4) blur(10px);
-  border-bottom: 1px solid var(--rule);
-  transition: border-color var(--dur-base) var(--ease-out);
+  bottom: 0;
+  width: 8px;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(to bottom, var(--rule) 0 1px, transparent 1px 12px) right top / 4px
+      100% no-repeat,
+    repeating-linear-gradient(to bottom, var(--rule-2) 0 1px, transparent 1px 48px) right top / 8px
+      100% no-repeat;
 }
-.site-head[data-scrolled="true"] {
-  border-bottom-color: var(--rule-2);
+.ruler-sec {
+  position: absolute;
+  /* The padding is the hit area and the offset pays it back, so the label sits
+     exactly where it did while the target is 24px across rather than 16. */
+  right: 0;
+  transform: translateY(50%);
+  writing-mode: vertical-rl;
+  rotate: 180deg;
+  font-family: var(--f-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--ink-3);
+  padding: 4px 5px;
+  transition: color var(--dur-fast) var(--ease-out);
 }
-.site-head-in {
-  display: flex;
-  align-items: center;
-  gap: clamp(10px, 2vw, 22px);
-  padding-block: 9px;
-}
-.brand {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 7px;
-  font-weight: 600;
-  font-size: 15px;
-  letter-spacing: -0.01em;
-}
-/* ---- The mark ------------------------------------------------------------
-   The G rides in the folio bar, the masthead line and the colophon.
-
-   It is set like a letter, not placed like an icon. Centring its box never
-   looks centred: the ink fills the viewBox, but all the mass is the G, with a
-   thin detached rule at the foot — so the eye reads the G as the mark and sees
-   it floating. Seating the G on the text's own baseline, at roughly cap height,
-   is what makes it look right, and it puts the underscore exactly where an
-   underline goes.
-
-   Everything is in em, so one rule holds in the 11px folio bar, the 15px
-   masthead and the 11px colophon, at any zoom, on any device.
-
-   Geometry (viewBox 84 × 131.615): the G spans y 0 → 105.2, i.e. its foot is at
-   79.93% of the height; the underscore spans 118.2 → 130.2. */
-.mark {
-  flex: none;
-  /* G ≈ 1.15 × cap height → total height = that ÷ 0.7993.
-
-     Measured in `cap`, not `em`. The old 1.04em baked in a cap height of about
-     0.72em, which no face here actually has — Anek Latin's cap is 0.639em, so
-     the G came out 1.30 × the wordmark's caps instead of 1.15 and read as
-     oversized next to it. `1cap` is the cap height of whatever face the mark
-     has landed in, so the ratio now holds per face instead of per guess. */
-  height: calc(1.15cap / 0.7993);
-  width: auto;
-  /* A replaced element's baseline is its bottom edge, which starts the whole
-     box on the text baseline. The G's foot sits 20.07% above that edge, so the
-     box drops by exactly that much to land the G on the baseline — leaving the
-     underscore below it, where an underline goes. */
-  align-self: baseline;
-  transform: translateY(20.07%);
-  color: var(--ink);
-}
-.mark-bar {
+.ruler-sec:hover,
+.ruler-sec:focus-visible,
+.ruler-sec[data-on="true"] {
   color: var(--accent);
 }
-.folio-lead .mark,
-.press-foot-mark .mark {
-  color: var(--ink-3);
-  margin-right: 2px;
+/* The traveller rides the scroll with a little lag, so it reads as a thing
+   being carried rather than a value being written. */
+.trav {
+  position: absolute;
+  right: -4px;
+  width: 16px;
+  height: 2px;
+  background: var(--accent);
+  pointer-events: none;
 }
-.brand-mark {
-  color: var(--ink);
-}
-.brand:hover {
-  text-decoration: none;
-}
-/* The wordmark's rule is drawn, not a text-decoration: an underline is placed
-   from the font's own metrics, which puts it at a different height from the
-   nav's bars on the right. Drawing it means every rule in the header — the
-   mark's underscore, this, and the nav links — sits on one line. */
-.brand {
-  position: relative;
-}
-/* The mark's underscore has to travel with the rule, or the lockup carries two
-   rules 3px apart. The bar is a separate path, so it can be moved on its own:
-   26.34 user units down puts it on the header's rule line. User units, not px,
-   so it stays put when the mark is resized. This is the only place the mark is
-   set this way — the folio bar and the colophon keep the drawn geometry. */
-.brand .mark {
-  overflow: visible;
-}
-.brand .mark-bar {
-  transform: translateY(26.34px);
-}
-/* One line for the whole header. `bottom` could never deliver that: it measures
-   from each element's own line box, and those differ — the brand sets 15/22.5,
-   the nav 13/19.5 plus 2px padding — so the three rules landed on three lines
-   (27.5, 32.5, 33.0). What they do share is a centre: `.site-head-in` centres
-   the row, so every box is centred on 20.75. Measuring down from that centre is
-   what puts them on one line, and keeps them there when a font size changes.
-
-   The offset clears the descenders. "meetguns" and "Writing" both drop a g, to
-   28.85 at 15px; the rule sits at 30.0, so it passes under the tails instead of
-   through them. */
-.site-head-in {
-  --rule-line: calc(50% + 9.25px);
-}
-.brand::after,
-.site-nav a::after {
+.trav::before {
   content: "";
   position: absolute;
+  left: -6px;
+  top: -3px;
+  border: 4px solid transparent;
+  border-right: 5px solid var(--accent);
+  border-left: 0;
+}
+.progress {
+  display: none;
+  position: fixed;
+  top: 0;
   left: 0;
   right: 0;
-  top: var(--rule-line);
-  bottom: auto;
-  height: 1.5px;
+  height: 2px;
+  z-index: 9;
   background: var(--accent);
   transform: scaleX(0);
-  transform-origin: 0 50%;
-  transition: transform var(--dur-base) var(--ease-out);
+  transform-origin: left;
+  pointer-events: none;
 }
-/* The rule spans the whole lockup, mark included, so on hover it reads as the
-   underscore growing out from under the G rather than a second, shorter rule
-   appearing beside it at a different height. */
-.brand:hover::after {
-  transform: scaleX(1);
+@media (max-width: 900px) {
+  .ruler {
+    display: none;
+  }
+  .progress {
+    display: block;
+  }
 }
-.site-nav {
+
+/* ---- header -------------------------------------------------------------- */
+
+/* One pixel of nothing, above the header, watched by an observer. The moment
+   it leaves the viewport the header is stuck. */
+.hd-sentinel {
+  display: block;
+  height: 1px;
+  margin-bottom: -1px;
+}
+
+/* The running header.
+   
+   A drawing set repeats its title strip at the top of every continuation
+   sheet, and that is what this becomes once the full header has scrolled off:
+   the same one, condensed, still carrying the mark, the name, the sheet it is
+   on and every control. There is exactly one copy of it in the DOM. A second,
+   sticky clone would be the easy way and it would register the whole keyboard
+   map twice, which the shortcut registry refuses and warns about.
+
+   Translucent and blurred, which is a deliberate exception to the rule in
+   .impeccable.md that nothing on this sheet is glass. The read is tracing
+   paper laid over the drawing, not a floating panel: it is tinted with the
+   ground rather than with white, it is separated by a rule rather than by a
+   shadow, and it has no radius. `saturate` keeps the ink under it from going
+   grey, which is what a plain blur does to a low-chroma palette.
+
+   Backdrop filters are expensive on a large surface, so it is only asked for
+   once the header is actually stuck. */
+.hd {
+  position: sticky;
+  top: 0;
+  /* Above the sheet, its panels *and* the sweep band at 60.
+     
+     The band is painted with the ink in play, and the bar under the G is that
+     same ink, so a theme flip washed the mark out and gave it back as the band
+     passed: it read as the underline blinking off and on. The band re-inks the
+     sheet; the control surface that caused it should stay legible while it
+     happens, so you can see the control you just pressed. */
+  z-index: 70;
+  /* 24, measured: the frame line to the controls' top must equal the
+     controls' bottom to the title rule's hairline (16px margin + 9px into the
+     rule's box = 25). At 22 the strip sat 2px high and it showed. */
+  padding: 24px 0 0;
+  /* Locked to the natural height measured in Header.tsx, so condensing the
+     strip inside never moves a pixel of the page below it. */
+  min-height: var(--hd-h, auto);
+  transition: padding-top var(--dur-base) var(--ease-out);
+  /* The box is taller than the strip once condensed, and the difference is
+     dead space over the reader's content. Given back here and taken again by
+     the strip itself, so a click in that gap reaches the page. */
+  pointer-events: none;
+}
+.hd > * {
+  pointer-events: auto;
+}
+/* The strip is the row, not the header. It carries the ground, the blur and
+   the rule; the header carries only the space they sit in. */
+/* The strip. Two different widths on purpose: the ground bleeds to the sheet's
+   edges, because a blur that stops mid-air is worse than no blur, while the
+   rule under it is the width of the drawing like every other rule here. Drawn
+   as a pseudo-element rather than a border for exactly that reason, and faded
+   rather than switched, so the line never changes width as it arrives. */
+.hd-strip {
+  position: relative;
+  /* A block formatting context, so the rule's negative bottom margin actually
+     shortens the strip. With padding-bottom at zero and no border, that margin
+     collapses straight out of the parent and does nothing, which is why the
+     ground kept running nine pixels past the line. */
+  display: flow-root;
+  margin-inline: calc(var(--gutter) * -1);
+  padding-inline: var(--gutter);
+  padding-block: 0;
+  /* One duration and one curve for every part of the condense, so nothing in
+     the strip arrives before anything else.
+
+     ⚠️ The -webkit- line comes FIRST on purpose. The CSS minifier treats it as
+     an alias of the unprefixed property and keeps only the last declaration of
+     the pair — written the other way round, the build shipped -webkit- alone
+     and the strip lost its blur in every browser reading the standard name.
+     Verify in out/, not in this file: the built .hd-strip rule must carry
+     `backdrop-filter:blur(var(--hd-blur))` unprefixed. */
+  -webkit-backdrop-filter: blur(var(--hd-blur)) saturate(var(--hd-sat));
+  backdrop-filter: blur(var(--hd-blur)) saturate(var(--hd-sat));
+  transition:
+    padding-block var(--dur-base) var(--ease-out),
+    background var(--dur-base) var(--ease-out),
+    --hd-blur var(--dur-base) var(--ease-out),
+    --hd-sat var(--dur-base) var(--ease-out);
+}
+/* The blur ramps rather than switching on.
+   
+   `backdrop-filter` is not an animatable property, so turning it on at the
+   moment of sticking created the element's backdrop layer in a single frame,
+   which is the flash. Registered custom properties *are* animatable, so the
+   radius and the saturation are interpolated instead and the filter is present
+   from the start at zero strength: same layer throughout, nothing created
+   mid-transition.
+
+   `saturate` is here because a plain blur drains a low-chroma palette to grey,
+   and it has to ramp with the radius or the ink shifts hue on the first frame. */
+@property --hd-blur {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+@property --hd-sat {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 1;
+}
+/* Registered for the same reason the blur is: it is animated. The rule's gap
+   closes to nothing as the strip condenses so the two hairlines meet the
+   compass ring, and an unregistered custom property is a token stream that
+   cannot be interpolated, so the gap would snap in one frame and take the
+   whole rule's layout with it. Nothing inside this strip may reflow while it
+   condenses. */
+@property --hd-rule-gap {
+  syntax: "<length>";
+  /* Inherited, and that is load-bearing. `.hd-title` cancels exactly one gap
+     with `margin-inline-start: calc(var(--hd-rule-gap) * -1)`, and it is a
+     child of the element the gap is declared on. Registered `inherits: false`
+     it read the initial value instead of the live one, held its pull-back at
+     -14px against a gap that had closed to 0, and put the compass fourteen
+     pixels left of centre. It only looked right before because the one value
+     it could see happened to be the only value there was. */
+  inherits: true;
+  initial-value: 14px;
+}
+
+/* Flush to the top of the viewport once stuck. The 22px of air above the row
+   is right at the head of the sheet and wrong in a running strip: content
+   scrolled past uncovered in the gap above it. The box keeps its locked height
+   either way, so nothing below notices. */
+/* A route change resets the scroll, and the un-stick that follows must be a
+   snap: the reader didn't scroll, so nothing should play the condense in
+   reverse for them. Header.tsx stamps this for ~two frames around a
+   navigation while it syncs the stuck state from the sentinel's real
+   position. The `*` covers the strip, the rule, the title and the brand —
+   every element the condense animates. */
+.hd[data-instant],
+.hd[data-instant] * {
+  transition: none !important;
+}
+.hd[data-stuck="true"] {
+  padding-top: 0;
+  /* Declared once and read twice: by the strip, and by the compass dial that
+     straddles the strip's bottom edge. Two hand-kept copies of a ground is how
+     a mark ends up a shade off the surface it is punched into. */
+  --hd-ground: color-mix(in oklab, var(--paper) 78%, transparent);
+}
+
+.hd[data-stuck="true"] .hd-strip {
+  /* No padding under the rule: the rule is the strip's bottom edge. The top
+     pays for the rule's own top half, so the space above the row and the space
+     between the row and the line are the same nine pixels. */
+  padding-block: 9px 0;
+  background: var(--hd-ground);
+  --hd-blur: 14px;
+  --hd-sat: 1.6;
+}
+/* Condensed: the title rule closes up and the padding tightens. That is all.
+   
+   Nothing is dropped and nothing is resized, and both of those were flicker.
+   The Kannada name used to go here, and `display: none` is not animatable, so
+   the brand block reflowed in a single frame in the middle of a 260ms
+   transition. The mark and the name used to shrink, and animating an SVG's
+   height and a font's size relays out the row on every frame of the
+   transition, which no amount of easing makes smooth: text reflow is not
+   interpolation, it is a sequence of different layouts.
+
+   What is left animating is padding, opacity, a background colour and a blur
+   radius. None of them touch layout inside the strip, so the mark and the name
+   simply travel up. That is the whole condense, and it is the part that was
+   always smooth. */
+/* The drawing title and the north arrow go. They belong at the head of the
+   sheet, where they say what this sheet is; in a running strip they are a
+   second line of furniture over the reader's content, and what the reader
+   actually kept the header for is the nav and the controls. One line.
+
+   Collapsed rather than `display: none`. The rule is exactly the height of the
+   north arrow and never wraps, so the height is a known constant and can be
+   animated; switching it off instead made the strip jump from two rows to one
+   inside a transition that was otherwise smooth, which is the flicker. */
+
+/* No backdrop-filter here. It is a compositing hint as much as an effect, and
+   on a browser without it the strip has to stay readable, so the ground goes
+   opaque instead of translucent. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .hd[data-stuck="true"] .hd-strip {
+    background: var(--paper);
+  }
+}
+/* A reader who has asked for less transparency gets the same opaque ground.
+   The header is the one translucent surface on the site, so this preference has
+   exactly one thing to turn off, and the fallback for it was already written
+   above -- it just was not wired to the preference as well as to the feature
+   query. */
+@media (prefers-reduced-transparency: reduce) {
+  .hd[data-stuck="true"] .hd-strip {
+    background: var(--paper);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+/* The strip is one row at every width. Nothing here wraps; Header.tsx measures
+   the row and stamps `data-fit` with what has to give, in order, until it fits
+   (see FIT there). Every rule below is one of those tokens. */
+.hd-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: nowrap;
+}
+/* Rigid on purpose. The measurement is `scrollWidth > clientWidth`, and a
+   child that shrinks or a name that wraps to two lines hides the overflow it
+   is supposed to report: the row stayed 44px tall at 660px and reported a fit. */
+.hd-row > * {
+  flex: none;
+}
+.hd-name,
+.hd-kn,
+.hd-nav a {
+  white-space: nowrap;
+}
+.hd[data-fit~="kn"] .hd-kn,
+.hd[data-fit~="resume"] .hd-nav a[href="/resume"],
+.hd[data-fit~="name"] .hd-name,
+.hd[data-fit~="compact"] .hd-title-full,
+.hd[data-tray="open"] .hd-name {
+  display: none;
+}
+.hd[data-fit~="compact"] .hd-row {
+  gap: 10px;
+}
+.hd[data-fit~="compact"] .hd-brand {
+  gap: 9px;
+}
+.hd[data-fit~="name"] .hd-names {
+  display: none;
+}
+.hd[data-fit~="compact"] .hd-mark {
+  height: 22px;
+}
+.hd[data-fit~="compact"] .hd-name {
+  font-size: 18px;
+}
+.hd[data-fit~="compact"] .hd-nav {
+  gap: 6px;
+}
+.hd[data-fit~="compact"] .hd-ctls {
+  gap: 10px;
+}
+/* The tray collapses to the active swatch, which is then a disclosure: pressing
+   it shows all six, and the name steps out (above) so they have the row. The
+   other five are still one press away, and still on 1-6 for a keyboard. */
+.hd[data-fit~="tray"] .inks .ink-sw {
+  display: none;
+}
+.hd[data-fit~="tray"] .inks .ink-sw[aria-pressed="true"],
+.hd[data-fit~="tray"] .inks[data-open="true"] .ink-sw {
+  display: inline-flex;
+}
+.hd-mark {
+  display: block;
+  height: 27px;
+  width: auto;
+  color: var(--ink);
+  flex: none;
+  align-self: center;
+}
+/* The bar under the G is the one part of the mark that carries the live ink.
+   The G is ink; the bar is the accent, in both themes. */
+.hd-mark .mark-bar {
+  fill: var(--accent);
+  transform-box: fill-box;
+  transform-origin: left center;
+}
+/* Hovering the mark re-inks the bar: one pass of the pen, left to right.
+   --dur-ink rather than --dur-fast because it is an ink event, and the ink
+   moves at the same speed here as it does everywhere else. */
+@media (prefers-reduced-motion: no-preference) {
+  .hd-brand:hover .mark-bar,
+  .hd-brand:focus-visible .mark-bar {
+    animation: bar-print var(--dur-ink) var(--ease-out);
+  }
+}
+@keyframes bar-print {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+/* Two alignments, one each.
+
+   The two names are set in two faces at two sizes, so centring their boxes put
+   the Kannada baseline 3.7px above the Latin one; they share a baseline inside
+   .hd-names. The mark is not type, so the brand itself centres: the mark and
+   the names box on the row's centre line, where the links and the controls
+   also sit. */
+.hd-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  /* 22px of mark is the whole link once the name goes; 2px each way makes
+     it 26 to the finger without moving the row. */
+  padding-block: 2px;
+  margin-block: -2px;
+}
+/* The Latin and Kannada names, on one baseline, as one centred item. With
+   `align-items: baseline` on .hd-brand itself the pair was packed to the top of
+   the mark's 27px line and read 3px high against the links. */
+.hd-names {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 12px;
+  min-width: 0;
+}
+.hd-name {
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: -0.018em;
+  line-height: 1;
+}
+.hd-kn {
+  font-family: var(--f-kannada);
+  font-size: 14px;
+  color: var(--ink-3);
+  /* Its own line-height, so the Kannada matras do not open the flex line up
+     to 1.55 of the body leading and drag the header taller. */
+  line-height: 1;
+}
+.hd-nav {
   margin-left: auto;
   display: flex;
   align-items: center;
-  gap: clamp(12px, 1.8vw, 20px);
-  font-size: 13px;
-  font-weight: 500;
+  gap: 10px;
 }
-.site-nav a {
-  position: relative;
-  padding-block: 2px;
-}
-.site-nav a:hover {
-  text-decoration: none;
-}
-.site-nav a:hover::after {
-  transform: scaleX(1);
-}
-.site-nav a[aria-current="page"] {
-  color: var(--accent-ink);
-}
-.site-nav a[aria-current="page"]::after {
-  transform: scaleX(1);
-}
-
-/* ---- Dock ---------------------------------------------------------------- */
-
-.dock {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: calc(clamp(12px, 2.4vh, 22px) + env(safe-area-inset-bottom));
-  z-index: 50;
-  display: flex;
-  justify-content: center;
-  padding: 0 12px;
-  pointer-events: none;
-}
-.dock-in {
-  pointer-events: auto;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  /* Wraps rather than overflows on very narrow phones. The sliding indicator
-     measures the active item's real box, so it follows onto the second row. */
-  flex-wrap: wrap;
-  gap: 3px;
-  padding: 5px;
-  border: 2px solid var(--ink);
-  background: var(--paper);
-  max-width: 100%;
-}
-/* The ink block that slides between nav items. Measured in JS (components/
-   press/Dock.tsx) so it can travel to any item's exact box; it is the only
-   thing that moves, which keeps the type perfectly still underneath. */
-.dock-ind {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 1px;
-  height: var(--h, 0px);
-  background: var(--ink);
-  /* Both axes, because the bar wraps to a second row on narrow phones and the
-     indicator has to follow the active item down. */
-  transform: translate(var(--x, 0), var(--y, 0)) scaleX(var(--sx, 0));
-  transform-origin: 0 50%;
-  pointer-events: none;
-  transition:
-    transform var(--dur-base) var(--ease-out),
-    height var(--dur-base) var(--ease-out),
-    opacity var(--dur-fast) linear;
-}
-/* Before the first measurement the block is both invisible and untransitioned,
-   so it takes its opening position in one step rather than animating into it. */
-.dock-in[data-ready="false"] .dock-ind {
-  opacity: 0;
-  transition: none;
-}
-.dock-link {
-  position: relative;
-  padding: 10px clamp(9px, 2.3vw, 13px);
+.hd-nav a {
   font-family: var(--f-mono);
-  font-size: 12px;
-  letter-spacing: 0.05em;
-  color: var(--ink-2);
-  white-space: nowrap;
+  font-size: 13px;
+  color: var(--ink-3);
+  position: relative;
+  /* 13px of text was the whole target. Six px of padding each way makes it
+     24px to the finger (WCAG 2.5.8), and the negative margin gives the height
+     back so the row does not move. Vertical only: a negative side margin on
+     the last link poked 3px past the row's edge, and the fit loop, which
+     measures overflow, never saw the row fit. The nav's gap is 6px smaller
+     to keep the links where they were. */
+  padding: 6px 3px;
+  margin: -6px 0;
+  transition: color var(--dur-fast) var(--ease-out);
 }
-.dock-link:hover {
-  text-decoration: none;
+.hd-nav a::after {
+  content: "";
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  bottom: 3px;
+  height: 1px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--dur-base) var(--ease-out);
+}
+.hd-nav a:hover,
+.hd-nav a:focus-visible,
+.hd-nav a[aria-current="page"] {
   color: var(--ink);
 }
-.dock-link[aria-current="page"],
-.dock-link[data-active="true"] {
-  color: var(--paper);
+.hd-nav a:hover::after,
+.hd-nav a:focus-visible::after,
+.hd-nav a[aria-current="page"]::after {
+  transform: scaleX(1);
 }
-.dock-sep {
-  width: 2px;
-  height: 20px;
-  background: var(--ink);
-  margin: 0 3px;
-  flex: none;
-}
-.dock-btn {
-  width: 36px;
-  height: 36px;
+.hd-ctls {
   display: flex;
   align-items: center;
-  justify-content: center;
-  border: 1px solid var(--ink);
-  background: transparent;
-  color: var(--chip-off-fg);
-  font-family: var(--f-mono);
-  font-size: 13px;
-  cursor: pointer;
-  flex: none;
+  gap: 14px;
+}
+
+.inks {
+  display: flex;
+  /* 8px, not 4px. The chips are 16px painted and 24px to the finger (see the
+     ::after below), so at a 4px gap their centres were 20px apart and every
+     target overlapped both of its neighbours by 4px. That is worse than a small
+     target: it is a target that belongs to somebody else. At 8px the centres
+     are 24px apart and the 24px targets tile exactly, which is also what WCAG
+     2.2's spacing exception measures. */
+  gap: 8px;
+  margin-right: 2px;
+}
+/* 16px painted, 24px to the finger. WCAG 2.2 wants a 24x24 target and the
+   drawing wants a 16px chip; an invisible ::after settles it without moving a
+   single pixel of what is drawn. */
+.ink-sw {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  padding: 2.5px;
+  display: inline-flex;
+  border-radius: var(--r-chip);
+  border: 1px solid var(--rule);
   transition:
-    transform var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+.ink-sw::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+}
+.ink-sw i {
+  flex: 1;
+  display: block;
+  background: currentColor;
+  border-radius: var(--r-chip);
+}
+.ink-sw:hover {
+  border-color: var(--rule-2);
+}
+/* The lift only exists where a pointer can hover. On a touch screen `:hover`
+   sticks after the tap, so the swatch you just picked stayed raised until you
+   tapped something else. */
+@media (hover: hover) {
+  .ink-sw:hover {
+    transform: translateY(-1px);
+  }
+}
+.ink-sw:active {
+  transform: scale(var(--press));
+}
+.ink-sw[aria-pressed="true"] {
+  border-color: currentColor;
+}
+
+.ctl {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--rule);
+  border-radius: var(--r-chip);
+  color: var(--ink-3);
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+.ctl:hover {
+  border-color: var(--rule-2);
+  color: var(--ink);
+  background: var(--accent-soft);
+}
+.ctl:active {
+  transform: scale(var(--press));
+}
+.ctl svg {
+  display: block;
+}
+
+/* The drawing title, on a hairline it interrupts, and the same hairline once
+   the header condenses.
+   
+   One element in two layouts rather than two states. The title shrinks to
+   nothing between the two hairlines, they grow into the space it leaves, and
+   the compass — which was sitting to the right of centre because the title was
+   taking up the left half — ends up dead centre of an unbroken rule. Scrolling
+   back opens it again and the title is revealed rather than faded in.
+   
+   The compass does not move by being animated. It moves because the two
+   hairlines are `flex: 1 1 12px` and equalise as the title between them goes,
+   which is why the whole thing travels on one interpolation. */
+.hd-rule {
+  --hd-rule-gap: 14px;
+  display: flex;
+  align-items: center;
+  gap: var(--hd-rule-gap);
+  /* 16 balances the strip by the measure the eye actually takes: frame line
+     to the controls' top vs the controls' bottom to the hairline (which sits
+     9px into this rule's own 18px box). At 20 the strip read bottom-heavy and
+     it was called out. Unstuck only — the stuck strip overrides this to 0. */
+  margin-top: 16px;
+  min-width: 0;
+  transition:
+    --hd-rule-gap var(--dur-base) var(--ease-out),
+    margin-top var(--dur-base) var(--ease-out),
+    margin-bottom var(--dur-base) var(--ease-out);
+}
+.hd[data-stuck="true"] .hd-rule {
+  /* Zero, because the rule's box already carries nine pixels above its
+     hairline. Any margin here is added to that and the strip goes
+     bottom-heavy. */
+  margin-top: 0;
+  /* Half the rule's own height, pulled back, so the hairline sits exactly on
+     the ground's bottom edge rather than nine pixels above it. The compass
+     straddles that edge, which is what a survey mark on a rule does. */
+  margin-bottom: -9px;
+  /* The rule runs into the compass rather than stopping short of it. The gap
+     exists to hold the drawing title apart from the hairlines; once the title
+     has closed there is nothing left to hold apart, and the two 14px gaps
+     either side of the compass read as the line being broken around it. The
+     ring is `cx=9 r=8` on a 1px stroke in an 18px box, so its outer edge is
+     half a pixel inside the box and zero here puts the hairlines on it.
+     `.hd-title`'s pull-back is `calc(var(--hd-rule-gap) * -1)`, so it follows
+     this to zero on its own and stays exactly one gap throughout. */
+  --hd-rule-gap: 0px;
+}
+.hd-rule::before,
+.hd-rule::after {
+  content: "";
+  height: 1px;
+  background: var(--rule);
+  flex: 1 1 12px;
+  min-width: 8px;
+}
+.hd-title {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  /* --ink-2, not --ink-3: at 10px this is the drawing's own title, and the
+     annotation grey measured 3.77:1 on paper — an AA failure on the one line
+     that names the sheet. */
+  color: var(--ink-2);
+  white-space: nowrap;
+  text-transform: uppercase;
+  min-width: 0;
+  overflow: hidden;
+  /* Centred and clipped rather than ellipsised, so the string closes in from
+     both ends and the middle of it is the last thing to go. An ellipsis
+     appearing halfway through the close would be a third state. */
+  max-width: 60ch;
+  text-align: center;
+  text-overflow: clip;
+  transition:
+    max-width var(--dur-base) var(--ease-out),
+    margin-inline-start var(--dur-base) var(--ease-out),
+    opacity var(--dur-base) var(--ease-out);
+}
+/* The negative margin is what centres the compass, and it has to be here.
+   A flex gap is applied between every pair of items, so a title collapsed to
+   zero width still leaves its two gaps behind: the compass ended up half a gap
+   right of centre. Pulling the start margin back by exactly one gap cancels
+   one of them, and because it is a margin it interpolates along with
+   everything else rather than snapping at the end. */
+.hd[data-stuck="true"] .hd-title {
+  max-width: 0;
+  margin-inline-start: calc(var(--hd-rule-gap) * -1);
+  opacity: 0;
+}
+/* The north arrow. Its needle points at the cursor, which is the only thing on
+   the page that knows where the reader's hand is. */
+.north {
+  display: block;
+  color: var(--ink-3);
+  flex: none;
+  /* It straddles the strip's bottom edge once condensed, so half of it is over
+     the reader's content. It is a mark, not a control. */
+  pointer-events: none;
+}
+.north .needle {
+  transform-origin: 9px 9px;
+}
+.north .tip {
+  fill: var(--accent);
+}
+/* South is the same ink as the ring, held back so north reads as north. A
+   compass needle is one shape in two weights, not two shapes.
+   
+   Held back further on paper than on graphite. The two grounds are not
+   inversions of one another and neither are the inks on them: --ink-3 is a
+   mid grey either way, but on paper it darkens against the sheet and on
+   graphite it has to lift off it, so the same 0.45 that reads as a quiet
+   second half in light left the south needle almost gone in dark. */
+.north .tail {
+  fill: currentColor;
+  opacity: 0.45;
+}
+[data-theme="dark"] .north .tail {
+  opacity: 0.72;
+}
+.north .pivot {
+  fill: currentColor;
+}
+/* The fixed north mark. Lighter than the ring, because it is a graduation on
+   the dial rather than the dial's edge. */
+.north .cardinal {
+  stroke: currentColor;
+  stroke-width: 1;
+  opacity: 0.55;
+}
+/* Nothing under the glass while the compass sits at the head of the sheet: the
+   drawing is behind it there and should stay visible. It fills only once the
+   strip is a running header over the reader's content. */
+.north .dial {
+  fill: transparent;
+  transition: fill var(--dur-base) var(--ease-out);
+}
+.hd[data-stuck="true"] .north .dial {
+  fill: var(--hd-ground);
+}
+
+/* ---- panels: the shared drawing-panel material --------------------------- */
+
+.panel {
+  border: 1px solid var(--rule);
+  background: var(--raise);
+  padding: 22px 24px 20px;
+  position: relative;
+  /* Its own stacking context, so the two mesh layers below can be ordered
+     against the panel's content without leaking into the page's z-order. */
+  isolation: isolate;
+}
+/* The mesh is a material the panel is made of, so it sits under everything
+   printed on it. Without this the pseudo-elements paint over the content —
+   they are positioned and the content is not, so they win on paint order. */
+.panel > * {
+  position: relative;
+  z-index: 1;
+}
+/* Hover material: a fine hex mesh, revealed only under the cursor through a
+   radial mask. The panel is paper until a hand is near it, then it is a
+   material with a weave. */
+.panel::before,
+.panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: var(--hex-url);
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+.panel:hover::before,
+.panel:focus-within::before {
+  opacity: 0.09;
+}
+.panel::after {
+  mask-image: radial-gradient(
+    180px circle at var(--mx, 50%) var(--my, 50%),
+    #000 0%,
+    transparent 75%
+  );
+}
+.panel:hover::after,
+.panel:focus-within::after {
+  opacity: 0.42;
+}
+.panel h2,
+.panel h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.p-fig {
+  font-family: var(--f-mono);
+  font-size: 10.5px;
+  color: var(--ink-3);
+  margin: 0 0 10px;
+  display: block;
+}
+/* Two of the plate numbers are rendered by their figure component, which sits
+   below the heading in source order, but they read first. The panels are flex
+   columns, so `order` puts them back at the top without splitting the
+   component in two just to place a label. (They were replay buttons while
+   figs. 1 and 3 drew themselves in; the draw-in is gone and so is the
+   control.) */
+.p-fig-lead {
+  order: -1;
+  text-align: left;
+}
+.meta {
+  font-family: var(--f-mono);
+  font-size: 12px;
+  color: var(--ink-3);
+  margin-top: 4px;
+}
+.meta a {
+  display: inline-block;
+  padding-block: 4px;
+  margin-block: -4px;
+  color: var(--ink-3);
+  border-bottom: 1px solid var(--rule);
+  transition:
     color var(--dur-fast) var(--ease-out),
     border-color var(--dur-fast) var(--ease-out);
 }
-/* Sound "on" is the resting state, so it reads as a lit control rather than a
-   filled slab — a second black block beside the ink dot made the dock's right
-   end far heavier than its left. */
-.dock-btn[aria-pressed="true"] {
-  color: var(--accent-ink);
+.meta a:hover,
+.meta a:focus-visible {
+  color: var(--accent);
   border-color: var(--accent);
 }
-.dock-btn:hover {
-  color: var(--ink);
-  border-color: var(--ink);
-}
-/* Same 0.94 the ink swatches take, so every press in the dock answers with the
-   same amount of give. */
-.dock-btn:active {
-  transform: scale(0.94);
-}
-/* The mute cut is drawn on rather than switched on. `pathLength="1"` on the
-   path normalises the dash to its own length, so this is 0/1 rather than the
-   15.56 units the line actually measures. It runs from the bottom-left end —
-   the direction you'd strike it out by hand.
-
-   Both the ink stroke and the paper one under it carry this, so the gap in the
-   note opens exactly as far as the ink has travelled. Slightly slower than
-   --dur-fast: this is the state change itself, not the button acknowledging a
-   press, and at 140ms it reads as a swap rather than a stroke. */
-.dock-note-cut {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  transition: stroke-dashoffset var(--dur-base) var(--ease-out);
-}
-.dock-btn[aria-pressed="false"] .dock-note-cut {
-  stroke-dashoffset: 0;
-}
-/* Muted is read from localStorage after mount, so for a muted reader the first
-   commit flips this attribute — without the guard the cut would draw itself in
-   on every page load, which is an entrance animation nobody asked for. Same
-   trick the sliding indicator above uses: no transition until placed. */
-.dock-btn[data-ready="false"] .dock-note-cut {
-  transition: none;
-}
-.dock-pal {
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 0;
-  padding: 0;
-  background: var(--plate);
-  cursor: pointer;
-  flex: none;
-}
-.dock-pal-eye {
-  width: 12px;
-  height: 12px;
-  border: 2px solid var(--paper);
-  border-radius: var(--r-point);
-  transition: transform var(--dur-base) var(--ease-out);
-}
-.dock-pal[aria-expanded="true"] .dock-pal-eye {
-  transform: scale(1.35);
-}
-
-/* Anchors visible only on the home route, where they scroll rather than route. */
-@media (max-width: 620px) {
-  .dock-link[data-anchor="true"] {
-    display: none;
-  }
-}
-
-/* ---- Ink popover --------------------------------------------------------- */
-
-/* Native popover: ESC dismissal, light-dismiss and top-layer stacking come
-   free, and the panel can never be clipped by the dock's own box. The UA
-   stylesheet centres [popover] with `inset: 0; margin: auto`, so both are
-   reset before positioning against the trigger. */
-.pal[popover] {
-  position: fixed;
-  inset: auto;
-  margin: 0;
-  left: var(--pal-left, 12px);
-  bottom: var(--pal-bottom, 84px);
-  width: min(84vw, 320px);
-  padding: 16px;
-  border: 2px solid var(--ink);
-  background: var(--paper);
-  color: var(--ink);
-  overflow: visible;
-  opacity: 0;
-  transform: translateY(6px) scale(0.96);
-  transform-origin: var(--pal-arrow-x, 50%) 100%;
-  transition:
-    opacity 130ms var(--ease-in-out),
-    transform 130ms var(--ease-in-out),
-    overlay 130ms allow-discrete,
-    display 130ms allow-discrete;
-}
-.pal:popover-open {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-  transition-duration: 200ms;
-  transition-timing-function: var(--ease-out);
-}
-@starting-style {
-  .pal:popover-open {
-    opacity: 0;
-    transform: translateY(6px) scale(0.96);
-  }
-}
-/* Tail — two stacked triangles so the 2px border reads through the notch. */
-.pal::before,
-.pal::after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  width: 0;
-  height: 0;
-  border-inline: 8px solid transparent;
-}
-.pal::before {
-  left: calc(var(--pal-arrow-x, 50%) - 8px);
-  border-top: 9px solid var(--ink);
-}
-.pal::after {
-  left: calc(var(--pal-arrow-x, 50%) - 6px);
-  border-inline-width: 6px;
-  border-top: 7px solid var(--paper);
-}
-/* Each control group is a real fieldset — the label is its legend, so the
-   grouping is in the markup rather than bolted on with aria-labelledby. The
-   fieldset itself is only a wrapper; the visible box is the .seg inside it. */
-.pal-field {
-  border: 0;
-  margin: 0;
-  padding: 0;
-  min-inline-size: 0;
-}
-.pal-field + .pal-field {
-  margin-top: 16px;
-}
-.pal-label {
-  display: block;
-  padding: 0;
-  margin-bottom: 8px;
-  font-family: var(--f-mono);
-  font-size: 10.5px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+.p-body {
+  font-size: 14.5px;
   color: var(--ink-3);
+  line-height: 1.6;
+  margin: 12px 0 0;
+  max-width: 44em;
 }
-.seg {
-  display: flex;
-  gap: 4px;
-  padding: 3px;
-  border: 1px solid var(--rule-2);
+.p-body a {
+  color: var(--accent);
+  border-bottom: 1px solid transparent;
+  transition: border-color var(--dur-fast) var(--ease-out);
 }
-.seg-btn {
-  flex: 1;
-  border: 0;
-  background: transparent;
-  color: var(--chip-off-fg);
-  font-family: var(--f-mono);
-  font-size: 11.5px;
-  letter-spacing: 0.06em;
-  padding: 9px 4px;
-  cursor: pointer;
-  text-transform: uppercase;
+.p-body a:hover,
+.p-body a:focus-visible {
+  border-color: var(--accent);
 }
-.seg-btn[aria-pressed="true"] {
-  background: var(--chip-on-bg);
-  color: var(--chip-on-fg);
+/* A section title that is set as a label rather than as a heading. It is still
+   an h2: the block it opens is a section of the page, and a screen reader
+   walking the outline should find it. */
+h2.sec-label {
+  margin: 0;
+  font-weight: 400;
 }
-.seg-btn:hover:not([aria-pressed="true"]) {
-  color: var(--ink);
-  background: var(--wash);
-}
-.ink-row {
-  display: flex;
-  gap: 9px;
-  flex-wrap: wrap;
-}
-.ink-btn {
-  width: 30px;
-  height: 30px;
-  border: 0;
-  padding: 0;
-  cursor: pointer;
-  transition:
-    transform var(--dur-fast) var(--ease-out),
-    box-shadow var(--dur-base) var(--ease-out);
-}
-.ink-btn:hover {
-  transform: translateY(-2px);
-}
-.ink-btn:active {
-  transform: translateY(0) scale(0.94);
-}
-.ink-btn[aria-pressed="true"] {
-  box-shadow:
-    0 0 0 2px var(--paper),
-    0 0 0 4px currentColor;
-}
-.pal-note {
-  margin: 14px 0 0;
-  padding-top: 12px;
-  border-top: 1px solid var(--rule);
-  font-family: var(--f-serif);
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--ink-3);
-}
-
-/* ---- Footer -------------------------------------------------------------- */
-
-.press-foot {
-  margin-top: clamp(24px, 4vh, 36px);
-  padding-top: 14px;
-  padding-bottom: var(--dock-safe);
-  border-top: 1px solid var(--rule);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px 24px;
-  /* Centre, not baseline: the first item is an inline-flex box led by an SVG,
-     which has no baseline of its own and would drag the whole row down. */
-  align-items: center;
+.sec-label {
   font-family: var(--f-mono);
   font-size: 11px;
-  line-height: 1.7;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  letter-spacing: 0.16em;
   color: var(--ink-3);
+  text-transform: uppercase;
 }
-.press-foot-mark {
+
+/* ---- chips, social marks ------------------------------------------------- */
+
+.chip {
   display: inline-flex;
-  /* The colophon is the one place the mark is not seated on a baseline: there
-     is no rule under it here, so the underscore has nothing to line up with.
-     Centring the glyph against the Kannada beside it reads better. */
   align-items: center;
   gap: 7px;
+  white-space: nowrap;
+  font-family: var(--f-mono);
+  font-size: 12.5px;
+  color: var(--ink-3);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-chip);
+  padding: 7px 12px;
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
 }
-.press-foot-mark .mark {
-  /* 1.5 × the chrome size (1.04em → 1.56em), and centred on its own ink rather
-     than dropped onto the baseline — so `.mark`'s baseline offset is undone.
+.chip:hover {
+  border-color: var(--rule-2);
+  color: var(--ink);
+  background: var(--accent-soft);
+}
+/* The one documented exception to --press. The chip is 236px wide, where the
+   token's 0.94 is 14px of travel and reads as the whole row flinching; every
+   other control it sits beside is icon-sized. */
+.chip:active {
+  transform: scale(0.97);
+}
+.chip[data-copied="true"] {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+/* The confirmation is stamped into a cell the resting label already fills, so
+   the chip cannot change size under the press that caused it. A grid cell is
+   as wide as its widest item; the idle string is hidden but still measured. */
+.cp-slot {
+  display: grid;
+  align-items: center;
+}
+.cp-slot > * {
+  grid-area: 1 / 1;
+  justify-self: start;
+  white-space: nowrap;
+}
+.cp-slot > [data-on="false"] {
+  visibility: hidden;
+}
 
-     Optically, not geometrically: box-centring leaves the mark low, because its
-     ink centroid sits at 52.6% of the viewBox (the underscore pulls it down)
-     while the Kannada's sits above its own line box. Measured, the gap is 17.8%
-     of the mark's height — a share, so it holds at any size. */
-  height: 1.56em;
-  align-self: center;
-  transform: translateY(-17.8%);
-}
-.press-foot .kn {
-  font-family: var(--f-kannada);
-  font-weight: 500;
-  font-size: 14px;
-  letter-spacing: 0;
-  text-transform: none;
-}
-.press-foot-links {
+.socials {
   display: flex;
-  gap: 16px;
-  margin-left: auto;
+  align-items: center;
+  gap: 6px;
 }
-@media (max-width: 620px) {
-  .press-foot-links {
-    margin-left: 0;
+.soc {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid transparent;
+  border-radius: var(--r-chip);
+  color: var(--ink-3);
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+.soc:hover,
+.soc:focus-visible {
+  color: var(--accent);
+  border-color: var(--rule);
+  background: var(--accent-soft);
+}
+.soc:active {
+  transform: scale(var(--press));
+}
+
+/* ---- footer · the title block -------------------------------------------- */
+
+/* The title block sits well clear of the drawing above it. On a real sheet the
+   block is a separate object in the corner, not the last row of the figure. */
+.tb-wrap {
+  padding-top: 56px;
+}
+
+/* A real drawing's title block: the cells are the grid, and the 1px gap between
+   them is the rule. One border, one background, no per-cell strokes.
+
+   Four equal tracks, dropping to two, and never `auto-fit`. auto-fit lays down
+   as many tracks as will fit and then leaves the spare ones empty, which put a
+   blank slab on the end of the row at some widths. Four cells across four
+   tracks fills the block exactly at every size, and the values wrap inside
+   their cell rather than being cut off. */
+.tblock {
+  /* The same rule every panel on the sheet is drawn with. It was 1.5px in
+     --rule-2, which made the one block at the foot of the page heavier than
+     any figure above it. */
+  border: 1px solid var(--rule);
+  background: var(--rule-3);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+}
+.tb-cell {
+  background: var(--raise);
+  padding: 10px 16px 11px;
+  min-width: 0;
+}
+.tb-l {
+  font-family: var(--f-mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: var(--ink-3);
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 5px;
+  /* The labels are short; letting them wrap is what keeps a narrow cell from
+     pushing the whole track wider than its share. */
+  overflow-wrap: anywhere;
+}
+/* Values wrap rather than ellipsis. A title block that hides half a date to
+   stay on one line has stopped being a record of anything. */
+.tb-v {
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.tb-v .mono {
+  font-size: 12.5px;
+  font-weight: 400;
+}
+/* One contact row across the foot, with the marks pushed to the far end. It is
+   a single cell rather than two so the block cannot resolve to three rows at
+   any width: four short cells, then this. */
+.tb-contact {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 18px;
+  flex-wrap: wrap;
+  padding-block: 9px;
+}
+.tb-contact-l {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.tb-contact-l .tb-l {
+  margin-bottom: 0;
+}
+/* A cell of the block, spanning it, and the first one you read.
+
+   It was a filled slab sitting above the block, on the argument that the
+   page's one request should be unmissable, and it read as a banner pasted onto
+   a drawing. It is part of the record now, which is where a drawing puts who
+   to contact, and the grid's own 1px gap is the separator under it. The words
+   carry the ink, which is what the ink is for everywhere else here. */
+.tb-say {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px 20px;
+  flex-wrap: wrap;
+  background: var(--raise);
+  padding: 16px 20px;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+/* Hover washes the cell, which is what every other pressable row on the sheet
+   does. There is no border of its own to take up: the grid gap is the rule. */
+.tb-say:hover,
+.tb-say:focus-visible {
+  background: var(--accent-soft);
+}
+
+.tb-say-l {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.018em;
+  color: var(--accent);
+}
+.tb-say-v {
+  font-family: var(--f-mono);
+  font-size: 13px;
+  color: var(--accent);
+  overflow-wrap: anywhere;
+}
+
+.tb-email {
+  font-family: var(--f-mono);
+  font-size: 12px;
+  color: var(--ink-3);
+  overflow-wrap: anywhere;
+}
+/* The right-hand end of the contact row: the keys offer, then the marks. */
+.tb-contact-r {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.tb-keys {
+  font-size: 11px;
+  padding: 4px 9px;
+}
+/* A link, not a chip: bare at rest, and it takes a box under the pointer the
+   same way the marks beside it do — transparent border to --rule, the accent
+   wash, the accent ink, --press on the way down. It is in their row, so it
+   answers the way they do. The 30px floor keeps the target over 24px and
+   centres the balloon on the chip's cap line. */
+.tb-cv {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 30px;
+  padding-inline: 8px;
+  /* Optical, not geometric. The row's 14px gap is measured between boxes, and
+     the marks that follow carry 7.5px of their own inset inside a 28px target,
+     so the space you see on the right of the word was 30.5px against 23px on
+     the left of the balloon. Their inset is pulled back here, where the thing
+     being aligned is, and the two gaps read the same. */
+  margin-inline-end: -7px;
+  border: 1px solid transparent;
+  border-radius: var(--r-chip);
+  font-family: var(--f-mono);
+  font-size: 11px;
+  color: var(--ink-3);
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+/* The balloon. A drawing points at another sheet with a reference in a circle,
+   so that is what this is: the one circle in the title block that is a circle
+   because the drawing office draws it that way. --r-point, the same radius as
+   the loupe and the station dots. Its ring is a drawn line at rest and takes
+   the ink with the rest of the control. */
+.cv-balloon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  flex: none;
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r-point);
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+/* No resting state for the current page. The marks beside it do not mark
+   themselves either, and a permanently washed box in the corner of the résumé
+   is a highlight nobody asked for. The attribute stays for the screen reader. */
+.tb-cv:hover,
+.tb-cv:focus-visible {
+  color: var(--accent);
+  border-color: var(--rule);
+  background: var(--accent-soft);
+}
+.tb-cv:hover .cv-balloon,
+.tb-cv:focus-visible .cv-balloon {
+  border-color: currentColor;
+}
+.tb-cv:active {
+  transform: scale(var(--press));
+}
+.tb-contact .socials {
+  gap: 2px;
+}
+.tb-contact .soc {
+  width: 28px;
+  height: 28px;
+}
+.foot-pad {
+  height: 26px;
+}
+
+@media (max-width: 720px) {
+  .tb-wrap {
+    padding-top: 40px;
+  }
+  .tblock {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+/* No frame on a phone. The sheet's margin, its border and the registration
+   ticks cost 26px of a 375px screen and a band top and bottom; the page is
+   the sheet there. The frame returns at 641px, where there is room for it. */
+@media (max-width: 640px) {
+  .sheet {
+    margin: 0;
+    border: 0;
+    min-height: 100vh;
+  }
+  .tick-c {
+    display: none;
+  }
+  .wrap {
+    --gutter: 16px;
+  }
+  /* The compass follows a pointer, and a phone has none. Once the strip
+     sticks it straddled the rule over the reader's content for nothing, so
+     it closes to zero width and the two hairlines meet: an unbroken rule. */
+  .north {
+    transition:
+      width var(--dur-base) var(--ease-out),
+      opacity var(--dur-base) var(--ease-out);
+  }
+  .hd[data-stuck="true"] .north {
+    width: 0;
+    opacity: 0;
+  }
+  /* No blur on a phone. A backdrop-filter over a scrolling page re-blurs
+     every frame on the GPU, and on a phone that is the frame drop the owner
+     felt on the home page. The strip keeps a denser ground instead: 94% of
+     the paper, so the content under it still shows as a tint. Prefixed line
+     first: the minifier keeps only the last of the pair. */
+  .hd[data-stuck="true"] .hd-strip {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    --hd-ground: color-mix(in oklab, var(--paper) 94%, transparent);
+  }
+  /* The links and the preferences leave the strip on a phone (they render in
+     .ptray, below) and the strip keeps the mark and the names. */
+  .hd .hd-ctls,
+  .hd .hd-nav > a {
+    display: none;
+  }
+  /* 24px of panel padding inside an 18px gutter inside a 12px margin left
+     267px for the figures. 16 gives them 283. */
+  .panel {
+    padding: 18px 16px 18px;
+  }
+  .tb-cell {
+    padding: 10px 12px;
+  }
+  .tb-v {
+    white-space: normal;
+    overflow: visible;
+  }
+  .tb-say {
+    padding: 14px 12px;
+  }
+  .tb-say-l {
+    font-size: 19px;
+  }
+  /* Two lines: the origin, then the résumé chip and the marks. The chip's own
+     8px inset is pulled back so its balloon sits on the cell's left edge with
+     the label above it. */
+  .tb-contact {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding-inline: 12px;
+  }
+  .tb-contact-r {
+    margin-left: -8px;
   }
 }
 
-/* ---- Swatch inks --------------------------------------------------------
-   Painted from CSS rather than from a style prop, for two reasons: the server
-   has no idea which theme the reader is on, so a JS-chosen hex hydrates into a
-   mismatch; and driving it from here means the swatches cross-fade along with
-   the theme instead of snapping. `color` feeds the selected ring through
-   currentColor. */
+/* ---- the phone bar ------------------------------------------------------- */
 
-.ink-btn[data-ink-id="bottle"],
-.swatch[data-ink-id="bottle"] {
-  background: oklch(0.472 0.098 158);
-  color: oklch(0.472 0.098 158);
-}
-.ink-btn[data-ink-id="brass"],
-.swatch[data-ink-id="brass"] {
-  background: oklch(0.618 0.106 84);
-  color: oklch(0.618 0.106 84);
-}
-.ink-btn[data-ink-id="oxblood"],
-.swatch[data-ink-id="oxblood"] {
-  background: oklch(0.488 0.118 24);
-  color: oklch(0.488 0.118 24);
-}
-.ink-btn[data-ink-id="dustblue"],
-.swatch[data-ink-id="dustblue"] {
-  background: oklch(0.502 0.078 240);
-  color: oklch(0.502 0.078 240);
-}
-.ink-btn[data-ink-id="aubergine"],
-.swatch[data-ink-id="aubergine"] {
-  background: oklch(0.442 0.116 316);
-  color: oklch(0.442 0.116 316);
-}
-.ink-btn[data-ink-id="umber"],
-.swatch[data-ink-id="umber"] {
-  background: oklch(0.466 0.054 54);
-  color: oklch(0.466 0.054 54);
-}
-
-[data-theme="dark"] .ink-btn[data-ink-id="bottle"],
-[data-theme="dark"] .swatch[data-ink-id="bottle"] {
-  background: oklch(0.748 0.094 154);
-  color: oklch(0.748 0.094 154);
-}
-[data-theme="dark"] .ink-btn[data-ink-id="brass"],
-[data-theme="dark"] .swatch[data-ink-id="brass"] {
-  background: oklch(0.826 0.102 88);
-  color: oklch(0.826 0.102 88);
-}
-[data-theme="dark"] .ink-btn[data-ink-id="oxblood"],
-[data-theme="dark"] .swatch[data-ink-id="oxblood"] {
-  background: oklch(0.732 0.113 29);
-  color: oklch(0.732 0.113 29);
-}
-[data-theme="dark"] .ink-btn[data-ink-id="dustblue"],
-[data-theme="dark"] .swatch[data-ink-id="dustblue"] {
-  background: oklch(0.746 0.075 245);
-  color: oklch(0.746 0.075 245);
-}
-[data-theme="dark"] .ink-btn[data-ink-id="aubergine"],
-[data-theme="dark"] .swatch[data-ink-id="aubergine"] {
-  background: oklch(0.708 0.111 320);
-  color: oklch(0.708 0.111 320);
-}
-[data-theme="dark"] .ink-btn[data-ink-id="umber"],
-[data-theme="dark"] .swatch[data-ink-id="umber"] {
-  background: oklch(0.728 0.052 57);
-  color: oklch(0.728 0.052 57);
-}
-
-.ink-btn,
-.swatch {
+/* Home, writing and résumé, then ink, theme and sound, in one pill fixed at
+   the foot of a phone screen where a thumb is. The strip they came from is
+   sticky at the top and out of reach on a tall phone. Drawn as the sheet's
+   other chrome: raised ground, one rule, the chip radius, no shadow.
+   Header.tsx moves the same links and buttons here through a portal, so the
+   keyboard map registers once. Hidden while the title block is on screen.
+   Never shown above 640px (the media rule at the end of this file turns it
+   on). The pill never changes width: the six inks open in a popover above it
+   rather than inside it. */
+.ptray {
+  display: none;
+  position: fixed;
+  left: 50%;
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 71;
+  /* Whole pixels. The pill's content came to 300.09px and centring it put
+     every edge on a half pixel; at 3x the swatch's 1px ring and its fill
+     then rasterised on different device pixels and the fill read as pushed
+     off centre. Fixed width and height, and a left edge rounded to the pixel
+     where round() exists; the transform centring stays as the fallback. */
+  width: 300px;
+  height: 46px;
+  /* Its own compositing layer. Without one the route swap's repaint took
+     the pill for a frame in Chromium, which read as the bar remounting. */
+  will-change: transform;
+  align-items: center;
+  gap: 14px;
+  padding: 5px 8px 5px 6px;
+  background: var(--raise);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-chip);
   transition:
-    background-color var(--dur-ink) var(--ease-quart),
-    transform var(--dur-fast) var(--ease-out),
-    box-shadow var(--dur-base) var(--ease-out);
+    opacity var(--dur-base) var(--ease-out),
+    transform var(--dur-base) var(--ease-out);
+}
+.ptray[data-show="false"] {
+  opacity: 0;
+  transform: translateX(-50%) translateY(8px);
+  pointer-events: none;
+}
+@supports (left: round(nearest, 1px, 1px)) {
+  .ptray {
+    left: round(nearest, calc(50% - 150px), 1px);
+    transform: none;
+  }
+  .ptray[data-show="false"] {
+    transform: translateY(8px);
+  }
+}
+.pt-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.pt-nav > a {
+  font-family: var(--f-mono);
+  font-size: 12px;
+  color: var(--ink-3);
+  padding: 7px 8px;
+  min-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--r-chip);
+  position: relative;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+.pt-nav > a[aria-current="page"] {
+  color: var(--ink);
+}
+/* The current page's rule, the same mark the strip's links use. */
+.pt-nav > a::after {
+  content: "";
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 3px;
+  height: 1px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--dur-base) var(--ease-out);
+}
+.pt-nav > a[aria-current="page"]::after {
+  transform: scaleX(1);
+}
+/* Home's current-page mark is the bar under the G, not a second rule under
+   it. Grey at rest, the ink when this is the page. */
+.pt-home {
+  color: var(--ink);
+}
+.pt-home::after {
+  display: none;
+}
+.pt-mark {
+  display: block;
+  height: 18px;
+  width: auto;
+  /* base.css caps every svg at 100% of its container. Inside a content-sized
+     flex item that is circular and resolved to 0: the mark was 0px wide. */
+  max-width: none;
+  flex: none;
+}
+.pt-mark .mark-bar {
+  fill: var(--ink-3);
+  transition: fill var(--dur-base) var(--ease-out);
+}
+.pt-home[aria-current="page"] .pt-mark .mark-bar {
+  fill: var(--accent);
+}
+.pt-ctls {
+  display: flex;
+  align-items: center;
+  padding-left: 12px;
+  border-left: 1px solid var(--rule-3);
+}
+.ptray .hd-ctls {
+  display: flex;
+  gap: 10px;
+}
+/* The ink picker is a sheet inside the pill.
+
+   The pill never changes width. The six swatches live on a layer that spans
+   the pill from its left edge to the ink slot, in the pill's own material.
+   Closed, the layer is clipped to the 16px slot and shows the active ink.
+   Pressed, the clip opens leftward from the slot over the links, and the six
+   fan out from the slot to even positions across the sheet, in tray order,
+   the far ink arriving last. A pick folds it all back into the slot. The
+   theme and sound controls to the right never move and are never covered.
+
+   Geometry: the slot's right edge is 88px from the pill's right edge (sound
+   30, gap 10, theme 30, gap 10, padding 8); the row keeps the slot itself as
+   a pseudo-element, because the layer is out of the flow. */
+.ptray .hd-ctls::before {
+  content: "";
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+.ptray .inks {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 88px;
+  margin: 0;
+  background: var(--raise);
+  clip-path: inset(0 0 0 calc(100% - 16px - 6px));
+  transition: clip-path var(--dur-base) var(--ease-out);
+}
+.ptray .inks[data-open="true"] {
+  clip-path: inset(0 0 0 0);
+}
+/* Each swatch is placed from the sheet's right edge, so the closed position
+   (all six stacked in the slot) and the open one (spread to the left edge)
+   are the same property, and the travel is one interpolation. */
+.ptray .inks .ink-sw {
+  display: inline-flex;
+  position: absolute;
+  /* (44 - 16) / 2 inside the pill's 44px content box: a whole pixel. */
+  top: 14px;
+  right: 6px;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    right var(--dur-base) var(--ease-out),
+    opacity var(--dur-fast) var(--ease-out),
+    visibility 0s linear var(--dur-base),
+    border-color var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+.ptray .inks .ink-sw[aria-pressed="true"] {
+  opacity: 1;
+  visibility: visible;
+  z-index: 1;
+}
+.ptray .inks[data-open="true"] .ink-sw {
+  opacity: 1;
+  visibility: visible;
+  /* From the slot (6px in from the sheet's right edge) to 15px in from the
+     left edge, which is the same 15px the last ink has to the theme button. */
+  right: calc(6px + (6 - var(--n)) * ((100% - 6px - 15px - 16px) / 5));
+  transition:
+    right var(--dur-base) var(--ease-out) calc((6 - var(--n)) * 25ms),
+    opacity var(--dur-fast) var(--ease-out) calc((6 - var(--n)) * 25ms),
+    visibility 0s,
+    border-color var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+.ptray .inks .ink-sw:nth-child(1) {
+  --n: 1;
+}
+.ptray .inks .ink-sw:nth-child(2) {
+  --n: 2;
+}
+.ptray .inks .ink-sw:nth-child(3) {
+  --n: 3;
+}
+.ptray .inks .ink-sw:nth-child(4) {
+  --n: 4;
+}
+.ptray .inks .ink-sw:nth-child(5) {
+  --n: 5;
+}
+.ptray .inks .ink-sw:nth-child(6) {
+  --n: 6;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ptray .inks,
+  .ptray .inks .ink-sw {
+    transition: none;
+  }
+}
+
+/* After the base rule above, so it wins. */
+@media (max-width: 640px) {
+  .ptray {
+    display: flex;
+  }
 }

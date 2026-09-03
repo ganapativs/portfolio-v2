@@ -23,6 +23,13 @@
       "autoPort": false
     },
     {
+      "name": "prod-local",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["start", "--port", "3200"],
+      "port": 3200,
+      "autoPort": false
+    },
+    {
       "name": "attach-existing",
       "runtimeExecutable": "sleep",
       "runtimeArgs": ["86400"],

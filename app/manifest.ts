@@ -1,18 +1,18 @@
 import type { MetadataRoute } from "next";
 import { INK_HEX, SURFACE_HEX } from "@/lib/ink";
+import { BIO } from "@/lib/resume";
 
 export const dynamic = "force-static";
 
 export default function manifest(): MetadataRoute.Manifest {
   const isProd = process.env.NODE_ENV === "production";
-  const accent = INK_HEX[isProd ? "bottle" : "aubergine"];
+  const accent = INK_HEX[isProd ? "dustblue" : "aubergine"];
   const suffix = isProd ? "" : " (dev)";
 
   return {
-    name: `Ganapati V S — meetguns${suffix}`,
+    name: `Ganapati V S · meetguns${suffix}`,
     short_name: `meetguns${suffix}`,
-    description:
-      "Engineer and engineering leader in Bengaluru. Eleven years at Tracxn, from first-week engineer to VP — still writing code most weeks.",
+    description: BIO,
     start_url: "/",
     id: "/",
     scope: "/",
@@ -44,17 +44,17 @@ export default function manifest(): MetadataRoute.Manifest {
         sizes: "1280x800",
         type: "image/png",
         form_factor: "wide",
-        label: "The masthead and the eleven-year press run",
+        label: "The home page: intro, project figures and the open-source list",
       },
       {
         src: "/brand/screenshot-narrow.png",
         sizes: "540x1170",
         type: "image/png",
         form_factor: "narrow",
-        label: "The masthead, on a phone",
+        label: "The home page, on a phone",
       },
     ],
-    // The two destinations worth a long-press on the installed icon. The dock
+    // The two destinations worth a long-press on the installed icon. The header
     // carries Home and Writing; Résumé deliberately isn't in it, which makes it
     // exactly the thing a shortcut is for.
     shortcuts: [

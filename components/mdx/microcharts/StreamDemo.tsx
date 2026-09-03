@@ -5,7 +5,7 @@ import { Delta } from "@microcharts/react/delta";
 import { StatusDot } from "@microcharts/react/status-dot";
 import { MiniBar } from "@microcharts/react/mini-bar";
 
-// A model "reply" that uses the microcharts stream grammar — one backtick run
+// A model "reply" that uses the microcharts stream grammar: one backtick run
 // per inline chart, one fenced block for the standalone chart.
 const REPLY = [
   "Deploys look healthy this week. Frequency held steady ",
@@ -16,7 +16,7 @@ const REPLY = [
   "`microchart status-dot ok`",
   " since Tuesday's rollback.\n\n",
   "```microchart mini-bar Slowest builds (minutes)\nweb 14\napi 9\nmobile 21\ndocs 4\n```",
-  "\n\nMobile is the outlier — the cache pass we skipped in March is due.",
+  "\n\nMobile is the outlier: the cache pass we skipped in March is due.",
 ].join("");
 
 const STATUSES = new Set(["ok", "warn", "error", "off", "busy"]);
@@ -81,7 +81,7 @@ function blockChart(head: string, body: string): React.ReactNode | null {
   );
 }
 
-// Re-parse the full visible prefix on every frame — in-flight grammar renders
+// Re-parse the full visible prefix on every frame: in-flight grammar renders
 // as literal code; the chart appears only the instant its fence closes.
 function parse(text: string): Seg[] {
   const segs: Seg[] = [];
@@ -135,7 +135,7 @@ function parse(text: string): Seg[] {
       i = close + 1;
     }
   }
-  // Block charts own their spacing — swallow the blank lines around them so the
+  // Block charts own their spacing: swallow the blank lines around them so the
   // reply doesn't render dead vertical gaps (same rule as the real grammar).
   for (let s = 0; s < segs.length; s++) {
     const seg = segs[s];
@@ -194,7 +194,7 @@ export function StreamDemo() {
     const tick = slow ? 64 : 18;
     const id = setInterval(() => {
       setShown((n) => {
-        const step = 1 + ((n * 7) % 3); // 1–3 chars, deterministic jitter
+        const step = 1 + ((n * 7) % 3); // 1-3 chars, deterministic jitter
         const nxt = Math.min(REPLY.length, n + step);
         if (nxt === REPLY.length) setPlaying(false);
         return nxt;
@@ -226,7 +226,7 @@ export function StreamDemo() {
           s.kind === "text" ? (
             <span key={s.at}>{s.text}</span>
           ) : s.kind === "raw" ? (
-            // span, not <code> — the article's inline-code chip styling (background,
+            // span, not <code>: the article's inline-code chip styling (background,
             // border) must not apply; raw grammar reads as plain dim mono text.
             <span
               key={s.at}

@@ -1,22 +1,21 @@
 import { ViewTransition } from "react";
-import { Dock } from "@/components/press/Dock";
+import { Sheet } from "@/components/schematic/Sheet";
 
 /**
- * The press shell. Everything the reader sees lives in here. It is a route
- * group rather than a segment so it can own the chrome without owning a URL.
+ * Everything the reader sees is drawn on the sheet. A route group rather than a
+ * segment, so it can own the drawing without owning a URL.
  */
-export default function PressLayout({ children }: { children: React.ReactNode }) {
+export default function SheetLayout({ children }: { children: React.ReactNode }) {
   return (
-    <>
-      <a href="#main-content" className="skip-link">
-        Skip to the work
-      </a>
-      <span className="reg-mark" data-side="left" aria-hidden="true" />
-      <span className="reg-mark" data-side="right" aria-hidden="true" />
+    <Sheet>
       <main id="main-content">
-        <ViewTransition name="route">{children}</ViewTransition>
+        {/* `default` is the view-transition-class base.css targets. React
+            names each routed child `route_N`, so a selector on the name
+            `route` matched nothing and the browser's own crossfade ran. */}
+        <ViewTransition name="route" default="vt-route">
+          {children}
+        </ViewTransition>
       </main>
-      <Dock />
-    </>
+    </Sheet>
   );
 }

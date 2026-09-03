@@ -1,0 +1,24 @@
+{
+  // Cloudflare Workers static assets, and nothing else: no worker script, no
+  // bindings, no buckets. `pnpm build` static-exports the site to ./out
+  // (`output: "export"` in next.config.ts) and Cloudflare serves it straight
+  // from the edge — the same shape as the microcharts docs site, minus even
+  // its tiny worker, because nothing here negotiates at request time.
+  //
+  // Headers and redirects ride along as out/_headers and out/_redirects
+  // (authored in public/), which wrangler parses at deploy.
+  //
+  //   pnpm cf:preview   build and serve ./out locally through workerd
+  //   pnpm cf:deploy    build, ship, and ping the search engines
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "meetguns",
+  "compatibility_date": "2026-08-28",
+
+  "assets": {
+    "directory": "./out",
+    // The export writes per-route files as blog/<slug>.html (trailingSlash is
+    // off), plus a top-level 404.html. These two map requests onto that layout.
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page",
+  },
+}

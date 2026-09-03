@@ -28,7 +28,7 @@ export function ZoomImage({
       const { default: mediumZoom } = await import("medium-zoom");
       if (cancelled || !ref.current) return;
       zoom = mediumZoom(ref.current, {
-        background: "color-mix(in oklab, var(--moonless) 85%, transparent)",
+        background: "color-mix(in oklab, var(--paper) 82%, transparent)",
         margin: 24,
       });
       // `open` fires on the zoom itself, so a keyboard-triggered zoom counts
@@ -74,7 +74,9 @@ export function ZoomImage({
       style={{
         maxWidth: "100%",
         height: "auto",
-        borderRadius: "var(--r-md)",
+        // No radius: a figure is drawing geometry (--r-rule is 0), and the
+        // old var(--r-md) was never declared anywhere — it resolved to 0 too,
+        // just by accident.
         margin: "var(--s-5) 0",
       }}
     />

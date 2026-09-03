@@ -21,7 +21,9 @@ export type Shortcut = {
   scope?: ShortcutScope;
   hint?: string;
   elementRef?: React.RefObject<HTMLElement | null>;
-  /** When true, use the registered shortcut's own onRun and skip the global tick chime (e.g. accent picker plays its own pentatonic note). */
+  /** Skip the registry's generic tick and let the shortcut sound itself. The
+   *  ink tray uses it: each of the six inks has its own pitch, and the generic
+   *  tick would land on top of the note. */
   silent?: boolean;
   run: () => void;
 };
@@ -114,7 +116,20 @@ export function ShortcutProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const openHelp = useCallback(() => setHelpOpen(true), []);
+  /**
+   * Both ways in go through here, which is why the event is reported here.
+   *
+   * It used to fire from the `?` keydown only, so the help sheet opened from
+   * the title block's chip was invisible in the numbers: the chip reported
+   * `cta:tb.keys` and then nothing said the sheet had opened. Guarded on the
+   * current value so re-opening an open sheet does not count twice.
+   */
+  const openHelp = useCallback(() => {
+    setHelpOpen((prev) => {
+      if (!prev) track({ name: "help" });
+      return true;
+    });
+  }, []);
   const closeHelp = useCallback(() => setHelpOpen(false), []);
 
   const activeScope = scopeStack[scopeStack.length - 1] ?? "global";
@@ -131,8 +146,9 @@ export function ShortcutProvider({ children }: { children: React.ReactNode }) {
         if (!helpOpen) {
           fx?.tick();
           fx?.haptic(6);
-          setHelpOpen(true);
-          track({ name: "help" });
+          // openHelp reports it. Doing it here too would double-count the
+          // keyboard path against the pointer one.
+          openHelp();
         }
         return;
       }
@@ -176,7 +192,7 @@ export function ShortcutProvider({ children }: { children: React.ReactNode }) {
 
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [activeScope, helpOpen, fx]);
+  }, [activeScope, helpOpen, fx, openHelp]);
 
   const api = useMemo<RegistryAPI>(
     () => ({
