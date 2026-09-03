@@ -208,13 +208,22 @@
   max-width: 100%;
 }
 .essay-title {
-  margin: 0;
+  /* Room above to match the 16px the meta line takes below. The back link
+     sat on the title's cap line with nothing between them, so the title
+     read as attached to the link and detached from its own date. */
+  margin: 22px 0 0;
   font-weight: 700;
   font-size: clamp(30px, calc(24px + 1.6vw), 46px);
   line-height: 1.12;
   letter-spacing: -0.022em;
   text-wrap: balance;
   max-width: 26ch;
+}
+.essay-meta-links {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  white-space: nowrap;
 }
 .essay-meta {
   margin-top: 16px;

@@ -46,19 +46,23 @@ export function EssayShell({ post, children }: { post: Post; children: React.Rea
         <span aria-hidden="true">·</span>
         <span>{post.tag}</span>
         <span aria-hidden="true">·</span>
-        <a
-          href={shareUrl}
-          target="_blank"
-          rel="noreferrer"
-          data-analytics={`cta:essay.share.${post.slug}`}
-        >
-          share
-        </a>
-        <span aria-hidden="true">·</span>
-        {/* The markdown mirror of this page — see scripts/gen-md.ts. */}
-        <a href={`/blog/${post.slug}.md`} data-analytics="feed:markdown">
-          .md
-        </a>
+        {/* The two links wrap as one unit: on a phone the line broke between
+            them and ".md" sat alone on a line under its separator. */}
+        <span className="essay-meta-links">
+          <a
+            href={shareUrl}
+            target="_blank"
+            rel="noreferrer"
+            data-analytics={`cta:essay.share.${post.slug}`}
+          >
+            share
+          </a>
+          <span aria-hidden="true">·</span>
+          {/* The markdown mirror of this page — see scripts/gen-md.ts. */}
+          <a href={`/blog/${post.slug}.md`} data-analytics="feed:markdown">
+            .md
+          </a>
+        </span>
       </div>
 
       {cover && (
