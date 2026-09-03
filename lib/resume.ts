@@ -124,7 +124,7 @@ export const roles: Role[] = [
     start: "Sep 2023",
     end: "Present",
     bullets: [
-      "Architect of the company's customer-facing AI assistant and the API documentation portal it lives in: an OpenAPI-driven docs pipeline, intent-based routing across multiple model providers, a tool and skills layer, server-side document export, versioned prompts behind an evaluation harness, and audit-grade logging. Shipped and hardened since, while running the broader engineering queue.",
+      "Architect of the company's customer-facing AI assistant and a knowledge base of specs, docs, search and more: intent-based routing across multiple model providers, a tool and skills layer, document export, versioned prompts behind an evaluation harness, and audit-grade logging. Shipped and hardened since, while running the broader engineering queue.",
       "Architected the MCP server surface and shipped its first version: read-only connectors behind OAuth, so AI coding clients reach the API without a pasted key; now co-owned with the team.",
       "Authored @microcharts/react outside the day job. 106 word-sized React chart types, zero dependencies, ~1-7 kB gzip each, accessible and server-component safe; design, code, docs and release, solo.",
       "Cross-stack performance program: native browser image loading with DPR-aware URLs, compression on portal assets, render profiling, and a framework-level scroll / re-render / CSS pass.",

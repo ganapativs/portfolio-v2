@@ -33,10 +33,10 @@ type Stroke = { d: string; solid?: boolean; dash?: boolean; act?: string };
 
 const PARTS: { name: string; note: string; glyph: Stroke[] }[] = [
   {
-    name: "OpenAPI → docs",
-    note: "The API documentation portal writes itself from the OpenAPI spec, and the assistant lives inside it. One source, read once by a person and once by a model.",
-    // A page with a folded corner and two rules. The spec goes in one end and a
-    // documentation site comes out the other.
+    name: "knowledge base",
+    note: "The assistant answers from a knowledge base of specs, written docs, search and more. A person can read the same material the model does.",
+    // A page with a folded corner and two rules. Material goes in; a knowledge
+    // base comes out.
     glyph: [
       { d: "M-12 -13 H5 L12 -6 V13 H-12 Z" },
       { d: "M5 -13 V-6 H12" },

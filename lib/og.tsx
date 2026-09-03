@@ -196,18 +196,28 @@ export async function renderOG({
               {title}
             </div>
             {dims.length > 0 && (
-              <div style={{ display: "flex", alignItems: "baseline", gap: 34 }}>
+              <div style={{ display: "flex", alignItems: "flex-end", gap: 34 }}>
                 {dims.map((d) => (
                   <div
                     key={d.v + (d.l ?? "")}
-                    style={{ display: "flex", alignItems: "baseline", gap: 8 }}
+                    style={{ display: "flex", alignItems: "flex-end", gap: 8 }}
                   >
-                    <div style={{ fontFamily: '"Mono"', fontSize: 33, color: INK }}>{d.v}</div>
+                    <div
+                      style={{
+                        fontFamily: '"Mono"',
+                        fontSize: 33,
+                        lineHeight: 1,
+                        color: INK,
+                      }}
+                    >
+                      {d.v}
+                    </div>
                     {d.l && (
                       <div
                         style={{
                           fontFamily: '"Mono"',
                           fontSize: 15,
+                          lineHeight: 1,
                           letterSpacing: 1.5,
                           textTransform: "uppercase",
                           color: INK_3,
@@ -237,7 +247,14 @@ export async function renderOG({
         </div>
 
         {/* The title block, cells and all, across the foot of the sheet. */}
-        <div style={{ display: "flex", borderTop: `2px solid ${RULE_2}`, marginTop: 8 }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-end",
+            borderTop: `2px solid ${RULE_2}`,
+            marginTop: 8,
+          }}
+        >
           {[
             ["Drawn by", identity.name],
             ["Role", `${identity.jobTitle} · ${identity.worksFor.name}`],
@@ -284,6 +301,7 @@ export async function renderOG({
                 fontFamily: '"Mono"',
                 fontSize: 14,
                 letterSpacing: 2,
+                lineHeight: 1,
                 textTransform: "uppercase",
                 color: INK_3,
               }}
@@ -305,19 +323,39 @@ export async function renderOG({
               ))}
             </div>
           </div>
+          {/* Same two-row stack as the inks cell, so the URL sits on the
+              swatch row and on the right edge. Satori treats a one-line
+              sibling as flex-start, which parked it up by the Inks label. */}
           <div
             style={{
               marginLeft: "auto",
               display: "flex",
+              flexDirection: "column",
               alignItems: "flex-end",
+              gap: 10,
               padding: "16px 0 20px",
-              fontFamily: '"Mono"',
-              fontSize: 18,
-              letterSpacing: 2,
-              color: ink,
             }}
           >
-            {footer}
+            <div
+              style={{
+                fontFamily: '"Mono"',
+                fontSize: 14,
+                letterSpacing: 2,
+                lineHeight: 1,
+                height: 14,
+              }}
+            />
+            <div
+              style={{
+                fontFamily: '"Mono"',
+                fontSize: 18,
+                letterSpacing: 2,
+                lineHeight: 1,
+                color: ink,
+              }}
+            >
+              {footer}
+            </div>
           </div>
         </div>
       </div>

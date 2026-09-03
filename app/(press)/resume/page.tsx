@@ -20,7 +20,7 @@ import { ROLE_COPY, SUMMARY } from "./copy";
 export const metadata = pageMetadata({
   title: "Résumé",
   path: "/resume",
-  description: `Résumé of ${identity.name}. ${identity.jobTitle} at ${identity.worksFor.name}. ${CAREER_YEARS} years, four promotions. The AI assistant and docs portal, microcharts, and open source going back to 2013.`,
+  description: `Résumé of ${identity.name}. ${identity.jobTitle} at ${identity.worksFor.name}. ${CAREER_YEARS} years, four promotions. The AI assistant and knowledge base, microcharts, and open source going back to 2013.`,
   ogType: "profile",
 });
 

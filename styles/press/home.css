@@ -1342,8 +1342,7 @@
   white-space: nowrap;
 }
 /* The one link out of the revision list, so it says it goes somewhere. The
-   arrow is the same one the drawing already uses in "OpenAPI -> docs", and it
-   is on the ::after rather than in the string so it stays out of the
+   arrow is on the ::after rather than in the string so it stays out of the
    accessible name: the link is "all writing", not "all writing right arrow".
    It steps forward on hover, which is the only thing here that moves. */
 .rev-all {
