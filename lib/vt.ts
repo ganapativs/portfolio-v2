@@ -10,6 +10,53 @@ export type RecolorOrigin = { x: number; y: number } | null;
 let vtGen = 0;
 
 /**
+ * The browser's own startViewTransition, kept before anything replaces it.
+ *
+ * On a phone the route swap runs no view transition at all: even with every
+ * animation at zero length the pseudo-tree held the screen for one frame in
+ * Chromium and the fixed bar at the foot blinked on every navigation. React's
+ * <ViewTransition> reaches for `document.startViewTransition` at call time,
+ * so `installPhoneRouteSwap` replaces it there with a stub that applies the
+ * update and resolves, and the iris below keeps the native call through this
+ * reference. Nothing else on the site calls the document's method directly.
+ */
+const nativeStart: ViewTransitionDoc["startViewTransition"] | undefined =
+  typeof document !== "undefined"
+    ? (document as ViewTransitionDoc).startViewTransition?.bind(document)
+    : undefined;
+
+export function installPhoneRouteSwap(): () => void {
+  if (typeof document === "undefined" || !nativeStart) return () => {};
+  const d = document as ViewTransitionDoc;
+  const mq = window.matchMedia("(max-width: 640px)");
+  const stub = (arg: unknown) => {
+    const update =
+      typeof arg === "function"
+        ? (arg as () => void)
+        : (arg as { update?: () => void } | undefined)?.update;
+    const done = Promise.resolve().then(() => update?.());
+    return {
+      ready: done.then(() => undefined),
+      finished: done.then(() => undefined),
+      updateCallbackDone: done,
+      skipTransition() {},
+      types: new Set<string>(),
+    };
+  };
+  const apply = () => {
+    d.startViewTransition = mq.matches
+      ? (stub as unknown as ViewTransitionDoc["startViewTransition"])
+      : nativeStart;
+  };
+  apply();
+  mq.addEventListener("change", apply);
+  return () => {
+    mq.removeEventListener("change", apply);
+    d.startViewTransition = nativeStart;
+  };
+}
+
+/**
  * Run `cb` inside a View Transitions iris that opens from `origin`.
  *
  * The new sheet is a feathered radial mask from `origin`, so the two papers
@@ -18,11 +65,10 @@ let vtGen = 0;
  */
 export function withViewTransition(cb: () => void, origin?: RecolorOrigin) {
   if (typeof document === "undefined") return cb();
-  const d = document as ViewTransitionDoc;
   const reduced =
     typeof window !== "undefined" &&
     window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-  if (reduced || !d.startViewTransition) {
+  if (reduced || !nativeStart) {
     cb();
     return;
   }
@@ -41,7 +87,7 @@ export function withViewTransition(cb: () => void, origin?: RecolorOrigin) {
   r.style.setProperty("--vt-y", `${y}px`);
   r.style.setProperty("--vt-r", `${rad}px`);
 
-  const t = d.startViewTransition(cb);
+  const t = nativeStart(cb);
   t.ready.catch(() => {});
 
   if (typeof CSS === "undefined" || typeof CSS.registerProperty !== "function") {

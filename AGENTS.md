@@ -1194,7 +1194,10 @@ colours is the whole event. A paper flip is not a band.
   cost 26px of a 375px screen plus a band top and bottom. It returns at 641px.
   The compass closes to zero width once the strip sticks there: it follows a
   pointer the device does not have, and it straddled the rule over the
-  reader's content.
+  reader's content. **The strip has no backdrop blur on a phone**: a
+  backdrop-filter over a scrolling page re-blurs every frame on the GPU, and
+  that was the frame drop on the home page. The ground is 94% of the paper
+  there instead.
 - **Arrows are drawn, not typed.** The essay's back link and the home page's
   "all writing" carry inline SVG arrows. The "←" and "→" glyphs fell back to
   whichever font the phone had for them and rendered as specks.

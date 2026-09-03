@@ -142,8 +142,10 @@ export function SchematicHeader() {
   }, [trayOpen, narrowTray]);
   // The tray steps aside while the title block is on screen: the marks and
   // the résumé chip sit exactly where it would float.
+  // Observed once: the title block is in the layout's Sheet and is the same
+  // node on every route, and re-observing on each navigation fired an initial
+  // callback mid-swap.
   const [trayShown, setTrayShown] = useState(true);
-  const pathnameForTray = usePathname();
   useEffect(() => {
     if (!phone) return;
     const foot = document.querySelector(".tb-wrap");
@@ -151,7 +153,7 @@ export function SchematicHeader() {
     const io = new IntersectionObserver(([e]) => setTrayShown(!e.isIntersecting));
     io.observe(foot);
     return () => io.disconnect();
-  }, [phone, pathnameForTray]);
+  }, [phone]);
   const pathname = usePathname();
   const router = useRouter();
   const fx = useFX();

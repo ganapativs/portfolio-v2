@@ -8,7 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { withViewTransition, type RecolorOrigin } from "@/lib/vt";
+import { installPhoneRouteSwap, withViewTransition, type RecolorOrigin } from "@/lib/vt";
 import { track } from "@/lib/analytics";
 
 type Theme = "light" | "dark";
@@ -32,6 +32,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   // compares the painted value, it does not count passes.
   const painted = useRef<Theme>(theme);
   const pendingOrigin = useRef<RecolorOrigin>(null);
+
+  // On a phone the route swap runs no view transition; the iris keeps the
+  // native call. See installPhoneRouteSwap in lib/vt.ts.
+  useEffect(() => installPhoneRouteSwap(), []);
 
   useEffect(() => {
     if (painted.current === theme) return;

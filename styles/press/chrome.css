@@ -1244,6 +1244,16 @@ h2.sec-label {
     width: 0;
     opacity: 0;
   }
+  /* No blur on a phone. A backdrop-filter over a scrolling page re-blurs
+     every frame on the GPU, and on a phone that is the frame drop the owner
+     felt on the home page. The strip keeps a denser ground instead: 94% of
+     the paper, so the content under it still shows as a tint. Prefixed line
+     first: the minifier keeps only the last of the pair. */
+  .hd[data-stuck="true"] .hd-strip {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    --hd-ground: color-mix(in oklab, var(--paper) 94%, transparent);
+  }
   /* The links and the preferences leave the strip on a phone (they render in
      .ptray, below) and the strip keeps the mark and the names. */
   .hd .hd-ctls,
@@ -1307,6 +1317,9 @@ h2.sec-label {
      where round() exists; the transform centring stays as the fallback. */
   width: 300px;
   height: 46px;
+  /* Its own compositing layer. Without one the route swap's repaint took
+     the pill for a frame in Chromium, which read as the bar remounting. */
+  will-change: transform;
   align-items: center;
   gap: 14px;
   padding: 5px 8px 5px 6px;
