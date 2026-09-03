@@ -1300,6 +1300,13 @@ h2.sec-label {
   bottom: calc(12px + env(safe-area-inset-bottom, 0px));
   transform: translateX(-50%);
   z-index: 71;
+  /* Whole pixels. The pill's content came to 300.09px and centring it put
+     every edge on a half pixel; at 3x the swatch's 1px ring and its fill
+     then rasterised on different device pixels and the fill read as pushed
+     off centre. Fixed width and height, and a left edge rounded to the pixel
+     where round() exists; the transform centring stays as the fallback. */
+  width: 300px;
+  height: 46px;
   align-items: center;
   gap: 14px;
   padding: 5px 8px 5px 6px;
@@ -1314,6 +1321,15 @@ h2.sec-label {
   opacity: 0;
   transform: translateX(-50%) translateY(8px);
   pointer-events: none;
+}
+@supports (left: round(nearest, 1px, 1px)) {
+  .ptray {
+    left: round(nearest, calc(50% - 150px), 1px);
+    transform: none;
+  }
+  .ptray[data-show="false"] {
+    transform: translateY(8px);
+  }
 }
 .pt-nav {
   display: flex;
@@ -1424,8 +1440,8 @@ h2.sec-label {
 .ptray .inks .ink-sw {
   display: inline-flex;
   position: absolute;
-  top: 50%;
-  margin-top: -8px;
+  /* (44 - 16) / 2 inside the pill's 44px content box: a whole pixel. */
+  top: 14px;
   right: 6px;
   opacity: 0;
   visibility: hidden;
@@ -1444,7 +1460,9 @@ h2.sec-label {
 .ptray .inks[data-open="true"] .ink-sw {
   opacity: 1;
   visibility: visible;
-  right: calc(6px + (6 - var(--n)) * ((100% - 12px - 16px) / 5));
+  /* From the slot (6px in from the sheet's right edge) to 15px in from the
+     left edge, which is the same 15px the last ink has to the theme button. */
+  right: calc(6px + (6 - var(--n)) * ((100% - 6px - 15px - 16px) / 5));
   transition:
     right var(--dur-base) var(--ease-out) calc((6 - var(--n)) * 25ms),
     opacity var(--dur-fast) var(--ease-out) calc((6 - var(--n)) * 25ms),
