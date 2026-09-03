@@ -130,8 +130,11 @@ const nextConfig: NextConfig = {
   },
   // `output: "export"` has no image optimizer to call at request time, so
   // next/image renders the file as committed. The only next/image on the site
-  // is the essay cover (EssayShell), and the covers are pre-encoded to sizes
-  // that don't need a resizer.
+  // is the essay cover (EssayShell), so every cover must be pre-sized BY HAND
+  // before committing: 1520px wide (2x the 760px measure), webp/png. This
+  // comment once claimed they already were, while two covers shipped at
+  // 2560px/436 kB — a claim in a comment is not a measurement. Check with
+  // `sips -g pixelWidth public/posts/*/cover.* public/posts/*/hero.*`.
   images: { unoptimized: true },
 };
 

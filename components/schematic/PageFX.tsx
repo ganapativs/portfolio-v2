@@ -49,7 +49,10 @@ export function PageFX() {
   // The sound layer.
   useEffect(() => {
     if (!fx) return;
-    const SEL = "a,button,.prow,[role='slider']";
+    // `.slab` is fig. 1's hover target — an SVG group, so no `button` to match.
+    // It is in this list rather than ticking itself so its hover gets the same
+    // moved + scroll-settle gating as every other control below.
+    const SEL = "a,button,.prow,.slab,[role='slider']";
 
     /**
      * A hover the reader caused, and only one per control.

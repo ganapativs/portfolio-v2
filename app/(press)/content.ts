@@ -34,7 +34,7 @@ export const ERAS: readonly Era[] = [
   {
     from: 2013,
     to: 2015,
-    short: "before",
+    short: "startups",
     length: "2 yrs",
     range: "2013 - 2015 · before Tracxn",
     body: "Intern at Thinkappz, then UI engineer at InvenZone and on early arya.ai. My first public repos date from here and they are still up.",
@@ -75,7 +75,7 @@ export const ERAS: readonly Era[] = [
     from: 2023,
     to: 2026.7,
     short: "VP, Technology",
-    length: "3 yrs +",
+    length: "3 yrs+",
     range: "2023 - now · VP, Technology",
     body: "I built the customer-facing AI assistant and the API docs portal it lives in. I also run the frontend hiring loop, the architecture reviews and the RFCs.",
   },
@@ -180,7 +180,7 @@ export const STAGES = ["sketch", "vectors", "tokens", "markup", "shipped"] as co
 // Keyed to the stage, because a caption that says the same thing at every
 // position is a label, not a caption.
 export const STAGE_NOTE: readonly string[] = [
-  "drag the handle. one interface, from first sketch to working.",
+  "drag the handle · one interface, from first sketch to shipped",
   "the design tool pass · bend the pen handles, and the bend ships",
   "colour and type arrive as tokens, wired to what they paint",
   "the same object, now named · point at the tree",
@@ -226,7 +226,7 @@ export const CHART: readonly { x: number; y: number; story: string; promotion?: 
 export const ASSISTANT = {
   href: "https://w.tracxn.com/tracxn-ai-assistant",
   meta: "2026 · at Tracxn · shipping",
-  body: "Tracxn is a private-market data platform. Millions of companies, investors, funding rounds and cap tables, across fifty countries. The assistant answers over all of it.",
+  body: "Tracxn is a private-market data platform. Millions of companies, investors, funding rounds and cap tables, across fifty countries. The assistant answers questions over all of it.",
 } as const;
 
 export const MICROCHARTS = {
@@ -236,7 +236,7 @@ export const MICROCHARTS = {
 } as const;
 
 /**
- * Two private repos behind one public URL, kept running for four years. It gets
+ * Two private repos behind one public URL, kept running for five years. It gets
  * a card rather than a parts-list row because it is the only thing here that is
  * a product rather than a library.
  */
@@ -254,7 +254,9 @@ export const SGB = {
 export const SPECTRUM = {
   href: "https://github.com/ganapativs/react-spectrum",
   npm: "https://www.npmjs.com/package/react-spectrum",
-  meta: "2019 · own time · 318 stars",
+  // stars() and not a literal: this was the one public-work number on the
+  // sheet typed by hand, which is exactly the drift PUBLIC_WORK exists to end.
+  meta: `2019 · own time · ${stars("react-spectrum").toLocaleString("en-US")} stars`,
   // 1.9 kB is the gzipped size of dist/react-spectrum.es.js, which is the
   // build this page actually loads. "No dependencies" was not true either:
   // React is a dependency, and saying so costs nothing.

@@ -31,7 +31,6 @@ export async function fetchStarCounts(cache?: RequestCache): Promise<StarCounts 
     const byRepo: Record<string, number> = {};
     let total = 0;
     let repos = 0;
-    let sawAny = false;
 
     for (let page = 1; page <= MAX_PAGES; page++) {
       const res = await fetch(
@@ -47,10 +46,14 @@ export async function fetchStarCounts(cache?: RequestCache): Promise<StarCounts 
           cache,
         },
       );
-      if (!res.ok) break;
+      // A failed page mid-walk means the numbers so far are an undercount, and
+      // an undercount returned as truth gets baked into the prerender and the
+      // 6 h browser cache. Partial is worse than nothing: the callers have a
+      // hand-checked fallback for nothing.
+      if (!res.ok) return null;
       const batch: { name: string; stargazers_count: number; fork: boolean }[] = await res.json();
-      if (!Array.isArray(batch) || batch.length === 0) break;
-      sawAny = true;
+      if (!Array.isArray(batch)) return null;
+      if (batch.length === 0) break;
 
       for (const r of batch) {
         // Original work only. Forks would inflate the count with other
@@ -63,7 +66,7 @@ export async function fetchStarCounts(cache?: RequestCache): Promise<StarCounts 
       if (batch.length < 100) break; // short page, that was the last one
     }
 
-    return sawAny ? { byRepo, total, repos } : null;
+    return repos > 0 ? { byRepo, total, repos } : null;
   } catch {
     return null;
   }

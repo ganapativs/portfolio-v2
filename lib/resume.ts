@@ -26,6 +26,10 @@ export type Flagship = {
   year: string;
   repo: string;
   blurb: string;
+  /** Primary language as GitHub reports it — checked, not assumed. */
+  lang: string;
+  /** SPDX id, only where the repo actually carries the licence file. */
+  license?: "MIT";
 };
 
 export type Education = {
@@ -52,10 +56,10 @@ export type SkillGroup = { label: string; items: string[]; strong?: string[] };
 export const CAREER_YEARS = 13;
 
 /**
- * The public work, counted against the GitHub and npm APIs on 2026-08-30.
+ * The public work, counted against the GitHub and npm APIs on 2026-08-31.
  *
  *   194 public repositories on the account, of which 38 are original and the
- *   remaining 156 are forks of record. 2,649 stars across the originals. 16
+ *   remaining 156 are forks of record. 2,650 stars across the originals. 16
  *   packages published to npm.
  *
  * These replace a set of numbers that had drifted: the site claimed 55 repos
@@ -72,7 +76,7 @@ export const PUBLIC_WORK = {
   repos: 38,
   /** Everything on the account, forks of record included. */
   reposIncludingForks: 194,
-  stars: 2649,
+  stars: 2650,
   npm: 16,
 } as const;
 
@@ -120,7 +124,7 @@ export const roles: Role[] = [
     start: "Sep 2023",
     end: "Present",
     bullets: [
-      "Architect of the company's customer-facing AI assistant and the API documentation portal it lives in: an OpenAPI-driven docs pipeline, intent-based routing across multiple model providers, a tool and skills layer, server-side document export, versioned prompts behind an evaluation harness, and audit-grade logging. Shipped and hardened since, while running the broader engineering queue.",
+      "Architect of the company's customer-facing AI assistant and a knowledge base of specs, docs, search and more: intent-based routing across multiple model providers, a tool and skills layer, document export, versioned prompts behind an evaluation harness, and audit-grade logging. Shipped and hardened since, while running the broader engineering queue.",
       "Architected the MCP server surface and shipped its first version: read-only connectors behind OAuth, so AI coding clients reach the API without a pasted key; now co-owned with the team.",
       "Authored @microcharts/react outside the day job. 106 word-sized React chart types, zero dependencies, ~1-7 kB gzip each, accessible and server-component safe; design, code, docs and release, solo.",
       "Cross-stack performance program: native browser image loading with DPR-aware URLs, compression on portal assets, render profiling, and a framework-level scroll / re-render / CSS pass.",
@@ -149,7 +153,7 @@ export const roles: Role[] = [
     bullets: [
       "Multi-team architect translating product strategy into engineering work, owning the review queue and the escalation path across engineering.",
       "Sustained the React Native mobile app across a major framework upgrade and Apple App Site Association integration without a dedicated mobile team.",
-      "Built and still operate sgb.vercel.app outside the day job: a Sovereign Gold Bond tracker for India's secondary market. A Puppeteer scraper on a scheduled AWS Lambda writes a single JSON file to S3; a Next.js front end derives fair value, effective interest rate and effective cash-flow rate per series. Live since 2021, iterated on for four years.",
+      "Built and still operate sgb.vercel.app outside the day job: a Sovereign Gold Bond tracker for India's secondary market. A Puppeteer scraper on a scheduled AWS Lambda writes a single JSON file to S3; a Next.js front end derives fair value, effective interest rate and effective cash-flow rate per series. Live since 2021, iterated on for five years.",
     ],
   },
   {
@@ -198,9 +202,11 @@ export const roles: Role[] = [
 export const flagships: Flagship[] = [
   {
     name: "@microcharts/react",
-    stars: 152,
+    stars: 153,
     year: "2026",
     repo: "https://github.com/ganapativs/microcharts",
+    lang: "TypeScript",
+    license: "MIT",
     blurb:
       "106 word-sized React chart types. Zero runtime dependencies, ~1-7 kB gzip each, accessible by default, server-component safe.",
   },
@@ -209,6 +215,8 @@ export const flagships: Flagship[] = [
     stars: 2050,
     year: "2016",
     repo: "https://github.com/ganapativs/bttn.css",
+    lang: "CSS",
+    license: "MIT",
     blurb: "A CSS button library: Product Hunt feature in 2016, still in people's projects today.",
   },
   {
@@ -216,6 +224,8 @@ export const flagships: Flagship[] = [
     stars: 318,
     year: "2019",
     repo: "https://github.com/ganapativs/react-spectrum",
+    lang: "TypeScript",
+    license: "MIT",
     blurb: "Generate colourful text placeholders from a palette and a few shape rules.",
   },
   {
@@ -223,6 +233,8 @@ export const flagships: Flagship[] = [
     stars: 34,
     year: "2016",
     repo: "https://github.com/ganapativs/preact-redux-autocompete",
+    lang: "JavaScript",
+    license: "MIT",
     blurb: "Preact + Redux autocomplete with keyboard nav.",
   },
   {
@@ -230,6 +242,8 @@ export const flagships: Flagship[] = [
     stars: 28,
     year: "2018",
     repo: "https://github.com/ganapativs/react-dynamic-import",
+    lang: "JavaScript",
+    license: "MIT",
     blurb: "Dynamic imports for React with hooks. Suspense-ready.",
   },
   {
@@ -237,6 +251,8 @@ export const flagships: Flagship[] = [
     stars: 24,
     year: "2019",
     repo: "https://github.com/ganapativs/react-delightful-scroller",
+    lang: "JavaScript",
+    license: "MIT",
     blurb: "Virtualised infinite scroll. Subject of the TinyConf 2 talk.",
   },
   {
@@ -244,6 +260,7 @@ export const flagships: Flagship[] = [
     stars: 16,
     year: "2018",
     repo: "https://github.com/ganapativs/portfolio",
+    lang: "JavaScript",
     blurb: "Gatsby source for the previous incarnation of meetguns.com.",
   },
   {
@@ -251,6 +268,8 @@ export const flagships: Flagship[] = [
     stars: 11,
     year: "2017",
     repo: "https://github.com/ganapativs/pure-cache",
+    lang: "JavaScript",
+    license: "MIT",
     blurb: "Tiny, pure JavaScript caching utility.",
   },
   {
@@ -258,6 +277,8 @@ export const flagships: Flagship[] = [
     stars: 5,
     year: "2025",
     repo: "https://github.com/ganapativs/puppeteer-warc",
+    lang: "JavaScript",
+    license: "MIT",
     blurb: "Web ARChive (WARC) capture utility on top of Puppeteer.",
   },
   {
@@ -265,6 +286,8 @@ export const flagships: Flagship[] = [
     stars: 3,
     year: "2024",
     repo: "https://github.com/ganapativs/priority-browser-extension",
+    lang: "JavaScript",
+    license: "MIT",
     blurb: "Productivity new-tab utility, live on Chrome Web Store and Firefox.",
   },
 ];

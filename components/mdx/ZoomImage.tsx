@@ -74,7 +74,9 @@ export function ZoomImage({
       style={{
         maxWidth: "100%",
         height: "auto",
-        borderRadius: "var(--r-md)",
+        // No radius: a figure is drawing geometry (--r-rule is 0), and the
+        // old var(--r-md) was never declared anywhere — it resolved to 0 too,
+        // just by accident.
         margin: "var(--s-5) 0",
       }}
     />

@@ -243,8 +243,12 @@ export function Portrait() {
       // The finished print first, unconditionally. If the loop cannot start —
       // hidden tab, off-screen, reduced motion — the portrait still exists.
       drawStatic();
+      // The fallback <img> goes only once the canvas provably carries the
+      // face: on a rebuild or under reduced motion the static print above is
+      // it; on the first bloom the loop's own first frame says so instead —
+      // see the setDrawn at the foot of loop().
+      if (bloomed || reduced.current) setDrawn(true);
       bloomed = true;
-      setDrawn(true);
       startLoop();
     };
 
@@ -341,6 +345,11 @@ export function Portrait() {
       }
       ripples = ripples.filter((rp) => rp.r < W * 1.5 && rp.a > 0.04);
       if (ripples.length) anyLive = true;
+      // A frame has actually rendered, so rAF is alive and the bloom will run:
+      // the photograph underneath can go. Hiding it at build() instead trusted
+      // a loop that a hidden pane or a phone's URL-bar collapse can freeze
+      // before its first frame — a blank canvas over a hidden photo.
+      setDrawn(true);
       // Everything at rest and the hand gone: stop, and hold the finished print.
       if (!anyLive && !inside && performance.now() > recolorUntil) stopLoop();
     };
@@ -361,7 +370,12 @@ export function Portrait() {
     function stopLoop() {
       cancelAnimationFrame(raf);
       raf = 0;
-      if (parts.length) drawStatic();
+      if (parts.length) {
+        drawStatic();
+        // The static paint is the finished print, so the fallback can go even
+        // if the bloom never got to run.
+        setDrawn(true);
+      }
     }
 
     const local = (e: PointerEvent) => {

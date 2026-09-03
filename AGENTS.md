@@ -2,7 +2,9 @@
 
 # This is NOT the Next.js you know
 
-Next.js **16.2** + React **19.2** + Tailwind **v4** in this repo. APIs, conventions, and file structure may differ from your training data. Before writing Next.js or React code, **read the relevant guide in `node_modules/next/dist/docs/`** and heed deprecation notices. Do not invent options or import paths from memory.
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
 
@@ -127,7 +129,7 @@ Do not reintroduce these, and do not "restore" doc text describing them.
 | Package manager | pnpm                           | `pnpm-lock.yaml` committed; never `npm`/`yarn`/`bun`                                                                                                                                                                                              |
 | MDX             | @next/mdx ^16.3                | `remark-gfm`, `remark-smartypants`, `rehype-slug`, `rehype-autolink-headings`, `rehype-highlight`                                                                                                                                                 |
 | Charts          | @microcharts/react ^0.18       | **No longer blog-only** — fig. 2 on the home sheet is a tray of them. Tokens bridged at `:root` in `styles/press/tokens.css` (`--mc-*`), not at `.prose`                                                                                          |
-| Sweep           | glimm ^0.3                     | The WebGL band that carries every palette change. `GlimmProvider` is the outermost provider; **its root module is imported dynamically** — see "Sweep contract"                                                                                   |
+| Sweep           | glimm ^0.3                     | The WebGL band that carries an **ink** pick. Paper is the iris in `lib/vt.ts`. `GlimmProvider` is the outermost provider; **its root module is imported dynamically** — see "Sweep contract"                                                      |
 | Live specimen   | react-spectrum ^1.3            | His own 2019 package, running in fig. 4. **Imported by ESM file path** with a type shim at the repo root — see the trap below                                                                                                                     |
 | Dialog          | @base-ui/react ^1.7            | One use: the `?` shortcut help sheet (`components/shortcuts/ShortcutHelp.tsx`)                                                                                                                                                                    |
 | Image zoom      | medium-zoom ^1.1               | `components/mdx/ZoomImage.tsx`, essays only. It takes over the `<img>`, which is why the portrait and the MDX images are raw `<img>` and not `next/image`                                                                                         |
@@ -146,11 +148,12 @@ Do not reintroduce these, and do not "restore" doc text describing them.
   repo root declares that module path, because the package's own `types` entry
   does not cover it. **Do not "clean up" the import.**
 - **glimm's midpoint is rAF-driven, so `lib/sweep.ts` guards it.** A browser
-  freezes `requestAnimationFrame` in a hidden tab: a reader who flipped the
-  paper and immediately switched tabs came back to the old theme, because the
+  freezes `requestAnimationFrame` in a hidden tab: a reader who picked an ink
+  and immediately switched tabs came back to the old colour, because the
   band suspended before its midpoint and the swap never ran. `sweepApply()`
   fires the change on whichever comes first, the midpoint or a 1.6 s timer, and
   makes `apply` idempotent. **Never call `sweep()` directly for a state change.**
+  Paper does not go through glimm.
 
 ---
 
@@ -170,8 +173,8 @@ components/
   schematic/         The design. Sheet, Header, Ruler, DitherField, TitleBlock, PageFX, Mark,
                      Caption,
                      Portrait, Exploded, Loupe, Specimens, SpectrumDemo, SgbFigure, Career,
-                     PartsList, Pipeline, CopyEmail, Socials, EssayShell, PrintCV, and three
-                     hooks: useDrawOnFirstView, useCoarsePointer, useReducedMotion
+                     PartsList, Pipeline, CopyEmail, Socials, EssayShell, PrintCV, and two
+                     hooks: useCoarsePointer, useReducedMotion
                      (which also exports `approach`, the frame-rate-independent lerp every
                      eased follow on the site uses, and `houseEase`, `--ease-out` solved in
                      JS for the loops that cannot read a CSS easing — see "Motion" below)
@@ -188,8 +191,10 @@ content/blog/<slug>/ MDX posts. Body in page.mdx. Metadata is in lib/posts.ts (N
 public/posts/<slug>/ Cover + inline imagery for each post.
 lib/
   ink.ts             The ink system: ids, labels, pitches, hex mirrors, storage keys
-  sweep.ts           sweepApply() — the guarded glimm sweep every palette change goes through,
+  sweep.ts           sweepApply() — the guarded glimm sweep an ink pick goes through,
                      and the dynamic import that keeps glimm's root module off every route
+  sweep-shader.ts    The band itself: mesh harmonics on a flat quad, fetched with glimm
+  vt.ts              withViewTransition() — the paper iris, from the control
   posts.ts           Post metadata — outside the route tree so the pages and the feeds share it
   fonts.ts           The three faces
   mark.ts            The G, as raw path data — the one copy every renderer shares
@@ -197,13 +202,15 @@ lib/
   stars.ts           The raw GitHub star fetch — shared by the build and the browser
   github.ts          Build-time star counts + the hand-checked fallback
   analytics/         track() + the GA4 adapter. See "Analytics".
+  og-fonts.ts        The OG card's three faces as base64, generated + committed
+                     by scripts/gen-og-fonts.mjs. Do not edit by hand.
   jsonld.tsx (.tsx, not .ts), metadata.ts, og.tsx, resume.ts
 fonts/               Self-hosted faces + their licence. Currently one: the Anek
                      Kannada name cut (scripts/subset-kannada.py).
 scripts/             gen-md.ts (markdown mirrors, run by dev/build, output
                      gitignored) · gen-favicon.py · gen-pwa-screenshots.sh ·
-                     subset-kannada.py · submit-index.mjs (the rest manual,
-                     outputs committed).
+                     gen-og-fonts.mjs · subset-kannada.py · submit-index.mjs
+                     (the rest manual, outputs committed).
 styles/
   press.css          Entry point — the only global stylesheet. Import order IS cascade order.
   press/             tokens · base · chrome · home · pipeline · essay ·
@@ -220,26 +227,26 @@ nothing and touches every import. They hold the Schematic.
 Unchanged from the previous design except that **every page now renders inside
 `components/schematic/Sheet.tsx`**.
 
-| Path                                           | File                                                         | What it renders                                                                                                                      |
-| ---------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `/`                                            | `app/(press)/page.tsx`                                       | Home — the subject, six figures, parts list, revisions. **Absorbed /about and /work.**                                               |
-| `/blog`                                        | `app/(press)/blog/page.tsx`                                  | Index of `published` posts                                                                                                           |
-| `/blog/<slug>`                                 | `app/(press)/blog/[slug]/page.tsx`                           | `generateStaticParams` from `published`; loaders are a hardcoded slug→import map                                                     |
-| `/blog/<slug>.md`                              | `scripts/gen-md.ts` → `public/blog/<slug>.md`                | The post as plain markdown, generated by the `dev`/`build` scripts (gitignored). Imports and ESM exports stripped, prose left alone  |
-| `/resume`                                      | `app/(press)/resume/page.tsx`                                | CV from `lib/resume.ts`, two columns, print stylesheet                                                                               |
-| `/about`, `/work`                              | `public/_redirects`                                          | **308 → `/#subject`, `/#work`.** Do not re-add these as pages                                                                        |
-| `/sitemap.xml`                                 | `app/sitemap.ts`                                             | `/`, `/resume`, `/blog` + every published post. No `/about`, `/work`                                                                 |
-| `/robots.txt`                                  | `app/robots.ts`                                              | Allow all except `/api/`; sitemap pointer. The AI crawlers are also allowed **by name** — see the comment there for why              |
-| `/manifest.webmanifest`                        | `app/manifest.ts`                                            | PWA shell: five icons, two screenshots, two shortcuts (Writing, Résumé)                                                              |
-| `/icon`                                        | `app/icon.tsx`                                               | The tab favicon. SVG, transparent, live ink (**aubergine in dev**, so a dev tab is tellable)                                         |
-| `/icon-192`, `/icon-512`, `/icon-512-maskable` | `app/icon-*/route.tsx`                                       | PNG mark on paper via `lib/icon-png.tsx`. 192+512 are Chrome's install requirement; the maskable cut is inset for Android            |
-| `/apple-icon`                                  | `app/apple-icon.tsx`                                         | 180×180 home-screen tile, same renderer                                                                                              |
-| `/favicon.ico`                                 | `public/favicon.ico`                                         | Committed 16/32/48 raster for legacy probes + Google's SERP favicon. **In `public/`, not `app/`** — see the note in `app/layout.tsx` |
-| `/rss.xml`                                     | `app/rss.xml/route.ts`                                       | RSS 2.0 feed of `published` posts                                                                                                    |
-| `/llms.txt`                                    | `app/llms.txt/route.ts`                                      | Curated plain-text site map for AI systems; links each post's `.md` mirror                                                           |
-| `/opengraph-image*`                            | `app/**/opengraph-image.tsx`                                 | Per-route OG cards, all through `lib/og.tsx`. Home `dustblue`, blog and résumé `bottle`                                              |
-| `error`                                        | `app/error.tsx`                                              | Root error boundary. Outside the (press) group, so it mounts `<Sheet>` itself                                                        |
-| `not-found`                                    | `app/not-found.tsx`, `app/(press)/blog/[slug]/not-found.tsx` | 404 (`robots: { index: false }`). The global one also mounts `<Sheet>` itself                                                        |
+| Path                                           | File                                                         | What it renders                                                                                                                         |
+| ---------------------------------------------- | ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `/`                                            | `app/(press)/page.tsx`                                       | Home — the subject, six figures, parts list, revisions. **Absorbed /about and /work.**                                                  |
+| `/blog`                                        | `app/(press)/blog/page.tsx`                                  | Index of `published` posts                                                                                                              |
+| `/blog/<slug>`                                 | `app/(press)/blog/[slug]/page.tsx`                           | `generateStaticParams` from `published`; loaders are a hardcoded slug→import map                                                        |
+| `/blog/<slug>.md`                              | `scripts/gen-md.ts` → `public/blog/<slug>.md`                | The post as plain markdown, generated by the `dev`/`build` scripts (gitignored). Imports and ESM exports stripped, prose left alone     |
+| `/resume`                                      | `app/(press)/resume/page.tsx`                                | CV from `lib/resume.ts`, two columns, print stylesheet                                                                                  |
+| `/about`, `/work`                              | `public/_redirects`                                          | **308 → `/#subject`, `/#work`.** Do not re-add these as pages                                                                           |
+| `/sitemap.xml`                                 | `app/sitemap.ts`                                             | `/`, `/resume`, `/blog` + every published post. No `/about`, `/work`                                                                    |
+| `/robots.txt`                                  | `app/robots.ts`                                              | Allow all (there is no `/api/` any more); sitemap pointer. The AI crawlers are also allowed **by name** — see the comment there for why |
+| `/manifest.webmanifest`                        | `app/manifest.ts`                                            | PWA shell: five icons, two screenshots, two shortcuts (Writing, Résumé)                                                                 |
+| `/icon`                                        | `app/icon.tsx`                                               | The tab favicon. SVG, transparent, live ink (**aubergine in dev**, so a dev tab is tellable)                                            |
+| `/icon-192`, `/icon-512`, `/icon-512-maskable` | `app/icon-*/route.tsx`                                       | PNG mark on paper via `lib/icon-png.tsx`. 192+512 are Chrome's install requirement; the maskable cut is inset for Android               |
+| `/apple-icon`                                  | `app/apple-icon.tsx`                                         | 180×180 home-screen tile, same renderer                                                                                                 |
+| `/favicon.ico`                                 | `public/favicon.ico`                                         | Committed 16/32/48 raster for legacy probes + Google's SERP favicon. **In `public/`, not `app/`** — see the note in `app/layout.tsx`    |
+| `/rss.xml`                                     | `app/rss.xml/route.ts`                                       | RSS 2.0 feed of `published` posts                                                                                                       |
+| `/llms.txt`                                    | `app/llms.txt/route.ts`                                      | Curated plain-text site map for AI systems; links each post's `.md` mirror                                                              |
+| `/opengraph-image*`                            | `app/**/opengraph-image.tsx`                                 | Per-route OG cards, all through `lib/og.tsx`. Home `dustblue`, blog and résumé `bottle`                                                 |
+| `error`                                        | `app/error.tsx`                                              | Root error boundary. Outside the (press) group, so it mounts `<Sheet>` itself                                                           |
+| `not-found`                                    | `app/not-found.tsx`, `app/(press)/blog/[slug]/not-found.tsx` | 404 (`robots: { index: false }`). The global one also mounts `<Sheet>` itself                                                           |
 
 ### The running header
 
@@ -260,12 +267,17 @@ leaves the top of the page. Four things about it are load-bearing.
   sticky child sticks to _its_ box rather than to the viewport, and a box as
   tall as the document never sticks. `clip` contains a stray horizontal
   overflow without creating a scrollport. Safari 16 and up, which is the floor.
-- **The strip is `.hd-row`, not `.hd`.** The header carries only the space; the
-  row carries the ground, the blur and the rule. `.hd` is `pointer-events:
+- **The strip is `.hd-strip` (the row plus the rule), not `.hd`.** The header
+  carries only the space; the strip carries the ground, the blur and the rule
+  in one element, or the rule sits below the blurred band with unblurred
+  content passing through the gap between them. `.hd` is `pointer-events:
 none` with `.hd > *` set back to `auto`, so the dead area under the condensed
   strip does not swallow clicks meant for the page. Putting the ground on `.hd`
   instead tints and blurs the whole locked box, which is twice the height of
-  the strip.
+  the strip. ⚠️ In `.hd-strip` the `-webkit-backdrop-filter` line is written
+  **before** the unprefixed one, and that ordering is load-bearing — the CSS
+  minifier keeps only the last of the pair, and the other order shipped a
+  build with no blur at the standard name.
 - **Nothing inside the strip may reflow while it condenses.** Only padding,
   opacity, a background colour and a blur radius animate. Three earlier
   versions each looked wrong for the same reason: `display: none` on the
@@ -290,8 +302,8 @@ none` with `.hd > *` set back to `auto`, so the dead area under the condensed
   half its own height, which puts the hairline exactly on the ground's bottom
   edge with the compass straddling it.
 - **The scroll offset it needs is `scroll-padding-top` on `html`, not
-  `scroll-margin-top` on the targets** (`base.css`). The condensed strip bottoms
-  out 39px from the viewport top, so every scroll the browser performs for us —
+  `scroll-margin-top` on the targets** (`base.css`, 56px). The condensed strip
+  bottoms out ~48px from the viewport top, so every scroll the browser performs —
   a ruler tick, an anchor jump, find-in-page, focus moving into an off-screen
   control — would otherwise land its target underneath it. One number on the
   scrollport covers all of them, including the targets nobody remembered to
@@ -307,10 +319,10 @@ tracing paper laid over the drawing, not a floating panel.
 
 ### The sheet
 
-`components/schematic/Sheet.tsx` is the chrome every page shares: the dither
-field, the ruler, the skip link, the four corner registration ticks, the four
-frame masks that wipe off one edge at a time in the first 400 ms, the header,
-the children, the title block, and `<PageFX />`.
+`components/schematic/Sheet.tsx` is the chrome every page shares: the skip
+link (first, so it is the first Tab stop), the dither field, the ruler, the
+four corner registration ticks, the header, the children, the title block,
+and `<PageFX />`.
 
 `PageFX` is two page-wide delegated listeners with no element of their own: the
 panels' hex-mesh cursor mask, and the sound layer (hover tick, button
@@ -337,7 +349,7 @@ playing `clack` **and** a `chime` 80 ms behind it — four tones for one press,
 beside a sound toggle that plays one.
 
 Two things follow. A plain button — one with no cue of its own, like
-`.p-fig-replay` or the keys chip — carries no attribute and correctly gets the
+the keys chip — carries no attribute and correctly gets the
 press/release pair; do not tag a control that has nothing else to say. And a
 `tick` is throttled to 80 ms inside `FXProvider` while every other cue is not,
 so a duplicated tick hides and a duplicated anything-else does not. Do not read
@@ -348,8 +360,8 @@ so a duplicated tick hides and a duplicated anything-else does not. Do not read
 Root (`app/layout.tsx`) owns everything:
 
 ```
-<SweepProvider>             // glimm. Outermost, because both providers below hand it their swap.
-  <ThemeProvider>           // theme + toggle(origin?). mg_theme.
+<SweepProvider>             // glimm. Outermost: InkProvider hands it the ink pick.
+  <ThemeProvider>           // paper iris via withViewTransition. mg_theme.
     <FXProvider>            // WebAudio cue set + haptic. mg_sound.
       <ShortcutProvider>    // keyboard registry. ? = help, Esc = close. Scope stack: global|modal|page.
         <InkProvider>       // ink. mg_ink. Stamps data-ink and nothing else.
@@ -469,7 +481,7 @@ real control.
 | ------- | ---------------------- | ------------------------------------- |
 | `h`     | home                   | `schematic/Header.tsx`                |
 | `b`     | writing                | `schematic/Header.tsx`                |
-| `r`     | résumé                 | `schematic/TitleBlock.tsx`            |
+| `r`     | résumé                 | `schematic/Header.tsx`                |
 | `t`     | switch the paper       | `schematic/Header.tsx`                |
 | `m`     | mute / unmute          | `schematic/Header.tsx`                |
 | `1`–`6` | pick an ink            | `InkSwatch` in `Header.tsx`           |
@@ -477,9 +489,12 @@ real control.
 | `?`     | the help sheet         | `shortcuts/ShortcutHelp.tsx`          |
 | `Esc`   | close the help sheet   | `shortcuts/ShortcutHelp.tsx`          |
 
-There is no `0` and no `w`/`a`. `r` is registered on the résumé chip in the
-title block, not in the header — the key lives with the control it floats its
-hint over, so moving the link moved the shortcut.
+There is no `0` and no `w`/`a`. `r` is registered on the header's résumé link —
+the key lives with the control it floats its Shift-hold hint over. **The résumé
+link lives in the header AND the title block, and that is the owner's settled
+call (2026-09-01)** after trying header-only and footer-only: the strip is the
+short way, the title block's balloon is the sheet-reference. The registry
+refuses duplicate keys, so only the header link carries `r`.
 
 The registry refuses duplicate keys within a scope and warns in development.
 `silent: true` on a shortcut means it plays its own cue instead of the
@@ -568,9 +583,12 @@ preloads are high priority and they compete with each other for the same pipe.
   and Latin-first sets the name measurably narrow. Correct setting wins; the cut
   is 9.7 kB either way.
 - **`@fontsource/hanken-grotesk` and `@fontsource/ibm-plex-mono` are not the
-  site's fonts.** They are devDependencies that exist only so `lib/og.tsx` can
-  `readFile` the raw `.woff` at render time — next/font keeps its copies inside
-  the build output where a render-time read cannot reach them.
+  site's fonts.** They are devDependencies consumed only by
+  `scripts/gen-og-fonts.mjs`, which bakes their raw `.woff` files into the
+  committed `lib/og-fonts.ts` as base64. `lib/og.tsx` reads that module, never
+  the filesystem — next/font keeps its copies inside the build output where a
+  render-time read could not reach them, and the base64 path also survived the
+  Worker era, where there was no filesystem at all.
 
 ## Persistence keys (localStorage)
 
@@ -596,7 +614,6 @@ writes exactly those two plus the inline ground colour, and nothing else.
 `--accent` is registered with `@property { syntax: "<color>" }`. That is what
 makes an ink change a real 340 ms interpolation rather than a hard swap —
 unregistered custom properties are token streams and cannot be transitioned.
-
 The six live as `--sw-<id>` and `--accent` is aliased to the active one. The
 derived weights are plain `color-mix()` properties rather than registered ones,
 on purpose: `color-mix()` re-evaluates every frame as `--accent` tweens, so they
@@ -616,12 +633,15 @@ its mirror.**
 
 ### The six inks (`styles/press/tokens.css` ⇆ `lib/ink.ts`)
 
+Rows in **tray order** — the order `INKS` declares in `lib/ink.ts`, the order
+the header paints, and the order keys `1`–`6` pick. The default leads it.
+
 | ID                   | Label          | Light (`--sw-*`)      | Dark (`--sw-*`)       | Mirror light / dark   | Hz  |
 | -------------------- | -------------- | --------------------- | --------------------- | --------------------- | --- |
-| `amber`              | drafting amber | `#8f5c0c`             | `#d9962b`             | `#8f5c0c` / `#d9962b` | 440 |
-| `bottle`             | bottle green   | `oklch(.45 .095 158)` | `oklch(.75 .092 154)` | `#176540` / `#7fbf93` | 492 |
-| `oxblood`            | oxblood        | `oklch(.46 .115 25)`  | `oklch(.73 .11 29)`   | `#8d3936` / `#e58c7f` | 544 |
-| `dustblue` (default) | dust blue      | `oklch(.47 .08 240)`  | `oklch(.75 .075 245)` | `#2b6083` / `#86b3db` | 596 |
+| `dustblue` (default) | dust blue      | `oklch(.47 .08 240)`  | `oklch(.75 .075 245)` | `#2b6083` / `#86b3db` | 440 |
+| `amber`              | drafting amber | `#8f5c0c`             | `#d9962b`             | `#8f5c0c` / `#d9962b` | 492 |
+| `bottle`             | bottle green   | `oklch(.45 .095 158)` | `oklch(.75 .092 154)` | `#176540` / `#7fbf93` | 544 |
+| `oxblood`            | oxblood        | `oklch(.46 .115 25)`  | `oklch(.73 .11 29)`   | `#8d3936` / `#e58c7f` | 596 |
 | `aubergine`          | aubergine      | `oklch(.44 .112 316)` | `oklch(.72 .105 320)` | `#6a3c7c` / `#c28fce` | 648 |
 | `olive`              | olive          | `oklch(.5 .095 112)`  | `oklch(.78 .11 108)`  | `#65681f` / `#bebd66` | 700 |
 
@@ -698,7 +718,7 @@ offset shadow to lift something is still forbidden.
 ### The shared-component bridge
 
 The bottom of `tokens.css` maps an older set of token names (`--bg-surface`,
-`--fg-1`, `--r-block`, `--font-display`, `--khadi`, …) onto the drawing's
+`--fg-1`, `--font-display`, `--khadi`, …) onto the drawing's
 values, so `shortcuts.css`, `essay.css` and `microcharts-demos.css` inherit the
 ink, the ground and the type unchanged. **Those aliases are live, not
 leftovers** — every one is referenced by a real rule. Deleting one breaks
@@ -748,26 +768,39 @@ which reads as four different mechanisms. `.chip` documents the one exception:
 it is 236px wide, where the token is 14px of travel.
 
 **Motion**: `--dur-fast 140ms` hover and focus · `--dur-base 260ms` everything
-the reader caused · `--dur-ink 340ms` the coordinated ink tween · the palette
-sweep at 640ms + 300ms, which lives in `SweepProvider.tsx` rather than in a
-token because it belongs to the library that draws it. Easings:
-`--ease-out cubic-bezier(.22,1,.36,1)`, `--ease-in-out
-cubic-bezier(.65,0,.35,1)`. Direct manipulation has no duration at all, because
-the hand sets it. (`--dur-iris`, `--vt-r-now` and the `.vt-recolor-radial` block
-were the clip-path iris the sweep replaced. All three are gone; this file
-described them as "still declared" for a while after they were deleted.)
+the reader caused · `--dur-ink 340ms` the coordinated ink tween · `--dur-iris
+720ms` the paper mix · the ink sweep at 900ms + 420ms, which lives in
+`SweepProvider.tsx` rather than in a token because it belongs to the library
+that draws it. Sheet easing is `--ease-out cubic-bezier(.22,1,.36,1)`. The
+paper mix uses `--ease-iris` — a gentler start — because houseEase on a
+hard circle jumped a hairline drawing ~25px a frame. Direct
+manipulation has no duration at all, because the hand sets it.
 
 ### The motion law (`styles/press/motion.css`)
 
 Motion is reserved for things the reader caused — a hover, a drag, an ink pick,
-a route swap — with **three sanctioned one-shot exceptions**, all of them about
-the drawing drawing itself:
+a route swap — with **three sanctioned one-shot exceptions**:
 
-1. the sheet frame ruling itself in, once, in the first 400 ms of the page;
-2. a figure drawing its own lines the first time it comes into view
-   (`useDrawOnFirstView` — it drives a `stroke-dashoffset`, not an opacity, and
-   the figure is fully readable before and after);
-3. the pipeline playing one pass through its stages the first time it is seen.
+1. the halftone portrait blooming in from two or three random seeds, once, on
+   load (`Portrait.tsx` — the only randomness on the page);
+2. the pipeline playing one pass through its stages the first time it is seen;
+3. the loupe's lens settling onto the sentence the moment it is placed
+   (`lp-lens-in`, 420 ms), with its two tangents extending out of the ring
+   behind it (`lp-lines-in`, a top-down `clip-path` wipe on `.lp-lines`).
+   Narrower than it looks: the lens is positioned from a measurement taken
+   after first paint, so it cannot render finished from the first byte the way
+   every retired draw-in could, and appearing in a single frame read as a
+   glitch. The zoom is the independent `scale` property and the wipe is on the
+   container, because `transform` and `width` on the lines are written by
+   `Loupe.tsx` on every pointermove.
+
+(Everything else that once moved on load was deleted on the owner's call —
+line appearance on load read as motion nobody caused. That covers the figure
+draw-ins on figs. 1 and 3 with their `useDrawOnFirstView` hook, `.willdraw`
+rules, setting-out ghosts and plate-number replay buttons; the sheet frame's
+400 ms four-mask wipe; and the portrait's dimension-line draw. All of it
+renders finished from the first byte. The machinery is in git history; do not
+reintroduce any of it.)
 
 Each happens once per load and never again, and each is interruptible by
 touching the thing it is happening to. **There is no scroll-reveal. Do not
@@ -781,19 +814,23 @@ introduce one.**
 | `data-ink="<id>"`          | no-flash → `InkProvider`   | The active ink                  |
 | `data-repapering`          | `ThemeProvider`, one frame | Kills the `--accent` transition |
 
-The first two and nothing else, plus the inline ground colour and
+These three and nothing else, plus the inline ground colour and
 `colorScheme`. `data-mode` is gone.
 
 `data-repapering` is not a third palette axis: it is written and removed inside
 one theme swap and is never persisted. It exists so the ink snaps with the
 ground it belongs to instead of tweening to catch up with it — see
-`:root[data-repapering]` in `tokens.css` and point 2b of the sweep contract.
+`:root[data-repapering]` in `tokens.css` and the sweep contract below.
+(Registering the surface tokens so ink and ground tween together was tried on
+2026-09-01 and reverted with the flat band on the owner's call: the original
+snap-under-the-mesh-band is the shipped behaviour.)
 
 ---
 
 ## Sweep contract
 
-Replaces the old view-transition contract. **The clip-path iris is gone.**
+Ink is a glimm band. Paper is a circle from the control. They are different
+events on purpose.
 
 1. **Route nav** uses `<ViewTransition name="route">` in
    `app/(press)/layout.tsx`, with its own quiet crossfade. **The `root` group is
@@ -801,79 +838,88 @@ Replaces the old view-transition contract. **The clip-path iris is gone.**
    — header, measuring edge, title block — lands in `root`, and the API's
    default crossfade dipped two identical headers through a pair of half-opaque
    copies. It read as the ink bar under the G blinking out and back on every
-   navigation.
+   navigation. A paper flip adds `.vt-recolor-radial` and **overrides** that
+   `display: none` so the old frame can hold still while the new one opens.
    1b. **The header paints above the band.** `.hd` is `z-index: 70`, over the
-   band's 60. The band is painted with the ink in play and the bar under the G
-   is that same ink, so a theme flip washed the mark out and gave it back as
-   the band passed: it read as the underline blinking off and on. The band
-   re-inks the sheet; the control surface that caused it stays legible while it
-   happens.
+   band's 60. The band re-inks the sheet on an ink pick; the control surface
+   that caused it stays legible while it happens.
    1c. **The header is also the only place the `--accent` tween is visible on a
-   theme flip**, which is why there is not one any more. See 2b.
-2. **Both palette changes — theme and ink — go through `sweepApply()` in
-   `lib/sweep.ts`**, which hands the state swap to glimm. glimm draws one WebGL
-   band across the viewport and applies the change underneath it at the
-   midpoint. A circle opening from a control said "this control did it"; a band
-   passing over the sheet says what actually happened, which is a roller laying
-   down new ink.
-   2c. **`sweepApply` takes the band as hexes (`{ kind: "pair" | "chain",
-hexes }`), not as a built palette**, and builds it itself after the module
-   lands. `accentPair` pins its two endpoints exactly and `accentChain` does
-   not, which is why which builder to use is part of the description rather
-   than the caller's business.
-   2d. **glimm's root module is fetched on the first palette change, not
-   imported at the top of a provider.** It was three static imports —
-   `createMeshShader` in `SweepProvider`, `accentChain` in `ThemeProvider`,
-   `accentPair` in `InkProvider` — and it sat in the root layout chunk, 13.2 kB
-   gzip on every route, including routes with no palette control in reach.
-   **Moving one and not the others buys nothing**: `glimm/react` carries its own
-   copy of the colour helpers but does not export them, so the root module comes
-   back for whichever import is left. All three go through `lib/sweep.ts` now.
-   `SweepProvider`'s `shaderFactory` reads it via `glimmNow()`, which is safe
-   because glimm only calls that factory from inside `sweep()`, and `sweepApply`
-   awaits the module first. The 1.6 s guard timer starts before the fetch, so a
-   press whose band never arrives still gets its ink.
-3. **The band is painted with the ink in play.** A theme flip sweeps the active
-   ink between its two grounds; an ink pick sweeps from the ink being replaced
-   to the one replacing it, so the sweep _is_ the interpolation rather than
-   something laid over one.
-4. **Direction says how it was done.** `ltr` when a pointer landed on a control,
-   `ttb` from the keyboard. A number key has no position on the page, and a
-   different axis is a more honest way to say so than a wipe pretending to start
-   somewhere.
-5. **The swap is fired by whichever comes first, the midpoint or a 1.6 s
+   theme flip**, which is why there is not one any more. See
+   `data-repapering` under "`<html>` data attributes".
+2. **An ink pick goes through `sweepApply()` in `lib/sweep.ts`.** glimm draws
+   one WebGL band and applies the ink underneath it at the midpoint.
+   2b. **A paper flip goes through `withViewTransition()` in `lib/vt.ts`.** The
+   new sheet is clipped to a circle that opens from the control (viewport
+   centre from the keyboard, which has no pointer). A linear band always
+   enters from an edge, so a theme flip started from the header flashed the
+   left side of the sheet first, then snapped the paper in the open — two
+   animations. The live site's iris is the one motion that does not do that.
+   Do not also run a sweep on a paper flip: the canvas is snapshotted with
+   the root, so the band would freeze or play after the circle as a second
+   event.
+   2c. **`sweepApply` takes the band as hexes (`{ kind: "pair", hexes }`),
+   not as a built palette**, and builds it itself after the module lands.
+   `accentPair` pins its two endpoints exactly.
+   2d. **glimm's root module is fetched on the first ink pick, not
+   imported at the top of a provider.** Static imports of its palette builders
+   sat in the root layout chunk, 13.2 kB gzip on every route, including routes
+   with no palette control in reach. **Moving one and not the others buys
+   nothing**: `glimm/react` carries its own copy of the colour helpers but does
+   not export them, so the root module comes back for whichever import is left.
+   Everything for the band goes through `lib/sweep.ts` now, including the wavy
+   shader in `sweep-shader.ts` (same tick as the glimm import). The 1.6 s
+   guard timer starts before the fetch, so a press whose band never arrives
+   still gets its ink.
+3. **The band is painted in the tray's LIT values — `INK_HEX_DARK` — on both
+   grounds.** The flat band is a translucent veil of light, and light is lit:
+   sweeping the light-ground pigments, which are dark, filmed the paper brown
+   (measured in a pinned-frame harness). An ink pick sweeps the lit values of
+   the ink being replaced and the one replacing it.
+4. **Direction says how the ink pick was done.** `ltr` when a pointer landed
+   on a swatch, `ttb` from a number key. A number key has no position on the
+   page, and a different axis is a more honest way to say so than a wipe
+   pretending to start somewhere.
+5. **The ink swap is fired by whichever comes first, the midpoint or a 1.6 s
    guard**, and `apply` is idempotent so it cannot run twice. See the glimm trap
    in "Stack snapshot" for why the guard is not optional.
-6. **A second press while the band is still crossing restarts it.**
+6. **A second ink press while the band is still crossing restarts it.**
    `playSweep` continues from the controller's current progress by design,
-   which is right for a page navigation and wrong for a toggle: press the theme
-   twice quickly and the second sweep starts wherever the first had got to, so
-   past the midpoint the swap fires at once and the band is already leaving.
-   The reader sees the paper change with no pass over it. `sweepApply` lands the
-   interrupted change immediately, cancels its handle, and winds the band back
-   to zero through the controller `SweepProvider` hands it via `onController`.
+   which is right for a page navigation and wrong for a toggle.
+   `sweepApply` lands the interrupted change immediately, cancels its handle,
+   and winds the band back to zero through the controller `SweepProvider`
+   hands it via `onController`.
 7. **Reduced motion**: glimm's own `reducedMotion: "instant"` default is left
-   alone, and `motion.css` kills the `--accent` transition. The ink arrives
+   alone, `withViewTransition` skips the iris and runs the swap, and
+   `motion.css` kills the `--accent` transition. The ink and the paper arrive
    rather than travelling.
 
-`SweepProvider`'s settings are all decisions, documented in the file. It runs
-glimm's **mesh** shader (`shaderFactory: createMeshShader`), not the flat one:
-the band is a lit crest with a trailing second wave, refraction and a dispersed
-rim, so it reads as a material passing over the sheet rather than as a lighter
-rectangle. `sweepMs 900` / `outroMs 420` / `midpoint 0.45` is the one place the
-motion law is deliberately exceeded, because this is the whole sheet being
-re-inked rather than a control answering; it has been shortened twice and both
-times the sweep was simply missed. `waveAmount` and `rippleAmount` are on now.
-`brightness` and `peakAlpha` stay pulled down because at the library's defaults
-the band blows out to near-white on graphite, which is the one colour the
-palette does not contain.
+`SweepProvider`'s settings are all decisions, documented in the file. The band
+is a **custom flat shader** (`lib/sweep-shader.ts`), not glimm's `createShader`
+and not `createMeshShader`. glimm's own edge is a 0.4% sine × `waveAmount`, so
+even 2 reads as a straight stripe (measured: crest x by row differed by ~1%).
+The mesh has real harmonics but its swell is a white specular ridge, and with
+swell 0 it is a faint haze rather than a band. Ours keeps the flat-quad
+controller and puts the mesh's three sines on the edge (~5% at `waveAmount`
+1). **`swellAmount` is 0 and must stay 0**: it gates the specular highlight
+and Fresnel rim, and the library defaults it to 0.55. Palette samples are
+clamped and the wake is 0.12 rather than 0.30. There is no cross-axis
+`vfade`: that 1.5% fade was the white strip at the top and bottom, and
+growing the canvas past the viewport to hide it is the same replaced-element
+trap `.dither` already documents.
 
-**An ink pick sweeps two colours; a paper change sweeps all six.** `accentPair`
-for the pick, because two colours is the whole event. `themeBand()` in
-`ThemeProvider` builds an `accentChain` from the active ink on the ground it is
-leaving, through the other five at their new values in tray order, to the same
-ink on the ground it arrives at: every ink is about to be repigmented for a
-different ground, and the band says so.
+Timing is the mesh's — `sweepMs 900` / `outroMs 420` / `midpoint 0.45` /
+`houseEase` — and it is **ink only**. Theme is `--dur-iris 720ms`, a
+feathered radial mask from the control so the two papers dissolve across the
+edge. A hard `clip-path: circle()` jumped a hairline drawing ~25px per
+frame and read as skipped frames. Do not put `filter: blur()` on the
+view-transition snapshots to mix them: that is the whole sheet, every frame.
+
+`waveAmount` is 1 (the harmonics are already the displacement),
+`rippleAmount` is 1, `brightness`/`peakAlpha` stay pulled down because the
+library is tuned for white sites.
+
+**An ink pick sweeps two colours.** `accentPair` for the pick, because two
+colours is the whole event. A paper flip is not a band.
 
 ---
 
@@ -883,8 +929,11 @@ different ground, and the band says so.
   effects, refs, or browser APIs.
 - Imports use `@/*` for anything outside the current folder. Don't reach into
   `.claude/`.
-- Prefer `next/image` with the configured formats (`avif`, `webp`) and qualities
-  (`70 | 80 | 90`).
+- `next/image` runs **unoptimized** under the static export (`images:
+{ unoptimized: true }` in `next.config.ts` — there is no optimizer to serve
+  a transform). It still earns its keep for lazy loading and layout
+  reservation, but the file you commit is the file that ships: size and
+  compress images by hand before committing them.
 - New entry-style files (sitemap, manifest, OG, route handlers, error/not-found)
   are caught by the existing `knip.json` `entry` glob.
 - Don't add new top-level dependencies casually. Check `package.json` and
@@ -894,7 +943,10 @@ different ground, and the band says so.
   committed — which meant they were the only images on the site not getting
   avif/webp. `cwebp -lossless` is pixel-identical and was 75% smaller on the
   three of them (329 kB → 81 kB); on screenshots it also beats `-q 88`. Post
-  covers stay PNG/JPG because they _do_ go through `next/image`.
+  covers go through `next/image` too, but the export runs it **unoptimized**,
+  so they are served exactly as committed as well: pre-size every cover to
+  1520px wide (2x the essay measure) and prefer webp. "They go through
+  next/image" excused two covers shipping at 2560px/436 kB as the LCP.
 - For a new MDX post: drop `content/blog/<slug>/page.mdx`, add a row to
   `lib/posts.ts` (including its `accent`), add a loader to
   `app/(press)/blog/[slug]/page.tsx`. `generateStaticParams` throws at build
@@ -915,10 +967,10 @@ different ground, and the band says so.
   for their padding with a matching offset. Both were failing WCAG 2.2's
   2.5.8, and the chips were failing it in the worse direction: overlapping
   targets, where a press lands on somebody else's control.
-- **Two of the plate numbers (`.p-fig-replay`) are buttons that replay their
-  figure's draw-in.** They are rendered by the figure component, which sits
-  below the heading in source, and put back on top with `order: -1` on the flex
-  column. Do not "fix" that by splitting the component in two.
+- **Two of the plate numbers (`.p-fig-lead`) are rendered by their figure
+  component**, which sits below the heading in source, and put back on top
+  with `order: -1` on the flex column. Do not "fix" that by splitting the
+  component in two. (They were replay buttons while the draw-ins existed.)
 - **A caption slot that swaps text keys its content and lets the slot animate
   its height.** `interpolate-size: allow-keywords` is set on `:root` in
   `tokens.css`; `.tl-cap` transitions `height`, and the inner `.cap-in` element
@@ -927,24 +979,9 @@ different ground, and the band says so.
   still works this way**, because its entries are dates and ranges that cannot
   be evened out. Figs. 1 and 3 take the other road entirely, below. `.xp-cap` is
   gone with them.
-- **A draw-in has to hide the fill as well as the stroke, and then it has to
-  put something back.** `stroke-dashoffset` hides a line; a `fill` is painted
-  the moment the element exists. Fig. 1's slab faces are filled in `--raise` and
-  `--sunk`, so the figure arrived as five grey lozenges fully formed and then
-  had its outlines drawn on top of them, which is a drawing in reverse. The
-  `.willdraw` rules animate `fill-opacity` from 0, 260ms behind each slab's own
-  stroke: the line first, then the material. Animate the opacity rather than
-  re-declaring the colours, or the two face tones end up written twice.
-  **Hiding both leaves a 370px hole, though, and that is worse.** So each slab
-  also carries a `.ghost` copy of its top face: the outline, `--rule` at 1px,
-  undashed, in the server-rendered HTML from the first byte, rubbed out 140ms
-  after its own slab's stroke begins. It is the setting-out line, and the ink
-  overtakes it. Three details are load-bearing. The ghost is a `polygon` inside
-  `.slab`, so every draw-in rule is scoped `:not(.ghost)` or it gets dash-hidden
-  along with everything else. It needs `.willdraw .slab polygon.ghost` to
-  out-specify `.xp .slab polygon`, which would otherwise fill and ink it. And it
-  is `fill: none`: a ghost with a fill is just the grey brick again.
-  Reduced motion `display: none`s it, there being nothing to set out for.
+- **The figures carry no draw-in.** See the note under "The motion law": the
+  self-inking pass (dash offsets, fill-opacity ramps, setting-out ghosts) was
+  deliberately deleted, and its hard-won lessons live in git history with it.
 - **`CHART` in `app/(press)/content.ts` is a hand-plotted path, not data.**
   `{ x: 10, y: 50 }` is a pixel position in fig. 6's own 272x64 SVG space, so
   `52 - c.y` is a height above a baseline running 2 to 44 and is not a quantity
@@ -973,10 +1010,17 @@ different ground, and the band says so.
   claim is that the thing in the sentence is real. It is the same `Sparkline` on
   the same `SPARK` series at 280x64 on `curve="smooth"`, with the dimension line
   and the caption as their own small SVG beneath it, so the two cannot drift.
-- **The lens is `visibility: hidden` until `Loupe.tsx` has placed it.** It is
-  positioned by a transform written from a measurement, and the placing effect
-  runs after the first paint, so it was painted at the stage's top left corner
-  for a frame and then flew onto the sentence on every load. It also starts on
+- **The lens is `visibility: hidden` until `Loupe.tsx` raises `data-placed` on
+  the STAGE, and that is not the first placement — it is the first placement
+  the fonts cannot move.** The lens is positioned by a transform written from a
+  measurement, and the placing effect runs after first paint, so a visible lens
+  is painted at the stage's top left corner for a frame and then flies onto the
+  sentence. Revealing at the first placement only moved the problem: that
+  measurement lands before the fonts do, so the reader watched the lens fade in
+  at the pre-font position and snap across when they arrived. The flag goes up
+  on `document.fonts.ready`, or on a 600 ms guard timer if that promise never
+  lands, and `reveal()` is idempotent. It is on the stage rather than on the
+  lens so the two tangents share the one moment. It also starts on
   the inline chart rather than on a word (`CHART_WORD`, derived from `WORDS`),
   because the detail box should be showing the component when the reader
   arrives.
@@ -984,8 +1028,10 @@ different ground, and the band says so.
   dash-drawn path.** `pathLength` normalises the dash pattern to the path's own
   length, but `non-scaling-stroke` moves dash computation into screen space, so
   `stroke-dasharray: 1` becomes one CSS pixel and the figure prints as a field
-  of 1px dashes. It is silent: the drawing simply looks like a scribble. Fig.
-  1's glyphs fade in instead (`.willdraw .glyph`, `home.css`).
+  of 1px dashes. It is silent: the drawing simply looks like a scribble. (This
+  is why fig. 1's glyphs faded rather than drew, back when the draw-in
+  existed, and it still binds anything new that dash-draws a
+  non-scaling-stroke path.)
 - **A glyph drawn on an isometric face is built from that face's two axes.**
   The projection in `Exploded.tsx` turns a horizontal into a line sloping
   down-right and a vertical into one sloping down-left. Rectangles and axis-
@@ -1144,16 +1190,19 @@ disagree in public. Dates go through `isoMonth()`: the résumé's are `"Sep 2015
 schema.org wants ISO 8601.
 
 The home page carries the project and employment schemas because it absorbed
-`/about` and `/work`. `ItemList` earns its place: "55 public repos" is a number
-in a sentence, whereas the list names four repositories in a form an answer
-engine can cite.
+`/about` and `/work`. `ItemList` earns its place: "38 original public repos" is
+a number in a sentence, whereas the list names the repositories in a form an
+answer engine can cite, each with its real primary language and licence from
+`lib/resume.ts`.
 
 ## Bundle shape, and one framework leak
 
 Three of the home page's figures are behind `next/dynamic` in
 `app/(press)/page.tsx`: the specimen tray (25 static chart builds so a shuffle
 can pick eight), the pipeline, and the loupe. `ssr` stays ON for all three.
-Specimens renders a fixed first eight on the server before it reshuffles, the
+Specimens' server-rendered eight are the eight the reader sees (no mount
+re-roll — the swap a beat after load read as the page failing to settle;
+only the "draw another eight" chip re-rolls), the
 pipeline's server markup IS its no-flash guarantee (the sketch state in the
 markup equals the state the JS initialises to), and the loupe's sentence is
 content.
@@ -1167,7 +1216,16 @@ downloaded and executed 60 kB gzipped of home-page chunks and rendered none of
 them, and a blog post containing zero charts shipped the whole chart library.
 Splitting the figures does not fix the leak; it makes the leak cheap. If you add
 a heavy client component to the home page, put it behind `next/dynamic` too, or
-every other route pays for it.
+every other route pays for it. (Re-verified 2026-08-31: routing the microcharts
+essay's chart imports through `next/dynamic` wrappers reshuffled chunks and
+saved ~0 kB for the text-only posts — the manifest group, not the imports, is
+the mechanism. Don't retry that shape.)
+
+The script-tag numbers are also only half the wire story: the header's brand
+`<Link href="/">` is on every route, and its prefetch pulled the home page's
+whole chunk group onto `/resume` and every essay a second after load. It is
+`prefetch={false}` now — the home page is static and fetch-on-click is
+imperceptible — so the route-size numbers below are real on the network too.
 
 Measured first-load JS, gzip, excluding the `noModule` polyfill nothing at the
 browserslist floor fetches: **`/` 220 kB · `/resume` 164 kB · `/blog` 163 kB ·
@@ -1222,7 +1280,7 @@ in the built HTML, not from the manifest's module list.
 - ❌ Add a second copy of the palette. `--sw-*` exists so the picker does not need one.
 - ❌ Change a colour in `styles/press/tokens.css` without updating its hex mirror in `lib/ink.ts` — the OG cards and the icons read the mirror.
 - ❌ Reintroduce press runs, `data-mode`, `mg_mode`, or a third palette axis.
-- ❌ Reintroduce the clip-path iris, `lib/vt.ts`, or `withViewTransition`. Palette changes go through `sweepApply()`.
+- ❌ Run a glimm sweep for a paper flip. Theme is the iris in `lib/vt.ts`; layering both is two animations, and the band always enters from an edge.
 - ❌ Call glimm's `sweep()` directly for a state change. Use `sweepApply()`, or a hidden tab eats the swap.
 - ❌ Import `react-spectrum` by its bare name, or delete `react-spectrum.d.ts`.
 - ❌ Add a rounded corner that is not `--r-chip` or `--r-point`, or a `box-shadow`. Depth is line weight.
@@ -1253,7 +1311,7 @@ in the built HTML, not from the manifest's module list.
 - ❌ Turn `experimental.inlineCss` back on without measuring. The flag ships the stylesheet twice on first load, and over HTTP/2 that costs more than the request it saves. The numbers are in the comment in `next.config.ts`.
 - ❌ Move `gtag.js` back to `afterInteractive`, or delete the head stub. They are one decision — see "Analytics".
 - ❌ Add a per-control GA event name. Add a `data-analytics` id under an existing kind.
-- ❌ Re-add a `Cache-Control` header for `/_next/static`. Next already sets exactly that, and overriding it earns a build warning.
+- ❌ Remove the `Cache-Control` rule for `/_next/static` from `public/_headers`. Workers static assets default every response to `max-age=0, must-revalidate`, so without it the content-hashed chunks are never cached. (The old prohibition here was about Next's own server, which set the header itself; the export has no server.)
 - ❌ Put `favicon.ico` in `app/`. See "Icons".
 - ❌ Fetch Anek Kannada from Google again. It is self-hosted and subsetted on purpose — see "Fonts on the wire".
 - ❌ Preload IBM Plex Mono. See "Fonts on the wire".

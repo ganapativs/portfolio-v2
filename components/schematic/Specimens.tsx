@@ -1,6 +1,4 @@
-"use client";
 import "@microcharts/react/styles.css";
-import { useEffect, useMemo, useState } from "react";
 import { PUBLIC_WORK } from "@/lib/resume";
 import type { ReactNode } from "react";
 import { ActivityGrid } from "@microcharts/react/activity-grid";
@@ -29,10 +27,10 @@ import { StackedArea } from "@microcharts/react/stacked-area";
 import { TallyMarks } from "@microcharts/react/tally-marks";
 import { Waveform } from "@microcharts/react/waveform";
 import { CHART } from "@/app/(press)/content";
-import { useFX } from "@/components/providers/FXProvider";
+import { SpecimensTray } from "./SpecimensTray";
 
 /**
- * Eight of the 106, drawn from a pool of twenty-five, re-drawn every load.
+ * Eight of the 106, drawn from a pool of twenty-five at build time.
  *
  * These are not pictures of charts. Every one is the shipped component from
  * `@microcharts/react`, taking the drawing's ink through the `--mc-*` bridge in
@@ -47,12 +45,13 @@ import { useFX } from "@/components/providers/FXProvider";
  * data is the point. Each specimen still carries its own `summary`, so the tray
  * reads as twenty-five sentences rather than as decoration.
  *
- * The whole tray is a client component and the pool therefore ships to the
- * browser, which is the price of the shuffle: the eight cannot be chosen on the
- * server (the server's roll and the client's roll differ, and React calls that
- * a hydration mismatch) and choosing them on the client means every candidate
- * has to be there to choose from. The static builds are small and none of them
- * registers a listener.
+ * A server component, so the pool ships as rendered SVG rather than as
+ * JavaScript. It hydrated for years to shuffle in the browser, which meant
+ * all twenty-five builds in the client bundle AND the mount's re-roll
+ * visibly replacing the server's eight a beat after load. The shuffle moved
+ * to the build (see Specimens() at the foot of this file), several sets are
+ * pre-rendered, and SpecimensTray — the only client code left — flips which
+ * one is visible.
  *
  * Honesty rule for the data: every series is either one of the site's own
  * numbers, or plainly generic shape data whose summary says so. Nothing here
@@ -454,48 +453,39 @@ function draw(rnd: () => number): Specimen[] {
   return out;
 }
 
+/** How many pre-drawn sets the build ships. Each is 8 inline SVGs of HTML;
+ *  four keeps the chip surprising for a casual visit without bloating the
+ *  document. The chip cycles them and wraps. */
+const SETS = 4;
+
+/**
+ * A server component, and the randomness lives here because of that.
+ *
+ * The tray used to hydrate so the browser could shuffle, which meant every
+ * candidate chart shipped as JavaScript and — worse — the mount's re-roll
+ * visibly replaced the server's eight a beat after load. Now the build calls
+ * Math.random() freely (nothing hydrates over this markup, so there is no
+ * mismatch to have), draws SETS independent eights, and renders them all;
+ * SpecimensTray is the only client code and it just flips which set shows.
+ * The charts reach the reader as the static SVG they always were, with the
+ * library's client cost for this figure at zero.
+ */
 export function Specimens() {
-  // Seed 0 is the server's draw and the client's first render, so the two agree;
-  // the mount bumps it, and every bump after that is the reader re-rolling.
-  // Math.random() during the render the server also performs is a hydration
-  // mismatch, which is why this is a state bump rather than a call in place.
-  const [seed, setSeed] = useState(0);
-  const fx = useFX();
-  const picks = useMemo(() => draw(seed === 0 ? () => 0 : Math.random), [seed]);
-
-  useEffect(() => setSeed(1), []);
-
+  const sets = Array.from({ length: SETS }, () => draw(Math.random));
   return (
-    <div className="specimens" role="group" aria-label="Chart specimens">
-      {/* Keyed on the draw. The server renders a fixed eight and the mount
-          re-rolls them, which is the point — a different eight each load — but
-          as a hard swap it read as the page failing to settle. The tray fades
-          the new set in over one frame's worth of animation instead. */}
-      {picks.map((s) => (
-        <span className="spec" key={`${seed}-${s.id}`}>
-          <span className="spec-chart">{s.node}</span>
-          <span className="lbl">{s.id}</span>
+    <SpecimensTray count={SETS}>
+      {sets.map((picks, i) => (
+        // Keys are indices: the sets are frozen at build and never reorder.
+        // eslint-disable-next-line react/no-array-index-key
+        <span className="spec-set" data-set={i} key={i}>
+          {picks.map((s) => (
+            <span className="spec" key={s.id}>
+              <span className="spec-chart">{s.node}</span>
+              <span className="lbl">{s.id}</span>
+            </span>
+          ))}
         </span>
       ))}
-
-      <span className="specs-foot">
-        <span className="specs-note">
-          8 of the 106, a different eight each load · the real components, not screenshots
-        </span>
-        <button
-          type="button"
-          className="chip"
-          data-analytics="cta:demo.microcharts-specimens"
-          // Plucks its own note. See the rule in PageFX.
-          data-cue="self"
-          onClick={() => {
-            setSeed((s) => s + 1);
-            fx?.pluck(620);
-          }}
-        >
-          draw another eight
-        </button>
-      </span>
-    </div>
+    </SpecimensTray>
   );
 }

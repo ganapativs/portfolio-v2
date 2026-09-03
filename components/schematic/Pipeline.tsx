@@ -205,8 +205,14 @@ export function Pipeline() {
     if (!first && d === 3) pulse("bm", 700);
   }, [pulse]);
 
-  // Settle onto a detent. Time-based with a slight overshoot, so it cannot
-  // stall the way a per-frame decay can when the remaining distance is tiny.
+  // Settle onto a detent. Time-based, so it cannot stall the way a per-frame
+  // decay can when the remaining distance is tiny. 260ms on the house
+  // out-curve, the same clock as springCurve below — this was an easeOutBack
+  // over a distance-scaled 180-660ms, which made the head the one control on
+  // the site that overshot its detent and came back (and on a full throw the
+  // clamp in render() swallowed the overshoot, so the same handle had two
+  // different settles depending how far it moved). The rest of the drawing
+  // settles; so does this.
   const springTo = useCallback(
     (d: number) => {
       cancelAnimationFrame(raf.current);
@@ -217,12 +223,10 @@ export function Pipeline() {
       }
       const from = t.current;
       const t0 = performance.now();
-      const D = 180 + 120 * Math.abs(d - from);
+      const D = 260;
       const step = (now: number) => {
         const p = Math.min((now - t0) / D, 1);
-        const q = p - 1;
-        const e = 1 + 2.70158 * q * q * q + 1.70158 * q * q; // ease-out-back
-        t.current = from + (d - from) * e;
+        t.current = from + (d - from) * houseEase(p);
         if (p >= 1) t.current = d;
         render();
         if (p < 1) raf.current = requestAnimationFrame(step);
@@ -585,7 +589,7 @@ export function Pipeline() {
     const t0 = performance.now();
     const step = (now: number) => {
       // 260ms on the house out-curve. This was 320ms on an easeOutBack, which
-      // was the only easing on the site outside --ease-out/--ease-in-out and
+      // was the only easing on the site outside --ease-out and
       // the only one anywhere that overshot: the handles sprang past the curve
       // they were returning to and came back. The rest of the drawing settles.
       const p = Math.min((now - t0) / 260, 1);
@@ -696,6 +700,8 @@ export function Pipeline() {
   };
 
   const dragging = useRef(false);
+  // The stage the keyboard last commanded. See the scrub's onKeyDown.
+  const kbStage = useRef<number | null>(null);
   const drop = () => {
     if (!dragging.current) return;
     dragging.current = false;
@@ -705,7 +711,9 @@ export function Pipeline() {
   };
 
   return (
-    <div className="pipefig" ref={figRef} data-stage="0">
+    // data-sec + id, so the measuring edge ticks it: the largest drawing on
+    // the sheet was the one section the index didn't list.
+    <div className="pipefig" ref={figRef} data-stage="0" data-sec="pipeline" id="pipeline">
       <div className="pipe-top">
         {/* The plate number and the figure's name, the same pair every other
             figure on the sheet carries. This was the label alone, so the
@@ -856,13 +864,17 @@ export function Pipeline() {
                 <rect width="5" height="5" x={CX[AI] - 2.5} y={CY[AI] - 2.5} />
                 <circle className="h-c1" r="3" />
                 <circle className="h-c2" r="3" />
+                {/* Focusable only while the vectors stage has them on screen —
+                    onHandleKey has always known the arrow keys; a -1 tabindex
+                    meant a control announced as a button that no keyboard
+                    could reach. */}
                 <circle
                   className="hit h-g1"
                   r="11"
                   data-h="c1"
                   role="button"
-                  tabIndex={-1}
-                  aria-label="Bend the curve into the 2019 jump"
+                  tabIndex={stage === 1 ? 0 : -1}
+                  aria-label="Pen handle into the 2019 jump · arrow keys bend the curve"
                   onPointerDown={onHandleDown}
                   onKeyDown={onHandleKey}
                 />
@@ -871,8 +883,8 @@ export function Pipeline() {
                   r="11"
                   data-h="c2"
                   role="button"
-                  tabIndex={-1}
-                  aria-label="Bend the curve out of the 2019 jump"
+                  tabIndex={stage === 1 ? 0 : -1}
+                  aria-label="Pen handle out of the 2019 jump · arrow keys bend the curve"
                   onPointerDown={onHandleDown}
                   onKeyDown={onHandleKey}
                 />
@@ -1087,11 +1099,16 @@ export function Pipeline() {
           const onHead = head && Math.abs(e.clientX - (head.left + head.width / 2)) < 14;
           if (onHead) {
             dragging.current = true;
+            kbStage.current = null;
             e.currentTarget.dataset.dragging = "true";
             moveTo(e.clientX);
           } else {
             const r = innerRef.current?.getBoundingClientRect();
-            if (r) springTo(Math.round(cl((e.clientX - r.left) / r.width, 0, 1) * 4));
+            if (r) {
+              const d = Math.round(cl((e.clientX - r.left) / r.width, 0, 1) * 4);
+              kbStage.current = d;
+              springTo(d);
+            }
           }
           e.preventDefault();
         }}
@@ -1101,15 +1118,24 @@ export function Pipeline() {
         onPointerUp={drop}
         onPointerCancel={drop}
         onKeyDown={(e) => {
-          let d = Math.round(cl(t.current, 0, 4));
+          // Step from the last COMMANDED stage, not from the animated position:
+          // reading `t.current` mid-spring rounded back to the stage being left,
+          // so four quick presses advanced one stage. The ref survives until a
+          // pointer takes over, and holding an arrow now walks the run.
+          let d = kbStage.current ?? Math.round(cl(t.current, 0, 4));
           if (e.key === "ArrowLeft" || e.key === "ArrowDown") d -= 1;
           else if (e.key === "ArrowRight" || e.key === "ArrowUp") d += 1;
+          // The slider convention's larger step: two stages of five.
+          else if (e.key === "PageDown") d -= 2;
+          else if (e.key === "PageUp") d += 2;
           else if (e.key === "Home") d = 0;
           else if (e.key === "End") d = 4;
           else return;
           e.preventDefault();
           grab();
-          springTo(cl(d, 0, 4));
+          d = cl(d, 0, 4);
+          kbStage.current = d;
+          springTo(d);
         }}
       >
         <div className="scrub-in" ref={innerRef}>

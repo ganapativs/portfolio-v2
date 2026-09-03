@@ -18,16 +18,22 @@ PORT="${PORT:-4399}"
 OUT="public/brand"
 
 [ -x "$CHROME" ] || { echo "Google Chrome not found at $CHROME"; exit 1; }
-[ -d .next ] || { echo ".next is missing — run \`pnpm build\` first."; exit 1; }
+[ -d out ] || { echo "out/ is missing — run \`pnpm build\` first."; exit 1; }
 
-PORT="$PORT" pnpm exec next start -p "$PORT" >/dev/null 2>&1 &
+# Serve the export the way production does. `next start` refuses to run under
+# output: "export", and because it was backgrounded with stderr suppressed the
+# old version of this script screenshotted a refused connection and reported
+# success — over the committed files.
+pnpm exec wrangler dev --port "$PORT" >/dev/null 2>&1 &
 SERVER=$!
 trap 'kill "$SERVER" 2>/dev/null || true' EXIT
 
+up=""
 for _ in $(seq 1 40); do
-  curl -sf "http://localhost:$PORT/" >/dev/null && break
+  if curl -sf "http://localhost:$PORT/" >/dev/null; then up=1; break; fi
   sleep 0.5
 done
+[ -n "$up" ] || { echo "server never came up on :$PORT — refusing to screenshot"; exit 1; }
 
 shoot() {
   local name=$1 size=$2

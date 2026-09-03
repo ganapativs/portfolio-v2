@@ -12,7 +12,7 @@ export const dynamic = "force-static";
 // metadata-route loader synthesises its own from it, and the export build then
 // finds the slug param missing) — and the card already sets the title in
 // 64px type, so the alt was the one thing it carried.
-export const alt = "Blog post";
+export const alt = "An engineering-drawing title card for an essay on meetguns.com.";
 
 // `output: "export"` builds this image as its own static route, and that route
 // does not inherit the page's params — without this, the build fails asking
@@ -27,8 +27,9 @@ export default async function Image({ params }: { params: Promise<{ slug: string
   const post = published.find((p) => p.slug === slug);
   if (!post) notFound();
   return renderOG({
-    eyebrow: `${post.tag} · ${post.read}`,
+    eyebrow: `revision detail · ${post.tag}`,
     title: post.title,
     accent: post.accent,
+    dims: [{ v: post.date }, { v: post.read }],
   });
 }

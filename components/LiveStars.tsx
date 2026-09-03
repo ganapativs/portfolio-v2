@@ -48,11 +48,26 @@ function useLiveCounts(): StarCounts | null {
   const [counts, setCounts] = useState<StarCounts | null>(null);
   useEffect(() => {
     let on = true;
-    void liveCounts().then((c) => {
-      if (on && c) setCounts(c);
-    });
+    // Off the critical path: the HTML already carries a correct number, so
+    // two api.github.com calls have no business competing with the LCP image
+    // on a cold load. Idle when the browser offers it, a 1.2 s timer where
+    // Safari doesn't.
+    const start = () => {
+      void liveCounts().then((c) => {
+        if (on && c) setCounts(c);
+      });
+    };
+    let idle = 0;
+    let timer = 0;
+    if (typeof window.requestIdleCallback === "function") {
+      idle = window.requestIdleCallback(start, { timeout: 4000 });
+    } else {
+      timer = window.setTimeout(start, 1200);
+    }
     return () => {
       on = false;
+      if (idle) window.cancelIdleCallback?.(idle);
+      window.clearTimeout(timer);
     };
   }, []);
   return counts;

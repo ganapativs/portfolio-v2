@@ -23,6 +23,18 @@ function drawingTitle(pathname: string): string {
 
 export function SchematicHeader() {
   const [trayOpen, setTrayOpen] = useState(false);
+  // Mirrors the 640px breakpoint at which the CSS collapses the tray to the
+  // active swatch. Below it that swatch is a disclosure, and a disclosure
+  // needs to say so (aria-expanded, and a name that names the action) —
+  // above it the attribute would be a lie on a plain toggle.
+  const [narrowTray, setNarrowTray] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 640px)");
+    const update = () => setNarrowTray(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
   const pathname = usePathname();
   const router = useRouter();
   const fx = useFX();
@@ -43,8 +55,21 @@ export function SchematicHeader() {
     group: "Navigate",
     run: () => router.push("/blog"),
   });
-  // No origin: a keyboard press has no point on the page behind it, so the
-  // band sweeps top to bottom instead of left to right. See ThemeProvider.
+  // The résumé, in the strip and in the title block both — the owner settled
+  // it that way (2026-09-01) after trying header-only and footer-only: the
+  // short way for the reader hunting a CV, the sheet-reference balloon for the
+  // reader who reached the foot. `r` lives here, with the control its
+  // Shift-hold hint floats over; the registry refuses duplicate keys, so the
+  // title-block chip carries no shortcut.
+  const resumeRef = useShortcut<HTMLAnchorElement>({
+    id: "nav.resume",
+    keys: ["r"],
+    label: "Résumé",
+    group: "Navigate",
+    run: () => router.push("/resume"),
+  });
+  // The iris opens from the control. A key has no pointer, so the circle
+  // starts at the viewport centre rather than pretending a press landed.
   const themeRef = useShortcut<HTMLButtonElement>({
     id: "theme.toggle",
     keys: ["t"],
@@ -83,6 +108,7 @@ export function SchematicHeader() {
    */
   const [stuck, setStuck] = useState(false);
   const sentinel = useRef<HTMLSpanElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
   useEffect(() => {
     const el = sentinel.current;
     if (!el) return;
@@ -90,6 +116,37 @@ export function SchematicHeader() {
     io.observe(el);
     return () => io.disconnect();
   }, []);
+
+  /**
+   * A route change resets the scroll, and the un-stick has to be a snap, not
+   * a performance. Navigating home from the foot of the résumé used to play
+   * the whole 260ms condense in reverse on arrival: the observer fires a beat
+   * after Next has already scrolled to the top, so the new page painted with
+   * the condensed strip over its hero, then the title grew back in front of
+   * the reader. The reader didn't scroll; nothing should appear to answer a
+   * scroll. `data-instant` suppresses the strip's transitions while the state
+   * is synced from the sentinel's real position, and comes off two frames
+   * later so the next real scroll condenses normally.
+   */
+  useEffect(() => {
+    const h = headerRef.current;
+    const el = sentinel.current;
+    if (!h || !el) return;
+    h.dataset.instant = "";
+    const sync = () => setStuck(el.getBoundingClientRect().top < 0);
+    sync();
+    // Once more after Next's scroll restoration has actually run — it lands
+    // after the commit this effect belongs to.
+    const t1 = window.setTimeout(sync, 50);
+    const t2 = window.setTimeout(() => {
+      delete h.dataset.instant;
+    }, 300);
+    return () => {
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
+      delete h.dataset.instant;
+    };
+  }, [pathname]);
 
   /**
    * The header's own box never changes size. Only what is drawn inside it does.
@@ -107,8 +164,9 @@ export function SchematicHeader() {
    * page with `pointer-events` in chrome.css.
    *
    * Measured while unstuck, which is where the page starts and returns to.
+   * (headerRef itself is declared beside the stuck state above, which also
+   * needs it for the route-change snap.)
    */
-  const headerRef = useRef<HTMLElement>(null);
   useEffect(() => {
     const h = headerRef.current;
     if (!h) return;
@@ -143,6 +201,13 @@ export function SchematicHeader() {
               href="/"
               className="hd-brand"
               ref={homeRef}
+              // The brand is in every viewport on every route, and its
+              // prefetch pulled the home page's whole chunk group (~100 kB gz
+              // of charts and figures) onto the résumé and every essay a
+              // second after load — quietly undoing the route-size work the
+              // bundle-shape notes in AGENTS.md describe. The home page is
+              // static; fetching it on the click is imperceptible.
+              prefetch={false}
               data-analytics="nav:header.home"
               aria-label="Home"
               // No onPointerEnter tick here. PageFX ticks every link and button
@@ -167,6 +232,15 @@ export function SchematicHeader() {
               >
                 writing
               </Link>
+              <Link
+                href="/resume"
+                ref={resumeRef}
+                aria-current={on("/resume") ? "page" : undefined}
+                data-analytics="nav:header.resume"
+                onClick={() => fx?.nav()}
+              >
+                résumé
+              </Link>
               <span className="hd-ctls">
                 {/* Below 640px the CSS hides every swatch but the active one. The
                   one that stays visible is a real button, so pressing it is what
@@ -183,6 +257,7 @@ export function SchematicHeader() {
                       on={ink === i.id}
                       pick={setInk}
                       onPicked={() => setTrayOpen(ink === i.id)}
+                      discloses={narrowTray && ink === i.id ? trayOpen : undefined}
                     />
                   ))}
                 </span>
@@ -253,7 +328,11 @@ export function SchematicHeader() {
           <div className="hd-rule">
             <span className="hd-title">
               {drawingTitle(pathname)}
-              <span className="hd-title-full"> · {identity.name} · 2026</span>
+              {/* No name here: the brand block 40px up already sets it twice
+                  (Latin and Kannada), and the title block at the foot signs
+                  the sheet. The drawing's own line carries what the header
+                  does not: the title and the year. */}
+              <span className="hd-title-full"> · 2026</span>
             </span>
             <NorthArrow />
           </div>
@@ -270,6 +349,7 @@ function InkSwatch({
   on,
   pick,
   onPicked,
+  discloses,
 }: {
   id: InkId;
   label: string;
@@ -279,6 +359,9 @@ function InkSwatch({
   /** Lets the header open its collapsed tray on the active swatch and close it
    *  again on any other. */
   onPicked: () => void;
+  /** Set only on the active swatch below 640px, where pressing it opens the
+   *  tray: the swatch is a disclosure there and announces itself as one. */
+  discloses?: boolean;
 }) {
   const ref = useShortcut<HTMLButtonElement>({
     id: `ink.${id}`,
@@ -299,7 +382,8 @@ function InkSwatch({
       data-cue="self"
       style={{ color: `var(--sw-${id})` }}
       aria-pressed={on}
-      aria-label={`${label} ink`}
+      aria-expanded={discloses}
+      aria-label={discloses === false ? `Change the ink, ${label}` : `${label} ink`}
       title={`${label} · ${n}`}
       onClick={(e) => {
         const r = e.currentTarget.getBoundingClientRect();

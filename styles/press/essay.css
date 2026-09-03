@@ -184,17 +184,27 @@
   /* The same 52px the writing index opens with, so a post and the list it came
      from start at the same place on the sheet. */
   padding-top: 52px;
+  /* The reading column is centred in the plate and the cover breaks out to the
+     full width: a three-track grid whose middle track is the measure. The
+     column used to hug the plate's left edge, which put 216px of dead gutter
+     under a full-bleed cover on every post. Children keep their own tighter
+     caps (the title's 26ch, the spoiler's 56ch) and left-align inside the
+     centred track, so the column reads as one edge. */
+  display: grid;
+  grid-template-columns: 1fr min(var(--w-essay), 100%) 1fr;
 }
-/* Prose caps at the reading measure and everything that is not prose gets the
-   whole plate. That contrast is the layout now that the card has gone: a cover
-   the full width of the sheet against a 760px column of type, left aligned.
-   Prose at the plate's width would be a hundred and thirty characters a line,
-   which no amount of clean gets away with. */
-.essay > *,
+.essay > * {
+  grid-column: 2;
+}
+/* Prose caps at the reading measure and the cover gets the whole plate. That
+   contrast is the layout now that the card has gone; prose at the plate's
+   width would be a hundred and thirty characters a line, which no amount of
+   clean gets away with. */
 .prose > * {
   max-width: var(--w-essay);
 }
 .essay > .essay-cover {
+  grid-column: 1 / -1;
   max-width: 100%;
 }
 .essay-title {
@@ -557,7 +567,7 @@
   border-color: var(--ink-3);
 }
 .prose .codeblock-copy:active {
-  transform: scale(0.94);
+  transform: scale(var(--press));
 }
 .prose .codeblock-copy[data-status="copied"] {
   color: var(--accent-ink);

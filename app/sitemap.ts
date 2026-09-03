@@ -8,12 +8,13 @@ import { SITE_URL } from "@/lib/jsonld";
 // Hand-maintained content dates — bump a surface's entry when its copy
 // meaningfully changes. Deliberately NOT the build date: a lastmod that
 // moves on every deploy teaches crawlers to ignore it.
-// /about and /work are gone — the home page absorbed both, and next.config.ts
-// redirects them. They must not reappear here.
+// /about and /work are gone — the home page absorbed both, and
+// public/_redirects sends them here. They must not reappear.
 const SURFACE_UPDATED: Record<string, string> = {
-  // The schematic redesign: the home sheet and the CV were both rewritten.
-  "": "2026-08-29",
-  "/resume": "2026-08-29",
+  // The schematic redesign: the home sheet and the CV were both rewritten,
+  // then swept for copy and metadata drift in the pre-ship review.
+  "": "2026-08-31",
+  "/resume": "2026-08-31",
 };
 
 // Relative priority *within this site* — not a claim about the wider web.

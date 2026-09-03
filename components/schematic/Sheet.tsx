@@ -14,12 +14,15 @@ import { TitleBlock } from "./TitleBlock";
 export function Sheet({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <DitherField />
-      <Ruler />
-
+      {/* First in source, so it is the first Tab stop on a cold load. It sat
+          below the ruler for a while, and the first Tab landed on a measuring
+          edge tick instead of the one control a keyboard reader needs first. */}
       <a href="#main-content" className="skip-link">
         Skip to the drawing
       </a>
+
+      <DitherField />
+      <Ruler />
 
       <div className="sheet">
         {/* Registration ticks, outside the trim, the way a printer's marks are. */}
@@ -27,13 +30,6 @@ export function Sheet({ children }: { children: React.ReactNode }) {
         <span className="tick-c tc-tr" aria-hidden="true" />
         <span className="tick-c tc-bl" aria-hidden="true" />
         <span className="tick-c tc-br" aria-hidden="true" />
-        {/* Four masks the colour of the ground, wiped off one edge at a time, so
-            the frame rules itself in. They are inert after 400ms. */}
-        <span className="fl fl-t" aria-hidden="true" />
-        <span className="fl fl-r" aria-hidden="true" />
-        <span className="fl fl-b" aria-hidden="true" />
-        <span className="fl fl-l" aria-hidden="true" />
-
         <div className="wrap">
           <SchematicHeader />
           {children}

@@ -21,7 +21,7 @@
  */
 export const ROLE_COPY: Record<string, string[]> = {
   "Vice President, Technology": [
-    "Built the customer-facing AI assistant and the API documentation portal it runs in. The docs generate from the OpenAPI spec, and an intent router picks the model for each question. Behind that sit a tools and skills layer, server-side document export, versioned prompts under an eval harness and auditable logs.",
+    "Built the customer-facing AI assistant and its knowledge base. Specs, docs and search feed it. An intent router picks the model for each question. Behind that sit a tools and skills layer, document export, versioned prompts under an eval harness and auditable logs.",
     "Designed the MCP server surface and shipped its first version. Read-only connectors behind OAuth, so AI coding clients reach the API without a pasted key. The team co-owns it now.",
     "Wrote @microcharts/react on my own time. 106 word-sized chart types, no runtime dependencies, 1-7 kB gzip each, accessible by default and safe in server components. Design, code, docs and release all mine.",
     "Ran a performance program across the stack. Native image loading with DPR-aware URLs, compression on portal assets, render profiling, and a pass over scroll, re-renders and CSS.",
@@ -54,4 +54,4 @@ export const ROLE_COPY: Record<string, string[]> = {
 };
 
 export const SUMMARY =
-  "Full-stack engineer with a design mind. I joined Tracxn in 2015 as a software engineer and I am VP of Technology now. Most of the job is the team, the hiring and what we build next. I still write a lot of code. The most recent is the customer-facing AI assistant and the API documentation portal it runs in. On my own time I wrote @microcharts/react.";
+  "Full-stack engineer with a design mind. I joined Tracxn in 2015 as a software engineer and I am VP of Technology now. Most of the job is the team, the hiring and what we build next. I still write a lot of code. The most recent is the customer-facing AI assistant and its knowledge base. On my own time I wrote @microcharts/react.";

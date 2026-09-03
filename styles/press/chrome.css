@@ -103,78 +103,9 @@
   right: 5px;
 }
 
-/* The frame rules itself in: four masks the colour of the ground, wiped off one
-   edge at a time. 400ms total, then they are inert. */
-.fl {
-  position: absolute;
-  background: var(--paper);
-  pointer-events: none;
-  z-index: 5;
-}
-.fl-t {
-  top: -1px;
-  left: -1px;
-  right: -1px;
-  height: 1px;
-  transform-origin: right;
-}
-.fl-r {
-  top: -1px;
-  right: -1px;
-  bottom: -1px;
-  width: 1px;
-  transform-origin: bottom;
-}
-.fl-b {
-  bottom: -1px;
-  left: -1px;
-  right: -1px;
-  height: 1px;
-  transform-origin: left;
-}
-.fl-l {
-  top: -1px;
-  left: -1px;
-  bottom: -1px;
-  width: 1px;
-  transform-origin: top;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .fl-t {
-    animation: wipe-x 100ms linear 0ms both;
-  }
-  .fl-r {
-    animation: wipe-y 100ms linear 100ms both;
-  }
-  .fl-b {
-    animation: wipe-x 100ms linear 200ms both;
-  }
-  .fl-l {
-    animation: wipe-y 100ms linear 300ms both;
-  }
-  @keyframes wipe-x {
-    from {
-      transform: scaleX(1);
-    }
-    to {
-      transform: scaleX(0);
-    }
-  }
-  @keyframes wipe-y {
-    from {
-      transform: scaleY(1);
-    }
-    to {
-      transform: scaleY(0);
-    }
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .fl {
-    display: none;
-  }
-}
+/* No frame wipe any more: the four ground-coloured masks that ruled the
+   frame in over 400ms were retired with the figure draw-ins — line appearance
+   on load read as motion nobody caused. The frame is simply there. */
 
 /* ---- the measuring edge: ruler, section labels, scroll traveller --------- */
 
@@ -301,7 +232,10 @@
      sheet; the control surface that caused it should stay legible while it
      happens, so you can see the control you just pressed. */
   z-index: 70;
-  padding: 22px 0 0;
+  /* 24, measured: the frame line to the controls' top must equal the
+     controls' bottom to the title rule's hairline (16px margin + 9px into the
+     rule's box = 25). At 22 the strip sat 2px high and it showed. */
+  padding: 24px 0 0;
   /* Locked to the natural height measured in Header.tsx, so condensing the
      strip inside never moves a pixel of the page below it. */
   min-height: var(--hd-h, auto);
@@ -332,9 +266,16 @@
   padding-inline: var(--gutter);
   padding-block: 0;
   /* One duration and one curve for every part of the condense, so nothing in
-     the strip arrives before anything else. */
-  backdrop-filter: blur(var(--hd-blur)) saturate(var(--hd-sat));
+     the strip arrives before anything else.
+
+     ⚠️ The -webkit- line comes FIRST on purpose. The CSS minifier treats it as
+     an alias of the unprefixed property and keeps only the last declaration of
+     the pair — written the other way round, the build shipped -webkit- alone
+     and the strip lost its blur in every browser reading the standard name.
+     Verify in out/, not in this file: the built .hd-strip rule must carry
+     `backdrop-filter:blur(var(--hd-blur))` unprefixed. */
   -webkit-backdrop-filter: blur(var(--hd-blur)) saturate(var(--hd-sat));
+  backdrop-filter: blur(var(--hd-blur)) saturate(var(--hd-sat));
   transition:
     padding-block var(--dur-base) var(--ease-out),
     background var(--dur-base) var(--ease-out),
@@ -385,6 +326,16 @@
    is right at the head of the sheet and wrong in a running strip: content
    scrolled past uncovered in the gap above it. The box keeps its locked height
    either way, so nothing below notices. */
+/* A route change resets the scroll, and the un-stick that follows must be a
+   snap: the reader didn't scroll, so nothing should play the condense in
+   reverse for them. Header.tsx stamps this for ~two frames around a
+   navigation while it syncs the stuck state from the sentinel's real
+   position. The `*` covers the strip, the rule, the title and the brand —
+   every element the condense animates. */
+.hd[data-instant],
+.hd[data-instant] * {
+  transition: none !important;
+}
 .hd[data-stuck="true"] {
   padding-top: 0;
   /* Declared once and read twice: by the strip, and by the compass dial that
@@ -460,12 +411,6 @@
   align-items: center;
   gap: 14px;
   flex-wrap: wrap;
-}
-.hd-id {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
 }
 .hd-mark {
   display: block;
@@ -669,6 +614,10 @@
   display: flex;
   align-items: center;
   gap: var(--hd-rule-gap);
+  /* 16 balances the strip by the measure the eye actually takes: frame line
+     to the controls' top vs the controls' bottom to the hairline (which sits
+     9px into this rule's own 18px box). At 20 the strip read bottom-heavy and
+     it was called out. Unstuck only — the stuck strip overrides this to 0. */
   margin-top: 16px;
   min-width: 0;
   transition:
@@ -707,7 +656,10 @@
   font-family: var(--f-mono);
   font-size: 10px;
   letter-spacing: 0.14em;
-  color: var(--ink-3);
+  /* --ink-2, not --ink-3: at 10px this is the drawing's own title, and the
+     annotation grey measured 3.77:1 on paper — an AA failure on the one line
+     that names the sheet. */
+  color: var(--ink-2);
   white-space: nowrap;
   text-transform: uppercase;
   min-width: 0;
@@ -847,22 +799,15 @@
   margin: 0 0 10px;
   display: block;
 }
-/* Two of the plate numbers are buttons: pressing one replays that figure's
-   draw-in. It has to look exactly like the ones that are not, because a plate
-   number is a label first, so it takes the ink only under the pointer. */
-.p-fig-replay {
-  /* The plate number is rendered by the figure component, which sits below the
-     heading in source order, but it reads first. The panels are flex columns,
-     so `order` puts it back at the top without splitting the component in two
-     just to place a label. */
+/* Two of the plate numbers are rendered by their figure component, which sits
+   below the heading in source order, but they read first. The panels are flex
+   columns, so `order` puts them back at the top without splitting the
+   component in two just to place a label. (They were replay buttons while
+   figs. 1 and 3 drew themselves in; the draw-in is gone and so is the
+   control.) */
+.p-fig-lead {
   order: -1;
   text-align: left;
-  cursor: pointer;
-  transition: color var(--dur-fast) var(--ease-out);
-}
-.p-fig-replay:hover,
-.p-fig-replay:focus-visible {
-  color: var(--accent);
 }
 .meta {
   font-family: var(--f-mono);

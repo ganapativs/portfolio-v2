@@ -26,7 +26,21 @@ const SITE_URL = "https://meetguns.com";
 function toMarkdown(source: string): string {
   const out: string[] = [];
   let inExport = false;
+  let inFence = false;
   for (const line of source.split("\n")) {
+    // Everything inside a fenced code block is content, not module code — an
+    // `import` line in an example is the example. The first cut of this
+    // stripped those too, and shipped samples whose identifiers came from
+    // nowhere, on the one surface llms.txt points AI systems at.
+    if (/^\s*(```|~~~)/.test(line)) {
+      inFence = !inFence;
+      out.push(line);
+      continue;
+    }
+    if (inFence) {
+      out.push(line);
+      continue;
+    }
     if (inExport) {
       if (/;\s*$/.test(line)) inExport = false;
       continue;

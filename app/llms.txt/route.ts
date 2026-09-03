@@ -17,9 +17,20 @@ export const dynamic = "force-static";
 // disagree with the one the résumé and the home page print.
 const BTTN_STARS = flagships.find((f) => f.name === "bttn.css")?.stars ?? 0;
 
+// The contact block reads identity.social so the URLs here cannot drift from
+// the ones Person.sameAs asserts — llms.txt used to hand-type a LinkedIn URL
+// without the www that the schema carries, two canonical spellings of one
+// profile. Only the display names are this file's own.
+const SOCIAL_LABEL: Record<string, string> = {
+  github: "GitHub",
+  linkedin: "LinkedIn",
+  twitter: "X / Twitter",
+  npm: "npm",
+};
+
 export async function GET() {
   // Each entry carries its markdown mirror, so a reader that wants the full
-  // text can take it without parsing the page. See app/api/blog-md/[slug].
+  // text can take it without parsing the page. See scripts/gen-md.ts.
   const posts = published
     .map(
       (p) =>
@@ -31,11 +42,11 @@ export async function GET() {
 
   const body = `# meetguns: ${identity.name}
 
-> Personal site of ${identity.name} (@ganapativs). ${BIO} He also builds and maintains open-source projects, most recently microcharts.
+> Personal site of ${identity.name} (@ganapativs). ${BIO}
 
 ## Pages
 
-- [Home](${SITE_URL}/): the whole story on one sheet. Who he is, four project figures (the AI assistant at Tracxn, microcharts, sgb, react-spectrum), the career plotted year by year, the parts list of public repos, the latest writing, and how to reach him. There is no separate about or work page: /about and /work redirect here
+- [Home](${SITE_URL}): the whole story on one sheet. Who he is, four project figures (the AI assistant at Tracxn, microcharts, sgb, react-spectrum), the career plotted year by year, the parts list of public repos, the latest writing, and how to reach him. There is no separate about or work page: /about and /work redirect here
 - [Résumé](${SITE_URL}/resume): recruiter-facing summary, print-friendly
 - [Writing](${SITE_URL}/blog): technical blog
 - [RSS](${SITE_URL}/rss.xml): feed of published posts
@@ -44,8 +55,8 @@ export async function GET() {
 ## Reading this site as plain text
 
 Every post is served as markdown at the same URL with a \`.md\` suffix: for
-example ${SITE_URL}/blog/${published[0]?.slug ?? "post"}.md. No HTML, no
-navigation, just the article.
+example ${SITE_URL}/blog/${published[0]?.slug ?? "post"}.md. No HTML and no
+navigation. The article as written.
 
 ## Facts worth citing
 
@@ -69,16 +80,17 @@ ${talks}
 
 - [microcharts](https://microcharts.dev): 106 word-sized chart types for React. Zero runtime dependencies, ~1-7 kB gzip each, accessible by default, server-component safe. Machine surfaces: https://microcharts.dev/llms.txt, MCP server \`npx -y @microcharts/mcp\` (https://microcharts.dev/docs/mcp)
 - [bttn.css](https://github.com/ganapativs/bttn.css): CSS button library, ${BTTN_STARS.toLocaleString("en-US")} GitHub stars
-- [react-spectrum](https://github.com/ganapativs/react-spectrum): colourful text placeholders laid out from a palette and a few shape rules, 1.3 kB
+- [react-spectrum](https://github.com/ganapativs/react-spectrum): colourful text placeholders laid out from a palette and a few shape rules, 1.9 kB gzipped
 - [sgb](https://sgb.vercel.app): a tracker for India's Sovereign Gold Bonds, live since 2021
 - [Full catalogue](https://github.com/ganapativs): ${PUBLIC_WORK.repos} original public repositories, ${PUBLIC_WORK.npm} npm packages
 
 ## Contact
 
 - Email: ${identity.email}
-- GitHub: https://github.com/ganapativs
-- X / Twitter: https://x.com/ganapativs
-- LinkedIn: https://linkedin.com/in/ganapativs
+${identity.social
+  .filter((s) => s.kind !== "mail")
+  .map((s) => `- ${SOCIAL_LABEL[s.kind] ?? s.kind}: ${s.href}`)
+  .join("\n")}
 `;
 
   return new Response(body, {

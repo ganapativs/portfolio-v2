@@ -131,18 +131,26 @@ export function Loupe() {
   // Place the lens and redraw the two tangents. Kept out of React state on
   // purpose: this runs on every pointermove of a drag, and a transform written
   // straight to the node is one style recalculation instead of a render.
-  const place = useCallback((i: number) => {
+  const place = useCallback((i: number, instant = false) => {
     const stage = stageRef.current;
     const loupe = loupeRef.current;
     const detail = detailRef.current;
     const r = rects.current[i];
     if (!stage || !loupe || !detail || !r) return;
+    // A layout resync is not a journey. The first placement lands before the
+    // fonts do, and when Hanken swapped in, every word box moved and the lens
+    // eased 260ms onto the chart — a slide across the sentence on page load
+    // that nobody caused. Resyncs (mount, fonts.ready, resize) snap; only a
+    // reader's goTo travels. A timer, not rAF, restores the transition — a
+    // hidden tab freezes rAF and would leave the ease off the first real move.
+    const els = [loupe, l1.current, l2.current];
+    if (instant) {
+      for (const el of els) if (el) el.style.transition = "none";
+      window.setTimeout(() => {
+        for (const el of els) if (el) el.style.transition = "";
+      }, 50);
+    }
     loupe.style.transform = `translate(${r.x - 29}px,${r.y - 29}px)`;
-    // Until this has run once, the lens has no transform and CSS has it at the
-    // stage's top left corner. The placing effect runs after the first paint,
-    // so it was painted there for a frame and then jumped onto the sentence.
-    // It is hidden until it is somewhere.
-    loupe.dataset.placed = "true";
     const d = detail.getBoundingClientRect();
     const base = stage.getBoundingClientRect();
     const dt = d.top - base.top;
@@ -179,30 +187,49 @@ export function Loupe() {
     [fx, place],
   );
 
+  // The current stop, readable by the resync effect below without putting
+  // `cur` in its deps — with `cur` there, every goTo re-ran the effect and an
+  // instant re-place snapped the ease the goTo had just started.
+  const curRef = useRef(cur);
+  curRef.current = cur;
   useEffect(() => {
+    // All three of these are layout resyncs, so they place instantly.
     measure();
-    place(cur);
+    place(curRef.current, true);
+    // Until this has run once, the lens has no transform and CSS has it at the
+    // stage's top left corner, hidden: the placing effect runs after the first
+    // paint, so a visible lens would be painted there for a frame and jump onto
+    // the sentence. Which is also why the reveal is NOT this first placement.
+    // The measurement above lands before the fonts do, and the resync when they
+    // arrive moves every word box; revealing here showed the lens at the
+    // pre-font position and then snapped it across in full view of the reader.
+    // It is raised once the boxes are final — the fonts, or a guard timer if
+    // that promise never lands. Idempotent, so it cannot matter which wins.
+    let guard = 0;
+    const reveal = () => {
+      window.clearTimeout(guard);
+      measure();
+      place(curRef.current, true);
+      if (stageRef.current) stageRef.current.dataset.placed = "true";
+    };
+    guard = window.setTimeout(reveal, 600);
+    if (document.fonts?.ready) document.fonts.ready.then(reveal).catch(reveal);
+    else reveal();
     let rz = 0;
     const onResize = () => {
       clearTimeout(rz);
       rz = window.setTimeout(() => {
         measure();
-        place(cur);
+        place(curRef.current, true);
       }, 150);
     };
     window.addEventListener("resize", onResize);
-    // Font swap changes every word box, so re-measure once the faces land.
-    document.fonts?.ready
-      .then(() => {
-        measure();
-        place(cur);
-      })
-      .catch(() => {});
     return () => {
+      window.clearTimeout(guard);
       clearTimeout(rz);
       window.removeEventListener("resize", onResize);
     };
-  }, [measure, place, cur]);
+  }, [measure, place]);
 
   const wordAt = (clientX: number, clientY: number) => {
     for (const el of document.elementsFromPoint(clientX, clientY)) {
@@ -339,6 +366,11 @@ export function Loupe() {
           setDragFlag(false);
         }}
         onKeyDown={(e) => {
+          // A held arrow is a drag by another name: key-repeat arrives faster
+          // than the detail box's swap fade, so without the drag flag the box
+          // sat blank for the whole hold. A single press keeps its fade — the
+          // flag goes up only on repeat and comes down on release.
+          if (e.repeat) setDragFlag(true);
           if (e.key === "ArrowRight" || e.key === "ArrowDown") goTo(cur + 1);
           else if (e.key === "ArrowLeft" || e.key === "ArrowUp") goTo(cur - 1);
           else if (e.key === "Home") goTo(0);
@@ -346,6 +378,7 @@ export function Loupe() {
           else return;
           e.preventDefault();
         }}
+        onKeyUp={() => setDragFlag(false)}
       />
 
       <div className="lp-detail" ref={detailRef}>

@@ -1,8 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { useFX } from "@/components/providers/FXProvider";
 import { useCoarsePointer } from "./useCoarsePointer";
-import { useDrawOnFirstView } from "./useDrawOnFirstView";
 
 /**
  * Fig. 1 — the assistant, exploded.
@@ -35,10 +33,10 @@ type Stroke = { d: string; solid?: boolean; dash?: boolean; act?: string };
 
 const PARTS: { name: string; note: string; glyph: Stroke[] }[] = [
   {
-    name: "OpenAPI → docs",
-    note: "The API documentation portal writes itself from the OpenAPI spec, and the assistant lives inside it. One source, read once by a person and once by a model.",
-    // A page with a folded corner and two rules. The spec goes in one end and a
-    // documentation site comes out the other.
+    name: "knowledge base",
+    note: "The assistant answers from a knowledge base of specs, written docs, search and more. A person can read the same material the model does.",
+    // A page with a folded corner and two rules. Material goes in; a knowledge
+    // base comes out.
     glyph: [
       { d: "M-12 -13 H5 L12 -6 V13 H-12 Z" },
       { d: "M5 -13 V-6 H12" },
@@ -156,19 +154,20 @@ export function Exploded({ fig, body }: { fig: string; body: string }) {
   // double render.
   const [{ on, dir }, setSel] = useState({ on: -1, dir: 1 });
   const coarse = useCoarsePointer();
-  const fx = useFX();
   const clearTid = useRef(0);
-  const { ref: svgRef, replay } = useDrawOnFirstView<SVGSVGElement>();
 
   useEffect(() => () => window.clearTimeout(clearTid.current), []);
 
+  // No tick here: the labels are buttons and the slabs are in PageFX's
+  // delegated selector, so both get the generic hover cue — with the moved +
+  // scroll-settle gating this handler lacked, which had the stack ticking once
+  // per slab crossed on a scroll past a resting cursor.
   const enter = (i: number) => {
     window.clearTimeout(clearTid.current);
     if (i === on) return;
     // Down the stack, the note rises into place from below; up the stack it
     // drops in from above. The text travels the way the eye just did.
     setSel({ on: i, dir: i > on ? 1 : -1 });
-    fx?.tick();
   };
   // A short grace period, because moving from a slab to its own label leaves
   // both for a frame and the note would otherwise blink.
@@ -181,21 +180,13 @@ export function Exploded({ fig, body }: { fig: string; body: string }) {
 
   return (
     <>
-      {/* The plate number is the replay control. The assembly draws itself once
-          per load, and a reader who scrolled past it in a hidden tab never saw
-          it; this is the same pass, on request, and it is where a reader would
-          look to find out what they were looking at. */}
-      <button
-        type="button"
-        className="p-fig p-fig-replay"
-        data-analytics="cta:figure.replay.assistant"
-        onClick={replay}
-      >
-        {fig}
-        <span className="sr-only"> — replay the drawing</span>
-      </button>
+      {/* A plain label again. It was a button that replayed the figure's
+          draw-in, and the draw-in is gone: a figure animating itself on load
+          was distracting motion nobody caused. `p-fig-lead` keeps the
+          order: -1 that puts it above the heading. */}
+      <span className="p-fig p-fig-lead">{fig}</span>
       <div className="xp">
-        <svg ref={svgRef} className="willdraw" viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
+        <svg viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
           <defs>
             <pattern
               id="hatchP"
@@ -242,17 +233,6 @@ export function Exploded({ fig, body }: { fig: string; body: string }) {
                     points={`${CX},${y} ${CX + HALF_W},${m} ${CX + HALF_W},${m + DEPTH} ${CX},${b + DEPTH} ${CX - HALF_W},${m + DEPTH} ${CX - HALF_W},${m}`}
                   />
                   <g className="lift">
-                    {/* The setting-out line.
-                      
-                      The slab's own outline, faint and undashed, present from
-                      the first byte of HTML and rubbed out once the inked line
-                      has been drawn over it. Without it the plate is simply
-                      empty until the draw-in runs, which is a 370px hole where
-                      the figure is going to be: the drawn stroke is hidden by
-                      its dash offset and the faces are hidden by fill-opacity,
-                      so there is nothing left to see. A drawing is set out in
-                      pencil before it is inked, so that is what is there. */}
-                    <polygon className="ghost" points={top} />
                     <polygon
                       className="side"
                       points={`${CX - HALF_W},${m} ${CX},${b} ${CX},${b + DEPTH} ${CX - HALF_W},${m + DEPTH}`}

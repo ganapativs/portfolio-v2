@@ -249,7 +249,7 @@ export function CatalogWall() {
           className="mcx-tile mcx-tile--more"
           href="https://microcharts.dev/charts"
           target="_blank"
-          rel="noreferrer"
+          rel="noopener noreferrer"
         >
           <span className="mcx-tile-more-figure">+86</span>
           <span className="mcx-tile-label">the other 86 →</span>

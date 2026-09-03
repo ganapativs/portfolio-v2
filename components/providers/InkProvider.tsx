@@ -8,15 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
-import {
-  DEFAULT_INK,
-  INK_HEX,
-  INK_HEX_DARK,
-  INKS,
-  STORAGE_KEYS,
-  isInkId,
-  type InkId,
-} from "@/lib/ink";
+import { DEFAULT_INK, INK_HEX_DARK, INKS, STORAGE_KEYS, isInkId, type InkId } from "@/lib/ink";
 import { useFX } from "@/components/providers/FXProvider";
 import { useGlimm } from "glimm/react";
 import { sweepApply } from "@/lib/sweep";
@@ -71,10 +63,9 @@ export function InkProvider({ children }: { children: React.ReactNode }) {
     setHydrated(true);
   }, []);
 
-  // Both palette changes on this site are carried by the same glimm band, so an
-  // ink pick and a paper flip read as the same kind of event. The band is
-  // painted from the ink being replaced to the ink replacing it, which makes
-  // the sweep itself the interpolation rather than something laid over one.
+  // The band is painted from the ink being replaced to the ink replacing it,
+  // which makes the sweep itself the interpolation rather than something laid
+  // over one. A paper flip is a different event: the iris in lib/vt.ts.
   //
   // A keyboard pick sweeps top to bottom instead of left to right. There is no
   // point on the page behind a number key, and saying so with the axis is
@@ -88,8 +79,10 @@ export function InkProvider({ children }: { children: React.ReactNode }) {
     };
     if (from === ink) write();
     else {
-      const dark = document.documentElement.dataset.theme === "dark";
-      const hex = dark ? INK_HEX_DARK : INK_HEX;
+      // Always the lit (dark-ground) values, on either paper — the flat band
+      // is a veil of light, and the light-ground pigments are too dark to be
+      // one.
+      const hex = INK_HEX_DARK;
       sweepApply(sweep, write, {
         band: { kind: "pair", hexes: [hex[from], hex[ink]] },
         direction: origin ? "ltr" : "ttb",

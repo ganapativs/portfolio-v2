@@ -13,7 +13,9 @@
   grid-template-columns: 1.1fr 0.9fr;
   gap: 48px;
   align-items: center;
-  padding: 44px 0 40px;
+  /* 36 down from 44: with the header's own rule 20px under the brand row, a
+     44px void before the H1 made the head of the sheet read bottom-heavy. */
+  padding: 36px 0 40px;
 }
 /* The one piece of display type on the sheet. The scale runs to 58px and the
    home page used to stop at 22, which made the drawing beautiful and mute. */
@@ -155,31 +157,9 @@
 .fig .dot {
   fill: var(--accent);
 }
-/* The dimensions draw themselves once, on load, then hold. They are a
-   measurement, and a measurement that keeps re-measuring is a fidget. */
-@media (prefers-reduced-motion: no-preference) {
-  .fig .dim,
-  .fig .ext,
-  .fig .ldr {
-    stroke-dasharray: 1;
-    stroke-dashoffset: 1;
-    animation: fig-draw 500ms var(--ease-out) 340ms forwards;
-  }
-  .fig .anno {
-    opacity: 0;
-    animation: fig-in var(--dur-base) var(--ease-out) 640ms forwards;
-  }
-  @keyframes fig-draw {
-    to {
-      stroke-dashoffset: 0;
-    }
-  }
-  @keyframes fig-in {
-    to {
-      opacity: 1;
-    }
-  }
-}
+/* The dimensions do not draw themselves in any more — line appearance on load
+   was retired with the figure draw-ins. The portrait's one load animation is
+   the halftone bloom on the canvas; its annotations are simply there. */
 
 /* Annotations on a drawing are furniture, not copy. Dragging across a figure
    should not select "12 yrs experience" and "56 x 56 halftone" along with the
@@ -562,98 +542,12 @@
   margin-bottom: 1px;
 }
 
-/* Draw-on-first-view: the assembly builds itself once, bottom slab up.
-   
-   `fill-opacity` is half of that and it was missing. The dash offset hides a
-   stroke, not a shape: the slab faces are filled in --raise and --sunk, and a
-   fill is painted the instant the element exists. So the figure arrived as five
-   grey lozenges sitting there fully formed, and then had its outlines drawn on
-   top of them, which is the opposite of a drawing being drawn. Fading the fill
-   in rather than re-declaring it keeps the two face colours in one place.
-   
-   The fill follows its own outline rather than arriving with it: 260ms behind
-   the stroke on that slab, which is most of the way through its 420ms draw. The
-   line first, then the material. */
-.willdraw .slab polygon:not(.ghost),
-.willdraw .leader {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-}
-.willdraw .slab polygon:not(.ghost) {
-  fill-opacity: 0;
-}
-/* The setting-out lines. See the note in Exploded.tsx: with both the stroke and
-   the fill hidden there is nothing in the plate until the draw runs, so the
-   figure's own outline is there in pencil from the start. It is not dashed and
-   not animated in, because it is what was already on the paper.
-   
-   It is rubbed out per slab, 140ms after that slab's stroke begins, so the ink
-   is overtaking the pencil rather than replacing it. `fill: none` matters: this
-   is the same polygon as the drawn face, and a ghost with a fill is just the
-   grey brick again. */
-.willdraw .slab polygon.ghost {
-  fill: none;
-  fill-opacity: 1;
-  /* --rule, not --rule-3. The faint weight is for a hairline sitting next to
-     type; at 1px across an empty 370px plate it was invisible, which is the
-     blank space this exists to fill. */
-  stroke: var(--rule);
-  stroke-width: 1;
-  stroke-dasharray: none;
-  stroke-dashoffset: 0;
-}
-.willdraw[data-drawn="true"] .slab polygon.ghost {
-  opacity: 0;
-  transition: opacity 320ms var(--ease-out) calc(var(--i) * 70ms + 140ms);
-}
-/* The delay and duration live inside the shorthand rather than as their own
-   declarations, because `transition-delay` applies to every property in the
-   list: as a bare declaration it also sat on the hover stroke change above,
-   and the leader answered a pointer 300ms late, forever. */
-.willdraw[data-drawn="true"] .leader {
-  transition:
-    stroke-dashoffset 280ms var(--ease-out) 300ms,
-    stroke var(--dur-fast) var(--ease-out);
-  stroke-dashoffset: 0;
-}
-.willdraw[data-drawn="true"] .slab polygon:not(.ghost) {
-  transition:
-    stroke-dashoffset 420ms var(--ease-out) calc(var(--i) * 70ms),
-    fill-opacity 300ms var(--ease-out) calc(var(--i) * 70ms + 260ms);
-  stroke-dashoffset: 0;
-  fill-opacity: 1;
-}
-/* The glyphs fade rather than draw, and that is not a style choice.
-   `pathLength="1"` normalises a dash pattern to the path's own length, but
-   `vector-effect: non-scaling-stroke` moves dash computation into screen
-   space, where `stroke-dasharray: 1` means one CSS pixel. The two together
-   printed every symbol as a field of 1px dashes: the reason the glyphs read
-   as scribbles rather than as figures. Opacity has no such interaction. */
-.willdraw .glyph {
-  opacity: 0;
-}
-.willdraw[data-drawn="true"] .glyph {
-  opacity: 1;
-  transition: opacity 320ms var(--ease-out);
-  transition-delay: calc(140ms + var(--i) * 70ms);
-}
-@media (prefers-reduced-motion: reduce) {
-  .willdraw .glyph {
-    opacity: 1;
-  }
-  .willdraw .slab polygon,
-  .willdraw .leader {
-    stroke-dasharray: none;
-    stroke-dashoffset: 0;
-  }
-  .willdraw .slab polygon:not(.ghost) {
-    fill-opacity: 1;
-  }
-  /* Nothing to set out for: the ink is already on the paper. */
-  .willdraw .slab polygon.ghost {
-    display: none;
-  }
-}
+/* No draw-on-first-view any more. Figs. 1 and 3 used to ink themselves in
+   on first view (stroke-dashoffset, ghosts as setting-out lines, a replay
+   button on the plate number); it was retired as distracting motion on load —
+   the sheet frame, the portrait bloom and the pipeline's single pass are the
+   only load animations now. The machinery lived here and in
+   useDrawOnFirstView.ts, both deleted; see git history to resurrect it. */
 
 /* ---- fig. 2 · the loupe -------------------------------------------------- */
 
@@ -724,8 +618,47 @@
   transition: transform var(--dur-base) var(--ease-out);
   background: radial-gradient(circle, transparent 62%, var(--accent-soft) 63%);
 }
-.loupe[data-placed="true"] {
+/* Placement is a measurement, not an event the reader caused, so the lens may
+   not appear on the sentence in one frame either: a 58px ring with four
+   crosshairs simply being there on the second paint reads as a glitch. It
+   arrives once, as a lens does — slightly large and clear, settling to size.
+   The zoom is the independent `scale` property, NOT `transform`: Loupe.tsx
+   writes `transform: translate(...)` straight to the node on every pointermove
+   and an animation on the same property would fight the drag. `scale`
+   composes after the translate, so it zooms about the lens's own centre — it
+   arrives WHERE it belongs, and does not travel there.
+
+   The flag is on the STAGE, not on the lens, and Loupe.tsx only raises it once
+   the word boxes are final. The first measurement lands before the fonts do,
+   so on the lens it revealed the pre-font position and the font swap's snap
+   then happened in full view, a beat into the fade: the lens looked like it
+   appeared to the right and slid across. The stage flag also lets the tangents
+   share the one moment. */
+.lp-stage[data-placed="true"] .loupe {
   visibility: visible;
+  animation:
+    lp-lens-in 420ms var(--ease-out) both,
+    lp-lens-fade 420ms linear both;
+}
+/* Two animations, one moment: the house ease settles the zoom fast, the way
+   every other control here lands, but on opacity it is 76% opaque at 105ms and
+   the arrival reads abrupt all over again. The fade is linear so it is
+   actually a fade. */
+@keyframes lp-lens-in {
+  from {
+    scale: 1.32;
+  }
+  to {
+    scale: 1;
+  }
+}
+@keyframes lp-lens-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 .loupe:active {
   cursor: grabbing;
@@ -760,11 +693,40 @@
 .lp-stage[data-dragging="true"] .lp-line {
   transition: none;
 }
+/* The detail box is tied to the hand too. Its swap animation exists to lag
+   the lens's eased travel — during a drag the lens has no eased travel, so
+   the 117ms opacity hold was pure flicker as each word crossed, and under
+   key-repeat the box never reached full opacity at all. */
+.lp-stage[data-dragging="true"] .lp-detail > * {
+  animation: none;
+}
+/* The tangents extend out of the lens rather than being there already, a beat
+   behind it. Revealed by clipping the container top-down — the lines run from
+   the ring down to the detail box, so a top-down wipe IS them drawing outward
+   from the lens. Clipping the container rather than animating each line's own
+   `width`/`transform`, because those two are written by Loupe.tsx on every
+   move and are how the callout tracks the hand. */
 .lp-lines {
   position: absolute;
   inset: 0;
   pointer-events: none;
   z-index: 1;
+}
+/* `backwards`, not `both`: the wipe must leave NO clip behind it. The sides and
+   the top are held a full box out for the same reason — with the tangents on
+   the sentence's first word the left one starts a few pixels outside the
+   stage, and a `inset(0 0 0 0)` finish quietly cut it off. Only the bottom edge
+   travels, which is the wipe. */
+.lp-stage[data-placed="true"] .lp-lines {
+  animation: lp-lines-in 520ms var(--ease-out) 140ms backwards;
+}
+@keyframes lp-lines-in {
+  from {
+    clip-path: inset(-100% -100% 100% -100%);
+  }
+  to {
+    clip-path: inset(-100% -100% -100% -100%);
+  }
 }
 /* The two tangents from the lens down to the detail box, the way an enlarged
    detail is tied to its callout on a real drawing. */
@@ -889,6 +851,19 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+/* The build pre-renders several sets of eight; only the active one renders.
+   `display: contents` on the set wrapper keeps each .spec a direct grid item
+   of .specimens, so the layout is identical to the single-set days, and the
+   none → contents flip is what restarts the entry fade on a swap. */
+.spec-set {
+  display: none;
+}
+.specimens[data-active="0"] .spec-set[data-set="0"],
+.specimens[data-active="1"] .spec-set[data-set="1"],
+.specimens[data-active="2"] .spec-set[data-set="2"],
+.specimens[data-active="3"] .spec-set[data-set="3"] {
+  display: contents;
+}
 .spec {
   display: flex;
   flex-direction: column;
@@ -901,9 +876,12 @@
    finds its own size centred inside a fixed box rather than being stretched to
    match its neighbours, and the labels under them land on one line.
 
-   Fixed height, not min-height: the tray draws a different eight on mount, and
-   a box that measured its contents would jump as they swapped. */
-.spec {
+   Fixed height, not min-height: the chip swaps in a different eight, and a
+   box that measured its contents would jump as they swapped. */
+/* The entry fade plays only once the reader has drawn (data-touched, set by
+   the chip's first press) — on load the tray is simply there, like every
+   other figure. */
+.specimens[data-touched] .spec {
   animation: cap-in var(--dur-base) var(--ease-out) both;
 }
 .spec-chart {
@@ -1022,7 +1000,7 @@
    live with: the accent outline the rest of the sheet uses, on the group's own
    box rather than on the strokes inside it. */
 .sgb-hit:focus-visible {
-  outline: 1px dashed var(--accent);
+  outline: 2px dashed var(--accent);
   outline-offset: 3px;
 }
 .sgb-hit {
@@ -1043,49 +1021,9 @@
 .sgb-hit[data-on="true"] .sgb-bar {
   opacity: 1;
 }
-/* The tile field is the setting out, so it is not hidden.
-   
-   Every stroke in this figure used to be dash-hidden until the observer fired,
-   which left the plate completely empty on arrival: the same hole fig. 1 has a
-   `.ghost` layer to fill. Fig. 3 needs no ghost, because it already contains
-   the thing a ghost would be. The 65 tiles are the field the detail is taken
-   from, and a field is what a draughtsman sets out first. They are drawn faint
-   from the first byte and come up to their own weight as the callout arrives.
-   
-   What still draws is the callout itself: the frame around the enlarged tile,
-   the leaders to it, the ring on the tile it came from, and the rule. That is
-   the part that is an act of drawing rather than a thing already on the sheet. */
-.sgbfig.willdraw .sgb-tile {
-  stroke: var(--rule-3);
-}
-.sgbfig.willdraw[data-drawn="true"] .sgb-tile {
-  transition: stroke 420ms var(--ease-out);
-  stroke: var(--rule-2);
-}
-.sgbfig.willdraw .sgb-ldr,
-.sgbfig.willdraw .sgb-pick,
-.sgbfig.willdraw .sgb-frame,
-.sgbfig.willdraw .sgb-rule {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-}
-.sgbfig.willdraw[data-drawn="true"] .sgb-ldr,
-.sgbfig.willdraw[data-drawn="true"] .sgb-pick,
-.sgbfig.willdraw[data-drawn="true"] .sgb-frame,
-.sgbfig.willdraw[data-drawn="true"] .sgb-rule {
-  transition: stroke-dashoffset 420ms var(--ease-out);
-  stroke-dashoffset: 0;
-}
-@media (prefers-reduced-motion: reduce) {
-  .sgbfig.willdraw :is(.sgb-tile, .sgb-ldr, .sgb-pick, .sgb-rule, .sgb-frame) {
-    stroke-dasharray: none;
-    stroke-dashoffset: 0;
-  }
-  /* Nothing is being set out, so the field is at its own weight. */
-  .sgbfig.willdraw .sgb-tile {
-    stroke: var(--rule-2);
-  }
-}
+/* No draw-in here either — see the note above fig. 2's section. The tiles,
+   leaders, frame and rules render at their final weights from the first
+   paint. */
 
 /* ---- fig. 4 · react-spectrum, running ------------------------------------ */
 
@@ -1404,8 +1342,7 @@
   white-space: nowrap;
 }
 /* The one link out of the revision list, so it says it goes somewhere. The
-   arrow is the same one the drawing already uses in "OpenAPI -> docs", and it
-   is on the ::after rather than in the string so it stays out of the
+   arrow is on the ::after rather than in the string so it stays out of the
    accessible name: the link is "all writing", not "all writing right arrow".
    It steps forward on hover, which is the only thing here that moves. */
 .rev-all {

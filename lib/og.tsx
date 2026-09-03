@@ -1,7 +1,11 @@
 import { ImageResponse } from "next/og";
 import { MONO_400_B64, SANS_400_B64, SANS_700_B64 } from "@/lib/og-fonts";
-import { INK_HEX, SURFACE_HEX, type InkId } from "@/lib/ink";
+import { INK_HEX, INKS, SURFACE_HEX, type InkId } from "@/lib/ink";
 import { MARK_BAR_PATH, MARK_G_PATH, MARK_VIEWBOX } from "@/lib/mark";
+// The name and the role on the card come from the résumé's single source. The
+// cards render at build time, so pulling resume.ts in costs the reader nothing;
+// hand-typed copies here printed a stale title long after a change.
+import { identity } from "@/lib/resume";
 
 export const OG_SIZE = { width: 1200, height: 630 } as const;
 export const OG_CONTENT_TYPE = "image/png" as const;
@@ -58,6 +62,12 @@ type RenderArgs = {
   title: string;
   footer?: string;
   accent?: InkId;
+  /**
+   * The dimension row under the title — measured values, set the way the sheet
+   * sets a measurement: mono, the number in ink, the unit in the annotation
+   * grey. Pass what the route can back up (years, stars, a date, a read time).
+   */
+  dims?: { v: string; l?: string }[];
 };
 
 /** A corner registration tick, the same one the sheet carries. */
@@ -76,11 +86,44 @@ function Tick({ x, y, dx, dy }: { x: number; y: number; dx: number; dy: number }
  * across the foot, registration ticks at the corners, and the mark in the live
  * ink. Nothing decorative — it is the same object at a different size.
  */
+/**
+ * The figure the card carries: a hand-plotted series with its dimension drawn
+ * under it, the same convention as fig. 5 on the sheet. A shape, not data —
+ * like `CHART` on the home page it states no values, which is why the only
+ * label it takes is `dim`, a measurement the route can actually back up.
+ */
+function FigureSVG({ ink, ink3, rule2 }: { ink: string; ink3: string; rule2: string }) {
+  const pts =
+    "8,170 36,150 64,158 92,118 120,132 148,94 176,106 204,64 232,82 260,42 288,56 316,26";
+  return (
+    <svg width={340} height={244} viewBox="0 0 340 244">
+      {/* The series' area, washed in the ink the way --accent-soft washes. */}
+      <path d={`M${pts.split(" ").join(" L")} L316,190 L8,190 Z`} fill={`${ink}1f`} />
+      <polyline points={pts} fill="none" stroke={ink} strokeWidth={3} strokeLinejoin="round" />
+      {/* The baseline, with survey ticks. */}
+      <line x1={8} y1={190} x2={316} y2={190} stroke={rule2} strokeWidth={2} />
+      {[8, 85, 162, 239, 316].map((x) => (
+        <line key={x} x1={x} y1={190} x2={x} y2={196} stroke={rule2} strokeWidth={2} />
+      ))}
+      {/* The reading head: the last point, marked. */}
+      <circle cx={316} cy={26} r={6} fill={ink} />
+      <circle cx={316} cy={26} r={11} fill="none" stroke={ink} strokeWidth={1.5} opacity={0.45} />
+      {/* The dimension: extension lines, the line, two arrowheads. */}
+      <line x1={8} y1={196} x2={8} y2={226} stroke={ink3} strokeWidth={1.5} />
+      <line x1={316} y1={196} x2={316} y2={226} stroke={ink3} strokeWidth={1.5} />
+      <line x1={14} y1={218} x2={310} y2={218} stroke={ink3} strokeWidth={1.5} />
+      <path d="M8 218 L20 213 L20 223 Z" fill={ink3} />
+      <path d="M316 218 L304 213 L304 223 Z" fill={ink3} />
+    </svg>
+  );
+}
+
 export async function renderOG({
   eyebrow,
   title,
   footer = "meetguns.com",
   accent = "dustblue",
+  dims = [],
 }: RenderArgs) {
   const fonts = getFonts();
   const ink = INK_HEX[accent];
@@ -120,7 +163,7 @@ export async function renderOG({
             <path d={MARK_G_PATH} fill={INK} />
             <path d={MARK_BAR_PATH} fill={ink} />
           </svg>
-          <div style={{ fontSize: 30, fontWeight: 700, letterSpacing: -0.6 }}>Ganapati V S</div>
+          <div style={{ fontSize: 30, fontWeight: 700, letterSpacing: -0.6 }}>{identity.name}</div>
           <div
             style={{
               marginLeft: "auto",
@@ -136,26 +179,85 @@ export async function renderOG({
         </div>
         <div style={{ display: "flex", height: 1, background: RULE, marginTop: 22 }} />
 
-        <div style={{ display: "flex", flex: 1, alignItems: "center" }}>
-          <div
-            style={{
-              fontWeight: 700,
-              fontSize: title.length > 60 ? 62 : 78,
-              lineHeight: 1.08,
-              letterSpacing: -2,
-              color: INK,
-              maxWidth: 980,
-            }}
-          >
-            {title}
+        {/* The body: the title and its measured dimensions on the left, the
+            figure with its own dimension line on the right — the sheet's two
+            registers, language and measurement, side by side. */}
+        <div style={{ display: "flex", flex: 1, alignItems: "center", gap: 52 }}>
+          <div style={{ display: "flex", flexDirection: "column", flex: 1, gap: 30 }}>
+            <div
+              style={{
+                fontWeight: 700,
+                fontSize: title.length > 56 ? 48 : title.length > 32 ? 58 : 70,
+                lineHeight: 1.08,
+                letterSpacing: -1.5,
+                color: INK,
+              }}
+            >
+              {title}
+            </div>
+            {dims.length > 0 && (
+              <div style={{ display: "flex", alignItems: "flex-end", gap: 34 }}>
+                {dims.map((d) => (
+                  <div
+                    key={d.v + (d.l ?? "")}
+                    style={{ display: "flex", alignItems: "flex-end", gap: 8 }}
+                  >
+                    <div
+                      style={{
+                        fontFamily: '"Mono"',
+                        fontSize: 33,
+                        lineHeight: 1,
+                        color: INK,
+                      }}
+                    >
+                      {d.v}
+                    </div>
+                    {d.l && (
+                      <div
+                        style={{
+                          fontFamily: '"Mono"',
+                          fontSize: 15,
+                          lineHeight: 1,
+                          letterSpacing: 1.5,
+                          textTransform: "uppercase",
+                          color: INK_3,
+                        }}
+                      >
+                        {d.l}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+            <FigureSVG ink={ink} ink3={INK_3} rule2={RULE_2} />
+            <div
+              style={{
+                fontFamily: '"Mono"',
+                fontSize: 15,
+                letterSpacing: 1.8,
+                color: INK_3,
+              }}
+            >
+              running series · 1:1
+            </div>
           </div>
         </div>
 
         {/* The title block, cells and all, across the foot of the sheet. */}
-        <div style={{ display: "flex", borderTop: `2px solid ${RULE_2}`, marginTop: 8 }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-end",
+            borderTop: `2px solid ${RULE_2}`,
+            marginTop: 8,
+          }}
+        >
           {[
-            ["Drawn by", "Ganapati V S"],
-            ["Role", "VP, Technology · Tracxn"],
+            ["Drawn by", identity.name],
+            ["Role", `${identity.jobTitle} · ${identity.worksFor.name}`],
             ["Scale", "1:1"],
           ].map(([l, v], i) => (
             <div
@@ -183,19 +285,77 @@ export async function renderOG({
               <div style={{ fontSize: 22, color: INK_2 }}>{v}</div>
             </div>
           ))}
+          {/* The ink tray, the same six the header offers, with the card's own
+              ink ringed. The one cell that is colour rather than type. */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 10,
+              padding: "16px 24px 20px",
+              borderLeft: `1px solid ${RULE}`,
+            }}
+          >
+            <div
+              style={{
+                fontFamily: '"Mono"',
+                fontSize: 14,
+                letterSpacing: 2,
+                lineHeight: 1,
+                textTransform: "uppercase",
+                color: INK_3,
+              }}
+            >
+              Inks
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              {INKS.map((i) => (
+                <div
+                  key={i.id}
+                  style={{
+                    width: 16,
+                    height: 16,
+                    borderRadius: 3,
+                    background: i.hex,
+                    border: i.id === accent ? `2px solid ${INK}` : `2px solid transparent`,
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+          {/* Same two-row stack as the inks cell, so the URL sits on the
+              swatch row and on the right edge. Satori treats a one-line
+              sibling as flex-start, which parked it up by the Inks label. */}
           <div
             style={{
               marginLeft: "auto",
               display: "flex",
+              flexDirection: "column",
               alignItems: "flex-end",
+              gap: 10,
               padding: "16px 0 20px",
-              fontFamily: '"Mono"',
-              fontSize: 18,
-              letterSpacing: 2,
-              color: ink,
             }}
           >
-            {footer}
+            <div
+              style={{
+                fontFamily: '"Mono"',
+                fontSize: 14,
+                letterSpacing: 2,
+                lineHeight: 1,
+                height: 14,
+              }}
+            />
+            <div
+              style={{
+                fontFamily: '"Mono"',
+                fontSize: 18,
+                letterSpacing: 2,
+                lineHeight: 1,
+                color: ink,
+              }}
+            >
+              {footer}
+            </div>
           </div>
         </div>
       </div>
