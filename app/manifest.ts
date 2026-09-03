@@ -44,14 +44,14 @@ export default function manifest(): MetadataRoute.Manifest {
         sizes: "1280x800",
         type: "image/png",
         form_factor: "wide",
-        label: "The home sheet: the subject, the drawing and the parts list",
+        label: "The home page: intro, project figures and the open-source list",
       },
       {
         src: "/brand/screenshot-narrow.png",
         sizes: "540x1170",
         type: "image/png",
         form_factor: "narrow",
-        label: "The home sheet, on a phone",
+        label: "The home page, on a phone",
       },
     ],
     // The two destinations worth a long-press on the installed icon. The header

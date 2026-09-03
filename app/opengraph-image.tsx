@@ -12,7 +12,7 @@ export default async function Image() {
   return renderOG({
     // The sheet's own drawing title — see drawingTitle() in Header.tsx. The
     // old "no. 01 · the masthead" was the retired press design's numbering.
-    eyebrow: "general arrangement",
+    eyebrow: "meetguns.com",
     title: `${CAREER_YEARS} years of shipping. Still writing code.`,
     accent: "dustblue",
     // No years chip — the title already carries the 13.

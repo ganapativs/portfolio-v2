@@ -23,7 +23,7 @@ export const ROLE_COPY: Record<string, string[]> = {
   "Vice President, Technology": [
     "Built the customer-facing AI assistant and its knowledge base. Specs, docs and search feed it. An intent router picks the model for each question. Behind that sit a tools and skills layer, document export, versioned prompts under an eval harness and auditable logs.",
     "Designed the MCP server surface and shipped its first version. Read-only connectors behind OAuth, so AI coding clients reach the API without a pasted key. The team co-owns it now.",
-    "Wrote @microcharts/react on my own time. 106 word-sized chart types, no runtime dependencies, 1-7 kB gzip each, accessible by default and safe in server components. Design, code, docs and release all mine.",
+    "Wrote @microcharts/react on my own time. 106 word-sized chart types, no runtime dependencies, 1-7 kB gzip each, accessible by default and safe in server components. I did the design, code, docs and release.",
     "Ran a performance program across the stack. Native image loading with DPR-aware URLs, compression on portal assets, render profiling, and a pass over scroll, re-renders and CSS.",
     "Rewrote the PDF viewer in the internal component library, with a new animation system, a vertical-scroll mode and new micro-interactions. Every document surface uses it.",
     "Hardened the server-side PDF report pipeline. Wrote the team's Cursor and Claude Code rule packs, which set out how we use AI on the codebase.",

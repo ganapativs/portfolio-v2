@@ -61,7 +61,7 @@ export function SpecimensTray({ count, children }: { count: number; children: Re
       />
       {children}
       <span className="specs-foot">
-        <span className="specs-note">8 of the 106 · the real components, not screenshots</span>
+        <span className="specs-note">8 of the 106, rendered live</span>
         <button
           type="button"
           className="chip"

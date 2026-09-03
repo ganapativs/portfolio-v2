@@ -6,8 +6,7 @@ import { pageMetadata } from "@/lib/metadata";
 export const metadata = pageMetadata({
   title: "Writing",
   path: "/blog",
-  description:
-    "Engineering notes, mostly about libraries and the parts of the frontend that are harder than they look. New posts arrive when there is something worth saying.",
+  description: "Engineering notes, mostly frontend, with the occasional library announcement.",
 });
 
 // Explicit UTC: the dates are date-only strings, which parse as UTC midnight.
@@ -23,8 +22,7 @@ export default function WritingPage() {
       <section className="doc-head" id="writing" data-sec="writing">
         <h1>Writing</h1>
         <p className="doc-lede">
-          Mostly engineering. The occasional library announcement. New posts arrive when there is
-          something worth saying, not on a schedule.
+          Engineering notes, mostly frontend, with the occasional library announcement. No schedule.
         </p>
       </section>
 

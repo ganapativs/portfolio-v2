@@ -241,7 +241,7 @@ export async function renderOG({
                 color: INK_3,
               }}
             >
-              running series · 1:1
+              fig. 5 · timeline
             </div>
           </div>
         </div>

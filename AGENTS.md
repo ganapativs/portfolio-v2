@@ -17,7 +17,9 @@ ticks at the corners, a measuring edge down the left, a Bayer-dither light under
 the cursor, dust blue as the default ink, and a title block for a footer.
 Six inks, two grounds, and nothing else adjustable.
 
-The home page is six figures, a parts list and a revisions list. Every figure is
+The home page is six figures, an open-source list and a writing list (the
+components keep the drawing's names, `PartsList` and `.rev`; the labels a reader
+sees say "Open source" and "Writing"). Every figure is
 the real thing rather than a picture of it — fig. 2 is the shipped
 `@microcharts/react` components, fig. 4 is the actual `react-spectrum` package
 running.
@@ -312,6 +314,39 @@ none` with `.hd > *` set back to `auto`, so the dead area under the condensed
   because a blur that stops mid-air is worse than no blur. The rule inside it
   stays at the drawing's width, like every other rule here.
 
+- **The strip is one row at every width, by measurement and not by
+  breakpoint.** `.hd-row` is `flex-wrap: nowrap`. `fitRow()` in `Header.tsx`
+  stamps `data-fit` on `.hd` with tokens from `FIT`, one more at a time, until
+  `scrollWidth <= clientWidth`: `kn` (the Kannada name) → `compact` (tighter
+  gaps, 18px name, 22px mark, no year on the rule) → `tray` (the ink tray
+  collapses to the active swatch) → `resume` (the résumé link; the title
+  block still carries it, and `r` still fires from the hidden link) → `name`.
+  Every rule is `.hd[data-fit~="<token>"]` in chrome.css. It re-runs from a
+  `ResizeObserver` on the row and on `document.fonts.ready`. Breakpoints were
+  tried and wrapped at 660px, because a breakpoint has to guess how wide the
+  name and six chips are in the fonts that actually loaded. **The first paint
+  is the same measurement, run inline**: a `<script>` rendered after the row
+  (`FIT_INLINE`) runs the loop during parse and stamps `data-fit` before the
+  strip paints; the state initialiser reads it back through `window.__mgFit`
+  (`suppressHydrationWarning`, the same pattern as `SpecimensTray`). A
+  viewport-based guess was tried first and it erred wide on purpose, which
+  put an 18px name on every tablet that grew to 22px at hydration. The row's
+  children are `flex: none` and its text `nowrap`, because a child that
+  shrinks or wraps hides the overflow the loop is measuring.
+  With `tray` in force the active swatch is a disclosure (`aria-expanded`);
+  pressing it opens all six, `data-tray="open"` goes on `.hd`, and the name
+  steps out while it is open so the chips have the row it was on. A press
+  anywhere outside `.inks`, or Escape, closes it. The name does not hide on
+  stick any more: one row condenses into one row.
+- **The words on the rule are plain.** `drawingTitle()` says Home, Writing,
+  Résumé, Essay or Not found. It said "General arrangement", "Specification
+  sheet" and "Revision index" for a while, which meant nothing to the reader
+  the page is for. The same pass (2026-09-03) renamed the panels ("Open
+  source", "Writing"), the fig. 5 label ("timeline"), the ruler's `data-sec`
+  labels (about · projects · career · process · contact) and the title
+  block's "Page" cell. Do not put drawing-office jargon back in front of a
+  reader; it belongs in this file.
+
 It is translucent and blurred, which is a deliberate exception to the rule in
 `.impeccable.md` that nothing here is glass. It is tinted with the ground rather
 than with white, separated by a rule rather than a shadow, and has no radius:
@@ -489,7 +524,8 @@ real control.
 | `?`     | the help sheet         | `shortcuts/ShortcutHelp.tsx`          |
 | `Esc`   | close the help sheet   | `shortcuts/ShortcutHelp.tsx`          |
 
-There is no `0` and no `w`/`a`. `r` is registered on the header's résumé link —
+There is no `0` and no `w`/`a`. `r` is registered on the header's résumé link
+(hidden below 640px; the key still fires) —
 the key lives with the control it floats its Shift-hold hint over. **The résumé
 link lives in the header AND the title block, and that is the owner's settled
 call (2026-09-01)** after trying header-only and footer-only: the strip is the
@@ -1138,11 +1174,29 @@ hidden` — the same reserve-don't-animate move as the `.xp-note` slots, and for
   plate is only as tall as its contents. Padding is not distributable, so it
   survives both. `.xp`, `.spectrum` and `.lp-stage` all carry the floor as
   padding now.
+- **The loupe is 46px (`R = 23` in `Loupe.tsx`, `.loupe` in home.css) and the
+  sentence's leading is 2.7 because of it.** At 58px on a 35px line the ring
+  stood over the line above and the line below at every wrap, and on a phone
+  the sentence wraps five times. 2.7 × 17.5px is 47px, so consecutive lines
+  clear the ring. The tangents leave the ring at ±13px, which the same
+  constants derive; the crosshair arms' `box-shadow` offset is the diameter
+  plus 8. Below 640px `.lp-lines` is hidden: the detail box is 200px under the
+  ring there and the pair ran through three lines of prose.
 - **`.lp-stage`'s padding is also what keeps the lens off the type above it.**
-  The loupe is 58px and is placed at `wordCentre - 29`, so on the sentence's
-  first line it starts twelve pixels above its own stage. The word rectangles
-  are measured against the stage box, so padding there moves the lens down with
-  the sentence and no second number is needed in `Loupe.tsx`.
+  The word rectangles are measured against the stage box, so padding there
+  moves the lens down with the sentence and no second number is needed in
+  `Loupe.tsx`.
+- **Fig. 5 has two drawings and one is always `display: none`.** Above 800px
+  the dimensioned axis (`.tl-scroll`, 720px wide, roles above and below);
+  at 800 and under, `.tl-v`, a vertical list of the same `ERAS` with every
+  note visible and nothing to hover. The axis scrolled on a phone and opened on
+  2022, hiding nine years; at 768 it clipped '15 and "engineer" at the left
+  edge. Both are rendered by `Career.tsx`; home.css swaps them.
+- **The open-source table is two-line entries under 640px** (number, name and
+  year on the first line, the spec under the name, `grid-template-areas` in
+  home.css) and the column heads go with the columns. Four columns in 300px
+  put the spec on three lines a row. The writing rows do the same: date and
+  read time first, title second.
 - **A figure is drawn at a size, and both figures on the sheet are capped to
   it** (`max-width` on `.xp` and on `.sgbfig`). They are percentage-sized inside
   their plate, and the plate doubles in width when its row collapses to one

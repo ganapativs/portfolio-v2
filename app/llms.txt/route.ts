@@ -46,7 +46,7 @@ export async function GET() {
 
 ## Pages
 
-- [Home](${SITE_URL}): the whole story on one sheet. Who he is, four project figures (the AI assistant at Tracxn, microcharts, sgb, react-spectrum), the career plotted year by year, the parts list of public repos, the latest writing, and how to reach him. There is no separate about or work page: /about and /work redirect here
+- [Home](${SITE_URL}): one page. Who he is, four projects (the AI assistant at Tracxn, microcharts, sgb, react-spectrum), the career year by year, the open-source list, the latest writing, and how to reach him. There is no separate about or work page: /about and /work redirect here
 - [Résumé](${SITE_URL}/resume): recruiter-facing summary, print-friendly
 - [Writing](${SITE_URL}/blog): technical blog
 - [RSS](${SITE_URL}/rss.xml): feed of published posts

@@ -45,7 +45,7 @@ export const ERAS: readonly Era[] = [
     short: "engineer",
     length: "1 yr",
     range: "2015 - 2016 · Software Engineer",
-    body: "I shipped on my first day. Landing page, dashboard, feeds, signup. Then the mobile app on React Native, when it was new enough to be a risk.",
+    body: "I shipped on my first day. Landing page, dashboard, feeds, signup. Then the mobile app on React Native, which was new at the time.",
   },
   {
     from: 2016,
@@ -53,7 +53,7 @@ export const ERAS: readonly Era[] = [
     short: "tech lead",
     length: "4 yrs",
     range: "2016 - 2020 · Technology Lead",
-    body: "I wrote the internal React component library in November 2016. The team has built on it ever since. Nobody outside the company has seen it.",
+    body: "I wrote the internal React component library in November 2016. The team still builds on it.",
   },
   {
     from: 2020,
@@ -61,7 +61,7 @@ export const ERAS: readonly Era[] = [
     short: "assoc. VP",
     length: "2 yrs",
     range: "2020 - 2022 · Associate VP",
-    body: "Architecture across several teams. Turning product asks into engineering work, and getting out of people's way. Most of it does not show up in commits.",
+    body: "Architecture across several teams, and turning product asks into engineering work. Fewer commits, more reviews.",
   },
   {
     from: 2022,
@@ -69,7 +69,7 @@ export const ERAS: readonly Era[] = [
     short: "sr. assoc. VP",
     length: "1 yr",
     range: "2022 - 2023 · Senior Associate VP",
-    body: "An extension build pipeline across Chrome and Firefox, and a hand-rolled AST codemod that moved a button component across a frontend eight years old.",
+    body: "An extension build pipeline for Chrome and Firefox, and a custom AST codemod that moved a button component across a frontend eight years old.",
   },
   {
     from: 2023,
@@ -180,10 +180,10 @@ export const STAGES = ["sketch", "vectors", "tokens", "markup", "shipped"] as co
 // Keyed to the stage, because a caption that says the same thing at every
 // position is a label, not a caption.
 export const STAGE_NOTE: readonly string[] = [
-  "drag the handle · one interface, from first sketch to shipped",
-  "the design tool pass · bend the pen handles, and the bend ships",
-  "colour and type arrive as tokens, wired to what they paint",
-  "the same object, now named · point at the tree",
+  "drag the handle · one card, from first sketch to shipped",
+  "vectors · drag the pen handles to reshape the curve",
+  "tokens · colour and type as named values, wired to what they set",
+  "markup · the same card as a DOM tree. Point at a node",
   "shipped · point at the card, read the chart, press the button",
 ];
 
@@ -243,7 +243,7 @@ export const MICROCHARTS = {
 export const SGB = {
   href: "https://sgb.vercel.app",
   meta: "2021 · still live",
-  body: "A tracker for India's Sovereign Gold Bonds. Every live series on one page, ranked by what a buyer actually earns at today's price. Five years up, still mine.",
+  body: "A tracker for India's Sovereign Gold Bonds. Every live series on one page, ranked by what a buyer earns at today's price. Live since 2021, and I still run it.",
 } as const;
 
 /**

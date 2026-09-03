@@ -22,12 +22,9 @@ export default function NotFound() {
   return (
     <Sheet>
       <main id="main-content" className="doc-head" data-sec="404">
-        <span className="sec-label">Error 404 · sheet not in the set</span>
-        <h1>Nothing is set on this sheet.</h1>
-        <p className="doc-lede">
-          The page moved, never existed, or has not been drawn yet. Everything that does exist is
-          one of these.
-        </p>
+        <span className="sec-label">Error 404</span>
+        <h1>Page not found.</h1>
+        <p className="doc-lede">It moved or never existed. Try one of these.</p>
         <div className="doc-links">
           <a href="/" data-analytics="nav:404.home">
             home

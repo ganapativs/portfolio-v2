@@ -18,7 +18,7 @@ export function Sheet({ children }: { children: React.ReactNode }) {
           below the ruler for a while, and the first Tab landed on a measuring
           edge tick instead of the one control a keyboard reader needs first. */}
       <a href="#main-content" className="skip-link">
-        Skip to the drawing
+        Skip to content
       </a>
 
       <DitherField />

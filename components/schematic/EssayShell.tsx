@@ -76,7 +76,6 @@ export function EssayShell({ post, children }: { post: Post; children: React.Rea
             fill
             priority
             fetchPriority="high"
-            quality={70}
             // The cover takes the whole plate now that the essay has no card
             // around it, so it is the sheet's content width rather than the
             // old card's inner width.

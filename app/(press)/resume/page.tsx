@@ -43,7 +43,7 @@ export default async function ResumePage() {
 
       <section className="cv" id="resume" data-sec="résumé">
         <div className="cv-topline">
-          <span className="cv-stamp">Résumé · one or two sheets in print</span>
+          <span className="cv-stamp">Résumé · prints on two pages</span>
           <PrintCV />
         </div>
 

@@ -15,8 +15,8 @@ export default async function Image() {
     // the same description the page, the RSS feed and the Blog schema carry.
     // The old card's "notes on the bones of better software" was the one
     // epigram left from the retired press design.
-    eyebrow: "revision index",
-    title: "Mostly engineering. The occasional library announcement.",
+    eyebrow: "writing",
+    title: "Engineering notes, mostly frontend.",
     accent: "bottle",
     dims: [
       { v: `${published.length}`, l: "essays" },

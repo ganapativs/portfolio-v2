@@ -17,15 +17,15 @@ export default function Error({
   return (
     <Sheet>
       <main id="main-content" className="doc-head" data-sec="error">
-        <span className="sec-label">Fault · this sheet did not draw</span>
+        <span className="sec-label">Error</span>
         <h1>Something broke.</h1>
         <p className="doc-lede">
-          Not your fault: a part of this drawing tripped on its own construction lines.
+          Part of this page failed to render. Trying again usually fixes it.
         </p>
         {error?.digest ? <p className="meta">digest: {error.digest}</p> : null}
         <div className="doc-links">
           <button type="button" onClick={() => unstable_retry()}>
-            draw it again
+            try again
           </button>
           <Link href="/" data-analytics="nav:error.home">
             home

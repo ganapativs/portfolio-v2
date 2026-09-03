@@ -229,6 +229,49 @@
   color: var(--ink-3);
 }
 
+/* On a phone the card's clamp(28px) padding plus the sheet margin and the gutter
+   left a 259px column for a document. The card keeps a thin frame, the contact
+   lines stop being right-aligned once they sit under the name, and the topline
+   stacks. */
+/* Once the head wraps and the contact lines sit under the name, three
+   right-aligned lines read as a ragged column. They run on as one line with
+   middots, wrapping where they must. 760 is where .cv-head wraps. */
+@media (max-width: 760px) {
+  .cv-contact {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 0;
+    text-align: left;
+    line-height: 1.7;
+    margin-top: 2px;
+  }
+  /* The separator trails each item rather than leading the next, so a wrap
+     never starts a line with a middot. */
+  .cv-contact > div:not(:last-child)::after {
+    content: "·";
+    margin-inline: 8px;
+    color: var(--ink-3);
+  }
+}
+@media (max-width: 640px) {
+  .cv {
+    margin-top: 24px;
+    padding: 20px 16px 24px;
+  }
+  .cv-topline {
+    margin-bottom: 18px;
+  }
+  .cv-summary {
+    font-size: 16px;
+  }
+  .cv-job li {
+    font-size: 15px;
+  }
+  .cv-cols {
+    gap: 28px;
+  }
+}
+
 /* 10 — PRINT ---------------------------------------------------------------- */
 
 @page {

@@ -4,6 +4,7 @@ import "@microcharts/react/styles.css";
 import { Sparkline } from "@microcharts/react/sparkline";
 import { CHART } from "@/app/(press)/content";
 import { useFX } from "@/components/providers/FXProvider";
+import { useCoarsePointer } from "./useCoarsePointer";
 
 /**
  * Fig. 2 — the detail callout.
@@ -64,6 +65,16 @@ const MAG_W = 280;
 const MAG_X0 = 2;
 const MAG_X1 = MAG_W - MAG_X0;
 
+/* The lens radius. 23 (a 46px ring), down from 29: at 58px the ring stood over
+   the line above and the line below on every wrap, and on a phone the sentence
+   wraps five times. `.loupe` in home.css is sized from the same number and the
+   sentence's leading is set so consecutive lines clear the ring. */
+const R = 23;
+/* Where the two tangents leave the ring: 13px either side of centre, which puts
+   them sqrt(R^2 - 13^2) = 19px below it, on the ring itself. */
+const TAN_X = 13;
+const TAN_Y = Math.round(Math.sqrt(R * R - TAN_X * TAN_X));
+
 type Rect = { x: number; y: number; l: number; r: number; t: number; b: number };
 
 /* The shipped-work curve fig. 6 draws, at word size.
@@ -107,6 +118,7 @@ export function Loupe() {
   const dragging = useRef(false);
   const moved = useRef(false);
   const fx = useFX();
+  const coarse = useCoarsePointer();
   const [cur, setCur] = useState(CHART_WORD);
 
   const measure = useCallback(() => {
@@ -150,7 +162,7 @@ export function Loupe() {
         for (const el of els) if (el) el.style.transition = "";
       }, 50);
     }
-    loupe.style.transform = `translate(${r.x - 29}px,${r.y - 29}px)`;
+    loupe.style.transform = `translate(${r.x - R}px,${r.y - R}px)`;
     const d = detail.getBoundingClientRect();
     const base = stage.getBoundingClientRect();
     const dt = d.top - base.top;
@@ -163,15 +175,13 @@ export function Loupe() {
       el.style.width = `${Math.hypot(dx, dy)}px`;
       el.style.transform = `translate(${x1}px,${y1}px) rotate(${Math.atan2(dy, dx)}rad)`;
     };
-    // Both tangents leave the lens itself, on its ring. The lens is 58px, so
-    // its radius is 29, and at 16 either side of centre the ring is at
-    // sqrt(29^2 - 16^2) = 24.2 below it. Starting them at the foot of the
-    // sentence block instead kept them off the prose, but it also left the
-    // callout drawn from nothing: two lines rising to a circle they never
-    // touch. A leader that does not touch what it leads from is not a leader.
-    const sy = r.y + 24;
-    line(l1.current, r.x - 16, sy, dl, dt);
-    line(l2.current, r.x + 16, sy, dr, dt);
+    // Both tangents leave the lens itself, on its ring (see R and TAN_X
+    // above). Starting them at the foot of the sentence block instead kept
+    // them off the prose, but it also left the callout drawn from nothing: two
+    // lines rising to a circle they never touch.
+    const sy = r.y + TAN_Y;
+    line(l1.current, r.x - TAN_X, sy, dl, dt);
+    line(l2.current, r.x + TAN_X, sy, dr, dt);
   }, []);
 
   const goTo = useCallback(
@@ -464,7 +474,9 @@ export function Loupe() {
         )}
       </div>
 
-      <p className="lp-hint">drag the loupe, or focus it and use arrow keys</p>
+      <p className="lp-hint">
+        {coarse ? "drag the loupe, or tap a word" : "drag the loupe, or click a word"}
+      </p>
     </div>
   );
 }

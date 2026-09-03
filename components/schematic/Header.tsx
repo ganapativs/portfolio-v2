@@ -12,29 +12,109 @@ import { track } from "@/lib/analytics";
 import { identity } from "@/lib/resume";
 import { approach, useReducedMotion } from "./useReducedMotion";
 
-/** The drawing's title, per sheet. A drawing says what it is of. */
+/** The page's name, on the rule under the header. Plain words, not drawing
+ *  jargon: "General arrangement" meant nothing to a reader who came for a CV. */
 function drawingTitle(pathname: string): string {
-  if (pathname === "/") return "General arrangement";
-  if (pathname === "/resume") return "Specification sheet";
-  if (pathname === "/blog") return "Revision index";
-  if (pathname.startsWith("/blog/")) return "Revision detail";
-  return "Sheet";
+  if (pathname === "/") return "Home";
+  if (pathname === "/resume") return "Résumé";
+  if (pathname === "/blog") return "Writing";
+  if (pathname.startsWith("/blog/")) return "Essay";
+  // Every other path is the 404: the export has no other routes.
+  return "Not found";
 }
+
+/**
+ * What the strip gives up, in order, to stay on one row.
+ *
+ * The header is one row at every width, and it gets there by measuring rather
+ * than by breakpoint: `fitRow` below stamps these tokens onto `.hd` one at a
+ * time and stops at the first count where the row no longer overflows. Each
+ * token is a chrome.css rule keyed on `.hd[data-fit~="<token>"]`. A breakpoint
+ * would have to know how wide the name, the links and six chips are in the
+ * fonts that actually loaded, and it did not: at 660px the strip wrapped to
+ * two rows and held a tenth of the viewport.
+ *
+ *   kn       the Kannada name
+ *   compact  tighter gaps, 18px name, 22px mark, no year on the rule
+ *   tray     the ink tray collapses to the active swatch (a disclosure)
+ *   resume   the résumé link (the title block still carries it)
+ *   name     the Latin name; the mark alone is the home link
+ */
+const FIT = ["kn", "compact", "tray", "resume", "name"] as const;
+
+/** Tokens for the first count of FIT at which the row fits. Writes as it goes:
+ *  at most five layouts, and only on a resize or a font swap. */
+function fitRow(hd: HTMLElement, row: HTMLElement): string {
+  for (let n = 0; n <= FIT.length; n++) {
+    const fit = FIT.slice(0, n).join(" ");
+    hd.dataset.fit = fit;
+    if (row.scrollWidth <= row.clientWidth) return fit;
+  }
+  return FIT.join(" ");
+}
+
+/* The same measurement, run inline during parse so the first paint is already
+   right. The script sits after the row in the markup, so the row exists and
+   can be measured; forcing one layout there is cheap and it happens before
+   anything below the header has parsed. A viewport-based guess was tried
+   first and it erred wide on purpose, which meant an 18px name growing to
+   22px at hydration on every tablet. The fallback fonts next/font declares
+   are size-adjusted, so the pre-swap measurement is close; the effect re-runs
+   on fonts.ready for the last pixel. */
+const FIT_INLINE =
+  `try{var h=document.currentScript.closest(".hd"),r=h.querySelector(".hd-row"),t=${JSON.stringify(FIT)},f="";` +
+  `for(var n=0;n<=t.length;n++){f=t.slice(0,n).join(" ");h.dataset.fit=f;if(r.scrollWidth<=r.clientWidth)break}` +
+  `window.__mgFit=f}catch(e){}`;
 
 export function SchematicHeader() {
   const [trayOpen, setTrayOpen] = useState(false);
-  // Mirrors the 640px breakpoint at which the CSS collapses the tray to the
-  // active swatch. Below it that swatch is a disclosure, and a disclosure
-  // needs to say so (aria-expanded, and a name that names the action) —
-  // above it the attribute would be a lie on a plain toggle.
-  const [narrowTray, setNarrowTray] = useState(false);
+  // The fit tokens, as state so the tray's ARIA can read them: with "tray" in
+  // force the active swatch is a disclosure and has to say so (aria-expanded,
+  // a name that names the action); without it the attribute would be a lie on
+  // a plain toggle. Seeded from the pre-paint script so the first client
+  // render agrees with the DOM the script already wrote.
+  const [{ fit, measured }, setFitState] = useState(() => {
+    if (typeof window === "undefined") return { fit: "", measured: false };
+    const f = (window as { __mgFit?: string }).__mgFit;
+    return { fit: typeof f === "string" ? f : "", measured: false };
+  });
+  // ARIA follows the measurement, not the guess. The server rendered the
+  // swatches without `aria-expanded`; deriving it from the guess on the first
+  // client render was a hydration mismatch on every phone load.
+  const narrowTray = measured && fit.includes("tray");
+  const rowRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const mq = window.matchMedia("(max-width: 640px)");
-    const update = () => setNarrowTray(mq.matches);
-    update();
-    mq.addEventListener("change", update);
-    return () => mq.removeEventListener("change", update);
+    const hd = headerRef.current;
+    const row = rowRef.current;
+    if (!hd || !row) return;
+    const run = () => setFitState({ fit: fitRow(hd, row), measured: true });
+    run();
+    // The row's box changes only with the strip, so this fires per real
+    // resize and not per token written above.
+    const ro = new ResizeObserver(run);
+    ro.observe(row);
+    document.fonts?.ready.then(run).catch(() => {});
+    return () => ro.disconnect();
   }, []);
+  // The open tray closes on a press anywhere else, or on Escape. Without this
+  // it stayed open, six chips wide, until the reader found the active swatch
+  // again and pressed it a second time.
+  useEffect(() => {
+    if (!trayOpen || !narrowTray) return;
+    const onDown = (e: PointerEvent) => {
+      if ((e.target as Element | null)?.closest?.(".inks")) return;
+      setTrayOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setTrayOpen(false);
+    };
+    document.addEventListener("pointerdown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [trayOpen, narrowTray]);
   const pathname = usePathname();
   const router = useRouter();
   const fx = useFX();
@@ -73,7 +153,7 @@ export function SchematicHeader() {
   const themeRef = useShortcut<HTMLButtonElement>({
     id: "theme.toggle",
     keys: ["t"],
-    label: "Switch the paper",
+    label: "Switch theme",
     group: "Theme",
     // Clacks, the same as a press on the control. Without this the two paths
     // to one action sounded different: a clack from the pointer, the registry's
@@ -191,12 +271,25 @@ export function SchematicHeader() {
   return (
     <>
       <span className="hd-sentinel" ref={sentinel} aria-hidden="true" />
-      <header className="hd" data-stuck={stuck} ref={headerRef}>
+      <header
+        className="hd"
+        data-stuck={stuck}
+        data-fit={fit}
+        // With the tray collapsed, opening it needs the row the name is on, so
+        // the name steps out while the six chips are showing. The mark stays:
+        // it is the home link and carries the identity on its own.
+        data-tray={trayOpen && narrowTray ? "open" : undefined}
+        // The inline script below rewrites data-fit before hydration and the
+        // state initialiser reads it back, so the two agree on every healthy
+        // load; the fallback on both sides is the empty string.
+        suppressHydrationWarning
+        ref={headerRef}
+      >
         {/* Row and rule are one strip: the ground and the blur belong to both,
             or the rule sits below the blurred band with unblurred content
             passing through the gap between them. */}
         <div className="hd-strip">
-          <div className="hd-row">
+          <div className="hd-row" ref={rowRef}>
             <Link
               href="/"
               className="hd-brand"
@@ -216,9 +309,15 @@ export function SchematicHeader() {
               onClick={() => fx?.nav()}
             >
               <Mark className="hd-mark" />
-              <span className="hd-name">{identity.name}</span>
-              <span className="hd-kn" lang="kn">
-                ಗಣಪತಿ ವಿ ಎಸ್
+              {/* The two names share a baseline inside this box, and the box is
+                  centred against the mark and the row. Baseline-aligning them
+                  directly against the mark packed them to the top of its 27px
+                  and the name sat 3px above the links. */}
+              <span className="hd-names">
+                <span className="hd-name">{identity.name}</span>
+                <span className="hd-kn" lang="kn">
+                  ಗಣಪತಿ ವಿ ಎಸ್
+                </span>
               </span>
             </Link>
 
@@ -256,7 +355,9 @@ export function SchematicHeader() {
                       n={n + 1}
                       on={ink === i.id}
                       pick={setInk}
-                      onPicked={() => setTrayOpen(ink === i.id)}
+                      // The active swatch toggles the tray; any other pick
+                      // closes it.
+                      onPicked={() => setTrayOpen(ink === i.id ? (o) => !o : false)}
                       discloses={narrowTray && ink === i.id ? trayOpen : undefined}
                     />
                   ))}
@@ -273,8 +374,8 @@ export function SchematicHeader() {
                   // no-flash script stamps that before React sees the page — so a
                   // theme-dependent label is a guaranteed hydration mismatch, and a
                   // toggle that renames itself is worse to hear read out anyway.
-                  aria-label="Switch the paper"
-                  title="Paper · t"
+                  aria-label="Switch theme"
+                  title="Theme · t"
                   onClick={(e) => {
                     // The origin is the middle of the control rather than the
                     // pointer, so a click and a keyboard activation of the same
@@ -325,6 +426,9 @@ export function SchematicHeader() {
             </nav>
           </div>
 
+          {/* Measures the row and stamps data-fit during parse, before the
+              strip paints. After the row on purpose: it needs the row. */}
+          <script dangerouslySetInnerHTML={{ __html: FIT_INLINE }} />
           <div className="hd-rule">
             <span className="hd-title">
               {drawingTitle(pathname)}
@@ -408,7 +512,7 @@ function SoundToggle({ btnRef }: { btnRef: React.RefObject<HTMLButtonElement | n
       // sound off there is nothing left to hear. See the rule in PageFX.
       data-cue="self"
       aria-pressed={on}
-      aria-label={on ? "Mute the drawing" : "Unmute the drawing"}
+      aria-label={on ? "Mute sounds" : "Unmute sounds"}
       title="Sound · m"
       onClick={() => {
         fx?.toggleSound();

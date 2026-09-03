@@ -10,7 +10,7 @@ export const dynamic = "force-static";
 
 export default async function Image() {
   return renderOG({
-    eyebrow: "specification sheet",
+    eyebrow: "résumé",
     title: `${CAREER_YEARS} years, one company since 2015. Printable.`,
     accent: "bottle",
     // No years chip — the title already carries the 13.

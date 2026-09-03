@@ -108,6 +108,23 @@ export function Career() {
         {cur.body}
       </Caption>
 
+      {/* The same eras, stood on end, for viewports under 800px (home.css swaps
+          the two). The axis above is 720px of drawing and had to scroll on a
+          phone; this shows every era with its note and nothing to hover. Both
+          are in the DOM; the hidden one is display: none and so out of the
+          accessibility tree. */}
+      <ol className="tl-v" aria-label="Career, 2013 to now">
+        {ERAS.map((e, i) => (
+          <li key={e.short} className={`tl-v-era${i === ERAS.length - 1 ? " now" : ""}`}>
+            <span className="tl-v-node" aria-hidden="true" />
+            <span className="tl-v-range">
+              {e.range} <span className="tl-v-len">· {e.length}</span>
+            </span>
+            <p className="tl-v-body">{e.body}</p>
+          </li>
+        ))}
+      </ol>
+
       <p className="materials">materials in current use · {MATERIALS.join(" · ")}</p>
     </>
   );

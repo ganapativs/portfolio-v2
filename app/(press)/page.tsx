@@ -71,7 +71,7 @@ export default async function HomePage() {
       {/* ---- fold 1 · the subject ----------------------------------------
           Short sentences, one idea each, first person, present tense. A person
           reading this has about eight seconds and has read a hundred of these. */}
-      <section className="subject" id="subject" data-sec="subject">
+      <section className="subject" id="subject" data-sec="about">
         <div className="intro">
           {/* The claim, at size, before anything else. This page had no h1 and
               nothing above 22px: a reader got atmosphere for three seconds and
@@ -109,7 +109,7 @@ export default async function HomePage() {
       </section>
 
       {/* ---- fold 2 · the mechanisms ------------------------------------- */}
-      <section className="mechs" id="mechanisms" data-sec="figures">
+      <section className="mechs" id="mechanisms" data-sec="projects">
         <article className="panel">
           <h2>The assistant</h2>
           {/* The link sits in the meta line, the way every other plate on this
@@ -175,11 +175,11 @@ export default async function HomePage() {
               sgb.vercel.app
             </a>
           </p>
-          <SgbFigure fig="fig. 3 · running series" body={SGB.body} />
+          <SgbFigure fig="fig. 3 · general arrangement" body={SGB.body} />
         </article>
 
         <article className="panel">
-          <span className="p-fig">fig. 4 · generated specimen</span>
+          <span className="p-fig">fig. 4 · live specimen</span>
           <h2>react-spectrum</h2>
           <p className="meta">
             {SPECTRUM.meta} ·{" "}
@@ -207,16 +207,16 @@ export default async function HomePage() {
       </section>
 
       {/* ---- fold 3 · the records ---------------------------------------- */}
-      <section className="records" id="work" data-sec="records">
+      <section className="records" id="work" data-sec="career">
         <div className="panel">
-          <span className="p-fig">fig. 5 · dimension record</span>
-          <h2>The career, dimensioned</h2>
+          <span className="p-fig">fig. 5 · timeline</span>
+          <h2>The career</h2>
           <p className="meta">2013 to now · at Tracxn since 2015</p>
           <Career />
         </div>
 
         <div className="panel">
-          <h2 className="sec-label">Parts list</h2>
+          <h2 className="sec-label">Open source</h2>
           <p className="meta">
             <StatNumber initial={stars.repos} stat="repos" /> original public repos ·{" "}
             <StatNumber initial={stars.total} stat="total" /> stars · {PUBLIC_WORK.npm} npm packages
@@ -225,8 +225,8 @@ export default async function HomePage() {
         </div>
 
         <div className="panel" id="writing">
-          <h2 className="sec-label">Revisions</h2>
-          <p className="meta">the written record, newest first</p>
+          <h2 className="sec-label">Writing</h2>
+          <p className="meta">newest first</p>
           <div className="rev">
             {published.map((p) => (
               <div className="rev-row" key={p.slug}>

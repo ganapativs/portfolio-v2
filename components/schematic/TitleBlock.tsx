@@ -13,7 +13,7 @@ function sheetName(pathname: string): string {
   if (pathname === "/resume") return "résumé";
   if (pathname === "/blog") return "writing";
   if (pathname.startsWith("/blog/")) return "essay";
-  return "sheet";
+  return "404";
 }
 
 // His first day at Tracxn, not the company's. The tenure cell counts from here
@@ -28,8 +28,9 @@ function tenure(now: Date): string {
     m += 12;
   }
   // Years and months only. Days made the value long enough to wrap its cell,
-  // and nobody reads a tenure to the day.
-  return `${y} yrs · ${m} mo`;
+  // and nobody reads a tenure to the day. "11 yrs · 0 mo" reads as a bug, so
+  // a round year is printed as one.
+  return m === 0 ? `${y} yrs` : `${y} yrs · ${m} mo`;
 }
 
 /**
@@ -109,17 +110,17 @@ export function TitleBlock() {
           <span className="tb-v">{identity.name}</span>
         </div>
         <div className="tb-cell">
-          <span className="tb-l">Location</span>
-          <span className="tb-v">
-            Bengaluru · <span className="mono">{clock || "--:--"}</span> IST
-          </span>
+          {/* The clock alone. "Bengaluru · 19:55 IST" wrapped its cell on a
+              phone, and the city is already on the contact row below. */}
+          <span className="tb-l">Local time</span>
+          <span className="tb-v mono">{clock || "--:--"} IST</span>
         </div>
         <div className="tb-cell">
           <span className="tb-l">At Tracxn</span>
           <span className="tb-v mono">{since || "…"}</span>
         </div>
         <div className="tb-cell">
-          <span className="tb-l">Sheet</span>
+          <span className="tb-l">Page</span>
           <span className="tb-v mono">{sheetName(pathname)}</span>
         </div>
         <div className="tb-cell tb-contact">

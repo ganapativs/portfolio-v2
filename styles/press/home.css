@@ -564,12 +564,15 @@
    under the meta, which is where fig. 1's drawing starts. */
 .lp-stage {
   position: relative;
-  padding-top: 20px;
+  padding-top: 12px;
   margin-top: 16px;
 }
+/* The leading is the lens. The ring is 46px (R = 23 in Loupe.tsx) and it sits
+   on the centre of a line, so anything under 46px of leading puts it over the
+   line above and the line below at every wrap. 2.7 is 47px at this size. */
 .lp-sentence {
   font-size: 17.5px;
-  line-height: 2;
+  line-height: 2.7;
   position: relative;
   z-index: 2;
   user-select: none;
@@ -606,8 +609,8 @@
      the lens flying in from the top left on every load. `visibility`, so it
      still holds its place in the accessibility tree and takes focus. */
   visibility: hidden;
-  width: 58px;
-  height: 58px;
+  width: 46px;
+  height: 46px;
   border-radius: var(--r-point);
   left: 0;
   top: 0;
@@ -670,19 +673,21 @@
   background: var(--accent);
   opacity: 0.6;
 }
+/* The four crosshair arms: one element each way, its twin an offset shadow of
+   the ring's diameter plus the 7px it sits outside. 46 + 8 = 54. */
 .loupe::before {
   left: 50%;
   top: -7px;
   width: 1px;
   height: 6px;
-  box-shadow: 0 66px 0 var(--accent);
+  box-shadow: 0 54px 0 var(--accent);
 }
 .loupe::after {
   top: 50%;
   left: -7px;
   height: 1px;
   width: 6px;
-  box-shadow: 66px 0 0 var(--accent);
+  box-shadow: 54px 0 0 var(--accent);
 }
 /* Direct manipulation has no duration: while the hand is on the lens, both the
    lens and the two tangents tied to it follow it exactly. The flag is on the
@@ -1213,6 +1218,86 @@
 .tl-cap {
   max-width: 60em;
 }
+/* The same career, stood on end, for anything under 800px. The horizontal axis
+   is 720px of drawing and scrolled on a phone, which opened on 2022 and hid the
+   first nine years; the vertical list shows every era and its note at once
+   with nothing to hover. */
+.tl-v {
+  display: none;
+  list-style: none;
+  margin: 18px 0 0 4px;
+  padding: 2px 0 0 20px;
+}
+.tl-v-era {
+  position: relative;
+  padding-bottom: 18px;
+}
+.tl-v-era:last-child {
+  padding-bottom: 4px;
+}
+/* The rail runs from dot to dot, not past them. A border on the list started
+   above the first station and ran on below the last. Each era draws the
+   segment from its own dot's centre to the next era's: 8.5px is the dot's
+   centre (5px top + half of 7px), and the segment reaches 8.5px into the era
+   below to meet its dot. The last era draws none. */
+.tl-v-era::before {
+  content: "";
+  position: absolute;
+  left: -21px;
+  top: 8.5px;
+  bottom: -8.5px;
+  width: 1px;
+  background: var(--rule-2);
+}
+.tl-v-era:last-child::before {
+  display: none;
+}
+.tl-v-node {
+  position: absolute;
+  left: -24px;
+  top: 5px;
+  width: 7px;
+  height: 7px;
+  border-radius: var(--r-point);
+  background: var(--paper);
+  border: 1px solid var(--rule-2);
+}
+.tl-v-era.now .tl-v-node {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.tl-v-range {
+  display: block;
+  font-family: var(--f-mono);
+  font-size: 11.5px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.tl-v-era.now .tl-v-range {
+  color: var(--accent);
+}
+.tl-v-len {
+  color: var(--ink-3);
+  font-weight: 400;
+  white-space: nowrap;
+}
+.tl-v-body {
+  margin: 3px 0 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--ink-3);
+  max-width: 44em;
+}
+@media (max-width: 800px) {
+  .tl-scroll,
+  .tl-cap {
+    display: none;
+  }
+  .tl-v {
+    display: block;
+  }
+}
 .materials {
   font-family: var(--f-mono);
   font-size: 11.5px;
@@ -1277,7 +1362,13 @@
   font-size: 11px;
   color: var(--ink-3);
 }
+/* 24px to the finger (WCAG 2.5.8) on a 13px line: padding inside a negative
+   margin, so the row's rhythm is unchanged. The same on the writing titles
+   and the "all writing" link below. */
 .prow .nm a {
+  display: inline-block;
+  padding-block: 4px;
+  margin-block: -4px;
   font-family: var(--f-mono);
   font-size: 13px;
   color: var(--ink);
@@ -1322,6 +1413,9 @@
   flex: 0 0 88px;
 }
 .rev-row .t a {
+  display: inline-block;
+  padding-block: 3px;
+  margin-block: -3px;
   font-size: 15px;
   font-weight: 500;
   border-bottom: 1px solid var(--rule);
@@ -1349,7 +1443,8 @@
   display: inline-flex;
   align-items: baseline;
   gap: 6px;
-  margin-top: 10px;
+  margin-top: 6px;
+  padding-block: 4px;
   font-family: var(--f-mono);
   font-size: 12.5px;
   color: var(--accent);
@@ -1399,33 +1494,77 @@
   .subject {
     padding: 36px 0 32px;
   }
+  /* The two tangents from the lens to the detail box. On a phone the sentence
+     wraps five times and the box is 200px below the ring, so the pair ran
+     through three lines of prose. The lens and the box still say the same
+     thing without them. */
+  .lp-lines {
+    display: none;
+  }
   .intro p {
     font-size: 1.17rem;
   }
   .specimens {
     gap: 12px;
   }
-  .prow,
+  /* Four columns in 300px squeezed the spec to three lines a row. Each part
+     is a two-line entry instead: number, name and year on the first line, the
+     spec under the name. The column heads go with the columns. */
   .phead {
-    grid-template-columns: 30px 1.35fr 1.25fr 44px;
+    display: none;
   }
-  .prow > *,
-  .phead > * {
-    padding: 0 6px;
+  .plist {
+    border-top: 1px solid var(--rule);
+  }
+  .prow {
+    grid-template-columns: 34px minmax(0, 1fr) auto;
+    grid-template-areas:
+      "no nm yr"
+      "no sp sp";
+    row-gap: 2px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--rule-3);
+  }
+  .prow > * {
+    padding: 0;
+    border-left: 0;
+  }
+  .prow .no {
+    grid-area: no;
+    align-self: start;
+    padding-top: 3px;
+  }
+  .prow .nm {
+    grid-area: nm;
   }
   .prow .nm a {
-    font-size: 12px;
     overflow-wrap: anywhere;
   }
   .prow .sp {
-    font-size: 12.5px;
+    grid-area: sp;
   }
+  .prow .yr {
+    grid-area: yr;
+    padding-left: 12px;
+  }
+  /* Date and read time share the first line, the title takes the second. */
   .rev-row {
-    flex-wrap: wrap;
-    gap: 6px 14px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "d rt"
+      "t t";
+    gap: 3px 12px;
+  }
+  .rev-row .d {
+    grid-area: d;
+    flex: none;
+  }
+  .rev-row .t {
+    grid-area: t;
   }
   .rev-row .rt {
+    grid-area: rt;
     margin-left: 0;
-    flex-basis: 100%;
   }
 }

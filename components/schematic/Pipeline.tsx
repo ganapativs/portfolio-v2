@@ -713,14 +713,14 @@ export function Pipeline() {
   return (
     // data-sec + id, so the measuring edge ticks it: the largest drawing on
     // the sheet was the one section the index didn't list.
-    <div className="pipefig" ref={figRef} data-stage="0" data-sec="pipeline" id="pipeline">
+    <div className="pipefig" ref={figRef} data-stage="0" data-sec="process" id="pipeline">
       <div className="pipe-top">
         {/* The plate number and the figure's name, the same pair every other
             figure on the sheet carries. This was the label alone, so the
             largest drawing on the page was the one absent from the document
             outline: a reader moving by heading went straight past it. */}
         <div className="pipe-head">
-          <span className="pipe-figlbl">fig. 6 · the pipeline</span>
+          <span className="pipe-figlbl">fig. 6 · process</span>
           <h2>Sketch to shipped</h2>
         </div>
         {/* Keyed on the stage so it replays `cap-in`: the note is a different

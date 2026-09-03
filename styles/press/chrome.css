@@ -397,20 +397,63 @@
     -webkit-backdrop-filter: none;
   }
 }
-/* On a phone the name is what makes the strip wrap to two rows, and two rows
-   is a tenth of the viewport held permanently. The mark is the home link and
-   carries the identity on its own; the name is one scroll away. */
-@media (max-width: 640px) {
-  .hd[data-stuck="true"] .hd-name,
-  .hd[data-stuck="true"] .hd-kn {
-    display: none;
-  }
-}
+/* The strip is one row at every width. Nothing here wraps; Header.tsx measures
+   the row and stamps `data-fit` with what has to give, in order, until it fits
+   (see FIT there). Every rule below is one of those tokens. */
 .hd-row {
   display: flex;
   align-items: center;
   gap: 14px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+}
+/* Rigid on purpose. The measurement is `scrollWidth > clientWidth`, and a
+   child that shrinks or a name that wraps to two lines hides the overflow it
+   is supposed to report: the row stayed 44px tall at 660px and reported a fit. */
+.hd-row > * {
+  flex: none;
+}
+.hd-name,
+.hd-kn,
+.hd-nav a {
+  white-space: nowrap;
+}
+.hd[data-fit~="kn"] .hd-kn,
+.hd[data-fit~="resume"] .hd-nav a[href="/resume"],
+.hd[data-fit~="name"] .hd-name,
+.hd[data-fit~="compact"] .hd-title-full,
+.hd[data-tray="open"] .hd-name {
+  display: none;
+}
+.hd[data-fit~="compact"] .hd-row {
+  gap: 10px;
+}
+.hd[data-fit~="compact"] .hd-brand {
+  gap: 9px;
+}
+.hd[data-fit~="name"] .hd-names {
+  display: none;
+}
+.hd[data-fit~="compact"] .hd-mark {
+  height: 22px;
+}
+.hd[data-fit~="compact"] .hd-name {
+  font-size: 18px;
+}
+.hd[data-fit~="compact"] .hd-nav {
+  gap: 12px;
+}
+.hd[data-fit~="compact"] .hd-ctls {
+  gap: 10px;
+}
+/* The tray collapses to the active swatch, which is then a disclosure: pressing
+   it shows all six, and the name steps out (above) so they have the row. The
+   other five are still one press away, and still on 1-6 for a keyboard. */
+.hd[data-fit~="tray"] .inks .ink-sw {
+  display: none;
+}
+.hd[data-fit~="tray"] .inks .ink-sw[aria-pressed="true"],
+.hd[data-fit~="tray"] .inks[data-open="true"] .ink-sw {
+  display: inline-flex;
 }
 .hd-mark {
   display: block;
@@ -420,15 +463,16 @@
   flex: none;
   align-self: center;
 }
+/* The bar under the G is the one part of the mark that carries the live ink.
+   The G is ink; the bar is the accent, in both themes. */
 .hd-mark .mark-bar {
   fill: var(--accent);
   transform-box: fill-box;
   transform-origin: left center;
 }
-/* The bar under the G is the one part that carries the ink, so hovering the
-   mark re-inks it: one pass of the pen, left to right. It runs at --dur-ink
-   rather than --dur-fast because it is an ink event, and the ink moves at the
-   same speed here as it does everywhere else. */
+/* Hovering the mark re-inks the bar: one pass of the pen, left to right.
+   --dur-ink rather than --dur-fast because it is an ink event, and the ink
+   moves at the same speed here as it does everywhere else. */
 @media (prefers-reduced-motion: no-preference) {
   .hd-brand:hover .mark-bar,
   .hd-brand:focus-visible .mark-bar {
@@ -443,19 +487,28 @@
     transform: scaleX(1);
   }
 }
-/* Baselines, not boxes.
-   
-   The two names are set in two faces at two sizes, so centring their boxes
-   put the Kannada baseline 3.7px above the Latin one. It had been corrected by
-   hand with `align-self: flex-end` and a 1px nudge, which aligns the bottoms of
-   the boxes instead: right only for the exact pair of fonts and sizes it was
-   tuned against, and wrong the moment either moves. Aligning the baselines is
-   the thing that was actually wanted, and it holds at any size.
-   
-   The mark is not type and has no baseline worth aligning to, so it opts out
-   and stays centred on the line. */
+/* Two alignments, one each.
+
+   The two names are set in two faces at two sizes, so centring their boxes put
+   the Kannada baseline 3.7px above the Latin one; they share a baseline inside
+   .hd-names. The mark is not type, so the brand itself centres: the mark and
+   the names box on the row's centre line, where the links and the controls
+   also sit. */
 .hd-brand {
   display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  /* 22px of mark is the whole link once the name goes; 2px each way makes
+     it 26 to the finger without moving the row. */
+  padding-block: 2px;
+  margin-block: -2px;
+}
+/* The Latin and Kannada names, on one baseline, as one centred item. With
+   `align-items: baseline` on .hd-brand itself the pair was packed to the top of
+   the mark's 27px line and read 3px high against the links. */
+.hd-names {
+  display: inline-flex;
   align-items: baseline;
   gap: 12px;
   min-width: 0;
@@ -485,14 +538,19 @@
   font-size: 13px;
   color: var(--ink-3);
   position: relative;
+  /* 13px of text was the whole target. Six px of padding each way makes it
+     24px to the finger (WCAG 2.5.8), and the negative margin gives the space
+     back so the row does not move. */
+  padding: 6px 3px;
+  margin: -6px -3px;
   transition: color var(--dur-fast) var(--ease-out);
 }
 .hd-nav a::after {
   content: "";
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -3px;
+  left: 3px;
+  right: 3px;
+  bottom: 3px;
   height: 1px;
   background: var(--accent);
   transform: scaleX(0);
@@ -816,6 +874,9 @@
   margin-top: 4px;
 }
 .meta a {
+  display: inline-block;
+  padding-block: 4px;
+  margin-block: -4px;
   color: var(--ink-3);
   border-bottom: 1px solid var(--rule);
   transition:
@@ -1166,37 +1227,10 @@ h2.sec-label {
   .wrap {
     --gutter: 18px;
   }
-  .hd-mark {
-    height: 22px;
-  }
-  .hd-name {
-    font-size: 19px;
-  }
-  .hd-nav {
-    flex-wrap: wrap;
-    gap: 12px;
-  }
-  /* Below 640px the ink tray collapses to the active swatch. Six chips are the
-     most chromatic thing in the header and they are a preference, not a
-     destination; on a phone they were taking a whole row above the fold and
-     out-ranking the two links that lead to the work. The other five are still
-     one tap away, and still on 1-6 for anyone with a keyboard. */
-  .inks {
-    position: relative;
-  }
-  .inks .ink-sw {
-    display: none;
-  }
-  .inks .ink-sw[aria-pressed="true"] {
-    display: inline-flex;
-  }
-  .inks[data-open="true"] .ink-sw {
-    display: inline-flex;
-  }
-  /* The title line loses the name and the year on a phone. All three fit only
-     by being ellipsised, and half a name is worse than none. */
-  .hd-title-full {
-    display: none;
+  /* 24px of panel padding inside an 18px gutter inside a 12px margin left
+     267px for the figures. 16 gives them 283. */
+  .panel {
+    padding: 18px 16px 18px;
   }
   .tb-cell {
     padding: 10px 12px;
@@ -1204,5 +1238,23 @@ h2.sec-label {
   .tb-v {
     white-space: normal;
     overflow: visible;
+  }
+  .tb-say {
+    padding: 14px 12px;
+  }
+  .tb-say-l {
+    font-size: 19px;
+  }
+  /* Two lines: the origin, then the résumé chip and the marks. The chip's own
+     8px inset is pulled back so its balloon sits on the cell's left edge with
+     the label above it. */
+  .tb-contact {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding-inline: 12px;
+  }
+  .tb-contact-r {
+    margin-left: -8px;
   }
 }
