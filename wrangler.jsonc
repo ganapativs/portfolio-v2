@@ -16,9 +16,7 @@
 
   // The apex and www are Custom Domains: wrangler writes the DNS records and
   // mints the cert at deploy. www -> apex is a Redirect Rule in the zone (it
-  // runs before the Worker). workers.dev is off so the site has one origin
-  // for crawlers rather than a duplicate under a *.workers.dev host.
-  "workers_dev": false,
+  // runs before the Worker).
   "routes": [
     { "pattern": "meetguns.com", "custom_domain": true },
     { "pattern": "www.meetguns.com", "custom_domain": true },

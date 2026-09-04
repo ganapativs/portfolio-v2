@@ -27,7 +27,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: 24.18.1
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
@@ -36,9 +36,4 @@ jobs:
         run: pnpm check
 
       - name: Build
-        # The static export reaches api.github.com for the star counts. The
-        # token only lifts the shared-runner rate limit; a miss falls back to
-        # the checked constants rather than failing.
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: pnpm build

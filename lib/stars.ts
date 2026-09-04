@@ -5,12 +5,9 @@
  * in the current ones. It lives alone, with no import of `lib/resume`, so the
  * client bundle gets the ~30 lines of paging logic and not the whole CV.
  *
- * Unauthenticated by default. GitHub allows 60/hour per IP, which is plenty for
- * one build or one visitor (LiveStars caches in localStorage for 6 h on top).
- * A CI runner is the exception: it shares an IP with every other job on the
- * box, so the deploy workflow passes a `GITHUB_TOKEN` and the fetch uses it
- * when it is there. Returns null on any failure — the callers own their
- * fallbacks.
+ * Unauthenticated. GitHub allows 60/hour per IP, which is plenty for one build
+ * or one visitor (LiveStars caches in localStorage for 6 h on top). Returns
+ * null on any failure — the callers own their fallbacks.
  */
 
 const USER = "ganapativs";
@@ -44,18 +41,7 @@ export async function fetchStarCounts(cache?: RequestCache): Promise<StarCounts 
           // there would otherwise be none.
           headers:
             typeof window === "undefined"
-              ? {
-                  Accept: "application/vnd.github+json",
-                  "User-Agent": "meetguns.com",
-                  // Only ever set on a server: the rate limit that matters is
-                  // the shared one a CI runner sits behind, where an
-                  // unauthenticated build takes a 403 and silently ships the
-                  // hand-checked fallback instead of the live numbers. Unset
-                  // locally, where 60/hour is not a constraint.
-                  ...(process.env.GITHUB_TOKEN
-                    ? { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` }
-                    : {}),
-                }
+              ? { Accept: "application/vnd.github+json", "User-Agent": "meetguns.com" }
               : { Accept: "application/vnd.github+json" },
           cache,
         },
