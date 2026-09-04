@@ -14,6 +14,14 @@
   "name": "meetguns",
   "compatibility_date": "2026-08-28",
 
+  // The apex and www are Custom Domains: wrangler writes the DNS records and
+  // mints the cert at deploy. www -> apex is a Redirect Rule in the zone (it
+  // runs before the Worker).
+  "routes": [
+    { "pattern": "meetguns.com", "custom_domain": true },
+    { "pattern": "www.meetguns.com", "custom_domain": true },
+  ],
+
   "assets": {
     "directory": "./out",
     // The export writes per-route files as blog/<slug>.html (trailingSlash is

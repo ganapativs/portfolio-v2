@@ -338,8 +338,9 @@ none` with `.hd > *` set back to `auto`, so the dead area under the condensed
   stamps `data-fit` on `.hd` with tokens from `FIT`, one more at a time, until
   `scrollWidth <= clientWidth`: `kn` (the Kannada name) → `compact` (tighter
   gaps, 18px name, 22px mark, no year on the rule) → `tray` (the ink tray
-  collapses to the active swatch) → `resume` (the résumé link; the title
-  block still carries it, and `r` still fires from the hidden link) → `name`.
+  collapses to the active swatch) → `name`. There was a `resume` token between
+  the last two, and it is gone with the link it dropped: the strip carries no
+  résumé link any more (owner, 2026-09-04).
   Every rule is `.hd[data-fit~="<token>"]` in chrome.css. It re-runs from a
   `ResizeObserver` on the row and on `document.fonts.ready`. Breakpoints were
   tried and wrapped at 660px, because a breakpoint has to guess how wide the
@@ -357,12 +358,13 @@ none` with `.hd > *` set back to `auto`, so the dead area under the condensed
   steps out while it is open so the chips have the row it was on. A press
   anywhere outside `.inks`, or Escape, closes it. The name does not hide on
   stick any more: one row condenses into one row.
-- **On a phone (≤640px) the links and the three preferences are not in the
-  strip at all.** Writing and résumé (with `b` and `r` on them), a plain
-  home link carrying the mark, then ink, theme and sound render through a
-  portal into `.ptray`, a fixed bar at the foot above the safe-area inset,
-  because the sticky strip is out of thumb's reach on a tall phone and the
-  reader moves between the three pages often. Same JSX, one place at a time,
+- **On a phone (≤640px) the link and the three preferences are not in the
+  strip at all.** Writing (with `b` on it), a plain home link carrying the
+  mark, then ink, theme and sound render through a portal into `.ptray`, a
+  fixed bar at the foot above the safe-area inset, because the sticky strip is
+  out of thumb's reach on a tall phone and the reader moves between the pages
+  often. The résumé is not in the bar either: it lives in the title block and
+  nowhere else. Same JSX, one place at a time,
   so every shortcut registers once. The strip keeps the mark and the names,
   and the Kannada name comes back there because it fits. The server still
   renders links and controls in the strip and the phone stylesheet hides them
@@ -371,9 +373,13 @@ none` with `.hd > *` set back to `auto`, so the dead area under the condensed
   `.tb-wrap`), observed once: it is the layout's node on every route, and
   re-observing per navigation fired mid-swap. The bar has `will-change:
 transform` for a compositing layer of its own. **The pill never changes
-  width, and the ink picker is a sheet
-  inside it.** The six swatches live on a layer spanning the pill from its
-  left edge to the ink slot, in the pill's own material. Closed, the layer is
+  width, and its width is a measurement rather than a taste: the ink picker is
+  a sheet inside it, so the pill's width sets how far apart the six swatches
+  fan, and 248px is the narrowest that keeps their 24px hit targets from
+  overlapping. It was 300 while the résumé link was in the bar. Change what
+  the bar carries and re-derive it — the arithmetic is in the comment on
+  `.ptray` in chrome.css.** The six swatches live on a layer spanning the pill
+  from its left edge to the ink slot, in the pill's own material. Closed, the layer is
   clipped to the slot and shows the active ink. Pressed, the clip opens
   leftward over the links and the six fan from the slot to even positions,
   staggered 25ms per step so the far ink lands last; a pick folds it back.
@@ -568,7 +574,7 @@ real control.
 | ------- | ---------------------- | ------------------------------------- |
 | `h`     | home                   | `schematic/Header.tsx`                |
 | `b`     | writing                | `schematic/Header.tsx`                |
-| `r`     | résumé                 | `schematic/Header.tsx`                |
+| `r`     | résumé                 | `schematic/TitleBlock.tsx`            |
 | `t`     | switch the paper       | `schematic/Header.tsx`                |
 | `m`     | mute / unmute          | `schematic/Header.tsx`                |
 | `1`–`6` | pick an ink            | `InkSwatch` in `Header.tsx`           |
@@ -576,13 +582,13 @@ real control.
 | `?`     | the help sheet         | `shortcuts/ShortcutHelp.tsx`          |
 | `Esc`   | close the help sheet   | `shortcuts/ShortcutHelp.tsx`          |
 
-There is no `0` and no `w`/`a`. `r` is registered on the header's résumé link
-(hidden below 640px; the key still fires) —
-the key lives with the control it floats its Shift-hold hint over. **The résumé
-link lives in the header AND the title block, and that is the owner's settled
-call (2026-09-01)** after trying header-only and footer-only: the strip is the
-short way, the title block's balloon is the sheet-reference. The registry
-refuses duplicate keys, so only the header link carries `r`.
+There is no `0` and no `w`/`a`. `r` is registered on the title block's résumé
+chip, because the key lives with the control it floats its Shift-hold hint
+over. **The résumé link lives in the title block and nowhere else — not the
+strip, not the phone bar, not the 404 (owner, 2026-09-04)**, which reverses the
+header-AND-title-block call of 2026-09-01. The sheet-reference balloon is the
+one way to it, and a reader at the foot is the reader looking for the next
+document. Do not re-add it to the header, to `.ptray` or to `app/not-found.tsx`.
 
 The registry refuses duplicate keys within a scope and warns in development.
 `silent: true` on a shortcut means it plays its own cue instead of the
@@ -603,6 +609,95 @@ lives there), and the gitignored `blog/` of markdown mirrors from
 the extensionless metadata routes (`/icon`, the PNG family, the OG cards) —
 static assets serve an extensionless file with **no** Content-Type, and an SVG
 favicon is never content-sniffed.
+
+## Deploy
+
+Cloudflare Workers static assets, and nothing else. `wrangler.jsonc` names the
+worker `meetguns`, points `assets.directory` at `./out`, and attaches
+`meetguns.com` + `www.meetguns.com` as **Custom Domains** (`routes` with
+`custom_domain: true`) — wrangler writes the DNS records and mints the cert on
+deploy, so the zone's DNS table is meant to be empty of A/AAAA/CNAME for those
+two hosts. `workers_dev` is `false`: one origin for crawlers, no duplicate under
+`*.workers.dev`. `pnpm cf:deploy` builds, ships, and pings IndexNow.
+
+Seven things live in the zone dashboard rather than in the repo, and were set
+on 2026-09-04. **None of them fail loudly.** A drift here costs speed, serves
+`http://` in the clear, or rewrites what the crawlers are told — and the build
+stays green through all three, so the only way to catch one is to check the
+live response.
+
+- **Redirect Rule** "Redirect from WWW to root": `https://www.*` → `https://${1}`,
+  301, query preserved. The Worker serves both hosts; the rule runs before it.
+  The dashboard warns that `www` "may not be proxied" because it cannot see a
+  Worker custom domain as a normal record — ignore it, the rule fires.
+- **SSL/TLS → Always Use HTTPS: on.** A Worker custom domain answers plaintext
+  `http://` with a 200 otherwise; HSTS in `_headers` only covers return visits.
+- **Speed → Speed Brain, 0-RTT, Early Hints: on.** HTTP/3 and TLS 1.3 are on by
+  default. Early Hints is inert today (the pages emit no `Link` header) and
+  harmless.
+- **Rocket Loader: off, and stays off.** It rewrites inline scripts, which
+  would defer the no-flash `data-theme`/`data-ink` stamp and the gtag stub.
+  Cloudflare Fonts is off too: `next/font` already self-hosts, so there are no
+  third-party font requests for it to rewrite. Web Analytics (RUM beacon) is
+  off: GA4 + `WebVitals` already carry the same numbers, and the beacon is a
+  second 6 kB script.
+- **AI Crawl Control → Managed robots.txt: OFF, and it must stay off.** Zone
+  onboarding turns it ON, and it does not add to `robots.txt` — it _replaces_
+  the served file (2314 bytes where `app/robots.ts` builds 478), prepending
+  `Content-Signal: ai-train=no` and `Disallow: /` for ClaudeBot, GPTBot, CCBot,
+  Google-Extended, Applebot-Extended, Amazonbot, Bytespider and
+  meta-externalagent — the exact crawlers `app/robots.ts` allows by name. It
+  fails silently: nothing 500s, the build is untouched, and only a byte count
+  or a `grep Disallow` on the live file catches it. The "Block AI bots" rule is
+  separate and is not deployed (verified by UA: those crawlers get 200); its
+  Sept-15 preference is set to **allow** mixed-purpose crawlers, for the same
+  reason.
+- **The domain sends and receives no mail, and says so in DNS.** Null `MX 0 .`,
+  SPF `v=spf1 -all`, and `_dmarc` `v=DMARC1; p=reject; sp=reject; aspf=s;
+adkim=s`. The contact address on the site is Gmail (`BIO`/`identity` in
+  `lib/resume.ts`), so nothing legitimate sends as `@meetguns.com` and anything
+  that claims to is a forgery. **Adding a newsletter or a work address means
+  loosening all three first** — a sender added under `-all` / `p=reject` is
+  rejected outright, not spam-foldered. The DMARC record carries no `rua=`
+  on purpose: reports to an address at a domain you do not control need an
+  authorisation record on _that_ domain, which cannot be added to gmail.com.
+- **Browser Cache TTL is 4 hours in the dashboard and is inert.** Every
+  response the Worker serves carries its own `Cache-Control` from `_headers`,
+  which wins; the content-hashed chunks were checked and arrive `immutable`.
+  Left alone rather than set to "Respect Existing Headers", which would change
+  nothing.
+
+### CI and deploy
+
+Deploy is **Cloudflare Workers Builds**, the same integration `microcharts.dev`
+runs, and it is configured in the Cloudflare dashboard rather than in this repo
+(Workers & Pages → meetguns → Settings → Builds). A push to `main` builds and
+deploys; a push to any other branch builds and uploads a version, which is
+where the preview URL on a pull request comes from.
+
+| Field             | Value                                   |
+| ----------------- | --------------------------------------- |
+| Build command     | `pnpm build`                            |
+| Deploy command    | `pnpm exec wrangler deploy`             |
+| Version command   | `pnpm exec wrangler versions upload`    |
+| Root directory    | `/`                                     |
+| Production branch | `main`, non-production branch builds on |
+
+**`wrangler deploy` reconciles the triggers, not just the assets**, so the
+custom domains in `wrangler.jsonc` ship from a build the same way they ship
+from a laptop. `pnpm cf:deploy` still works and is still the way to ship
+without a commit; it is the only path that also pings IndexNow, which Workers
+Builds does not run.
+
+**There is no `workers_dev: false`, and that is deliberate.** Turning it off
+kills the preview URLs, which is the point of building non-production branches
+— microcharts makes the same trade. The cost is a second host serving the same
+pages; the canonical tags and the sitemap all name `meetguns.com`.
+
+`.github/workflows/ci.yml` is the other half: `pnpm check` and `pnpm build` on
+every pull request. Workers Builds runs neither oxfmt, oxlint nor `tsc`, and
+the repo's pre-commit hook only binds the machine it is installed on. Nothing
+in Actions deploys — there is no Cloudflare API token in this repo.
 
 ## Icons
 

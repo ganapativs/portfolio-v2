@@ -38,10 +38,9 @@ function drawingTitle(pathname: string): string {
  *   kn       the Kannada name
  *   compact  tighter gaps, 18px name, 22px mark, no year on the rule
  *   tray     the ink tray collapses to the active swatch (a disclosure)
- *   resume   the résumé link (the title block still carries it)
  *   name     the Latin name; the mark alone is the home link
  */
-const FIT = ["kn", "compact", "tray", "resume", "name"] as const;
+const FIT = ["kn", "compact", "tray", "name"] as const;
 
 /** Tokens for the first count of FIT at which the row fits. Writes as it goes:
  *  at most five layouts, and only on a resize or a font swap. */
@@ -174,19 +173,9 @@ export function SchematicHeader() {
     group: "Navigate",
     run: () => router.push("/blog"),
   });
-  // The résumé, in the strip and in the title block both — the owner settled
-  // it that way (2026-09-01) after trying header-only and footer-only: the
-  // short way for the reader hunting a CV, the sheet-reference balloon for the
-  // reader who reached the foot. `r` lives here, with the control its
-  // Shift-hold hint floats over; the registry refuses duplicate keys, so the
-  // title-block chip carries no shortcut.
-  const resumeRef = useShortcut<HTMLAnchorElement>({
-    id: "nav.resume",
-    keys: ["r"],
-    label: "Résumé",
-    group: "Navigate",
-    run: () => router.push("/resume"),
-  });
+  // There is no résumé link here any more (owner, 2026-09-04: the title block
+  // is the one place it lives). `r` moved with it, onto the chip in
+  // TitleBlock.tsx — the key stays with the control its hint floats over.
   // The iris opens from the control. A key has no pointer, so the circle
   // starts at the viewport centre rather than pretending a press landed.
   const themeRef = useShortcut<HTMLButtonElement>({
@@ -331,30 +320,19 @@ export function SchematicHeader() {
   }, []);
 
   /**
-   * The two links, one JSX value, in the strip or in the phone bar. `b` and
-   * `r` are registered on them wherever they render.
+   * The nav link, one JSX value, in the strip or in the phone bar. `b` is
+   * registered on it wherever it renders.
    */
   const links = (
-    <>
-      <Link
-        href="/blog"
-        ref={writingRef}
-        aria-current={on("/blog") ? "page" : undefined}
-        data-analytics="nav:header.writing"
-        onClick={() => fx?.nav()}
-      >
-        writing
-      </Link>
-      <Link
-        href="/resume"
-        ref={resumeRef}
-        aria-current={on("/resume") ? "page" : undefined}
-        data-analytics="nav:header.resume"
-        onClick={() => fx?.nav()}
-      >
-        résumé
-      </Link>
-    </>
+    <Link
+      href="/blog"
+      ref={writingRef}
+      aria-current={on("/blog") ? "page" : undefined}
+      data-analytics="nav:header.writing"
+      onClick={() => fx?.nav()}
+    >
+      writing
+    </Link>
   );
   /**
    * The three preferences: ink, theme, sound. One JSX value, rendered in one

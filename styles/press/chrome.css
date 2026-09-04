@@ -418,7 +418,6 @@
   white-space: nowrap;
 }
 .hd[data-fit~="kn"] .hd-kn,
-.hd[data-fit~="resume"] .hd-nav a[href="/resume"],
 .hd[data-fit~="name"] .hd-name,
 .hd[data-fit~="compact"] .hd-title-full,
 .hd[data-tray="open"] .hd-name {
@@ -1294,8 +1293,9 @@ h2.sec-label {
 
 /* ---- the phone bar ------------------------------------------------------- */
 
-/* Home, writing and résumé, then ink, theme and sound, in one pill fixed at
-   the foot of a phone screen where a thumb is. The strip they came from is
+/* Home and writing, then ink, theme and sound, in one pill fixed at the foot
+   of a phone screen where a thumb is. The résumé is not here: it lives in the
+   title block and nowhere else (owner, 2026-09-04). The strip they came from is
    sticky at the top and out of reach on a tall phone. Drawn as the sheet's
    other chrome: raised ground, one rule, the chip radius, no shadow.
    Header.tsx moves the same links and buttons here through a portal, so the
@@ -1310,17 +1310,28 @@ h2.sec-label {
   bottom: calc(12px + env(safe-area-inset-bottom, 0px));
   transform: translateX(-50%);
   z-index: 71;
-  /* Whole pixels. The pill's content came to 300.09px and centring it put
-     every edge on a half pixel; at 3x the swatch's 1px ring and its fill
-     then rasterised on different device pixels and the fill read as pushed
-     off centre. Fixed width and height, and a left edge rounded to the pixel
-     where round() exists; the transform centring stays as the fallback. */
-  width: 300px;
+  /* Whole pixels. Centring a fractional width put every edge on a half pixel;
+     at 3x the swatch's 1px ring and its fill then rasterised on different
+     device pixels and the fill read as pushed off centre. Fixed width and
+     height, and a left edge rounded to the pixel where round() exists; the
+     transform centring stays as the fallback.
+
+     248, not the 235 the content measures, and not the 300 it was when the
+     résumé link was still in here. The six inks fan across the sheet left of
+     the ink slot, so the pill's width sets their spacing: the sheet is the
+     width less the two borders and the 88px the controls hold, and the six sit
+     across it at (248 - 2 - 88 - 6 - 15 - 16) / 5 = 24.2px between centres.
+     That is the narrowest pill that keeps the 24px hit targets from
+     overlapping (WCAG 2.5.8) — at 246 they were 23.8px apart. The 13px of
+     slack it buys goes between the links and the controls, not off the right
+     edge. */
+  width: 248px;
   height: 46px;
   /* Its own compositing layer. Without one the route swap's repaint took
      the pill for a frame in Chromium, which read as the bar remounting. */
   will-change: transform;
   align-items: center;
+  justify-content: space-between;
   gap: 14px;
   padding: 5px 8px 5px 6px;
   background: var(--raise);
@@ -1337,7 +1348,7 @@ h2.sec-label {
 }
 @supports (left: round(nearest, 1px, 1px)) {
   .ptray {
-    left: round(nearest, calc(50% - 150px), 1px);
+    left: round(nearest, calc(50% - 124px), 1px);
     transform: none;
   }
   .ptray[data-show="false"] {
