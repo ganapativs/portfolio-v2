@@ -699,6 +699,20 @@ every pull request. Workers Builds runs neither oxfmt, oxlint nor `tsc`, and
 the repo's pre-commit hook only binds the machine it is installed on. Nothing
 in Actions deploys — there is no Cloudflare API token in this repo.
 
+Two things about the connection itself, both learned by hitting them:
+
+- **The token is `meetguns build token`, minted for this project alone.** The
+  connect dialog offers `microcharts build token`, which works and is the wrong
+  answer: one token shared by two projects means rotating it for either breaks
+  the other.
+- **The Cloudflare Workers and Pages GitHub App has to be granted this repo,
+  separately from connecting it.** The app was installed for `microcharts`, so
+  the repository picker listed `portfolio-v2` and connected to it happily,
+  then the Builds panel read _"This project is disconnected from your Git
+  account"_ and no build could ever fire. The fix is on GitHub, not Cloudflare:
+  Settings → Applications → Cloudflare Workers and Pages → Configure →
+  Repository access. Worth checking there first if builds simply never start.
+
 ## Icons
 
 One mark (`lib/mark.ts`), five renderings. Everything raster goes through
