@@ -683,33 +683,33 @@ where the preview URL on a pull request comes from.
 | Root directory    | `/`                                     |
 | Production branch | `main`, non-production branch builds on |
 
+**Build cache is on** (Settings → Builds → Build cache), or every build
+reinstalls 277 packages and rebuilds `.next` from cold.
+
 **`wrangler deploy` reconciles the triggers, not just the assets**, so the
 custom domains in `wrangler.jsonc` ship from a build the same way they ship
 from a laptop. `pnpm cf:deploy` still works and is still the way to ship
 without a commit; it is the only path that also pings IndexNow, which Workers
 Builds does not run.
 
-**There is no `workers_dev: false`, and that is deliberate.** Turning it off
-kills the preview URLs, which is the point of building non-production branches.
+**`wrangler.jsonc` declares neither `workers_dev` nor `preview_urls`, exactly
+as microcharts does, and that is what makes preview URLs work.** Both hosts are
+switched on the Worker instead (Settings → Domains → Worker URL): production
+`meetguns.vsg-inbox.workers.dev` and preview `*-meetguns.vsg-inbox.workers.dev`.
+Every branch build then publishes `https://<version>-meetguns.vsg-inbox.workers.dev`
+and a stable `https://<branch>-meetguns.vsg-inbox.workers.dev`.
 
-The Worker URL toggles are the other half, and they are **settings on the
-Worker, not config** — Settings → Domains → Worker URL. Deleting
-`workers_dev: false` from `wrangler.jsonc` does not re-enable what an earlier
-deploy switched off, and `wrangler versions upload` cannot change it either
-(the build log says so: _"Changes to triggers must be applied with `wrangler
-triggers deploy`"_). A branch build with the preview host off still succeeds —
-it just posts a comment with no link, which reads like the integration is
-half-broken when it is only unswitched.
+⚠️ **Do not add `workers_dev: false` back.** It looks tidy — one host, no
+duplicate of the live site for crawlers — and it silently disables the preview
+URLs along with it, so branch builds still go green while posting a comment with
+no link. `preview_urls: true` does **not** rescue it: that key is not in
+wrangler 4.127's config schema, so it is read as nothing at all. This was tried
+twice and reverted twice; the duplicate host is the accepted cost of previews.
 
-**Preview is on and production is off**, which is where this diverges from
-microcharts. Preview gives every branch build
-`https://<version>-meetguns.vsg-inbox.workers.dev` plus a stable
-`https://<branch>-meetguns.vsg-inbox.workers.dev`. The production
-`workers.dev` host stays off because the custom domains already serve
-production and a second copy of the live site is only a duplicate for
-crawlers. ⚠️ Since `wrangler.jsonc` no longer declares `workers_dev` at all, a
-future `wrangler deploy` may treat the default as on and switch it back —
-check the toggle if `meetguns.vsg-inbox.workers.dev` ever starts answering.
+The toggles are Worker state as well, and state and config can disagree.
+Deleting a key does not re-enable a host an earlier deploy switched off, and
+`wrangler versions upload` cannot change it either — the build log says as
+much: _"Changes to triggers must be applied with `wrangler triggers deploy`"_.
 
 `.github/workflows/ci.yml` is the other half: `pnpm check` and `pnpm build` on
 every pull request. Workers Builds runs neither oxfmt, oxlint nor `tsc`, and
