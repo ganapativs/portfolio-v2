@@ -604,6 +604,63 @@ the extensionless metadata routes (`/icon`, the PNG family, the OG cards) —
 static assets serve an extensionless file with **no** Content-Type, and an SVG
 favicon is never content-sniffed.
 
+## Deploy
+
+Cloudflare Workers static assets, and nothing else. `wrangler.jsonc` names the
+worker `meetguns`, points `assets.directory` at `./out`, and attaches
+`meetguns.com` + `www.meetguns.com` as **Custom Domains** (`routes` with
+`custom_domain: true`) — wrangler writes the DNS records and mints the cert on
+deploy, so the zone's DNS table is meant to be empty of A/AAAA/CNAME for those
+two hosts. `workers_dev` is `false`: one origin for crawlers, no duplicate under
+`*.workers.dev`. `pnpm cf:deploy` builds, ships, and pings IndexNow.
+
+Seven things live in the zone dashboard rather than in the repo, and were set
+on 2026-09-04. **None of them fail loudly.** A drift here costs speed, serves
+`http://` in the clear, or rewrites what the crawlers are told — and the build
+stays green through all three, so the only way to catch one is to check the
+live response.
+
+- **Redirect Rule** "Redirect from WWW to root": `https://www.*` → `https://${1}`,
+  301, query preserved. The Worker serves both hosts; the rule runs before it.
+  The dashboard warns that `www` "may not be proxied" because it cannot see a
+  Worker custom domain as a normal record — ignore it, the rule fires.
+- **SSL/TLS → Always Use HTTPS: on.** A Worker custom domain answers plaintext
+  `http://` with a 200 otherwise; HSTS in `_headers` only covers return visits.
+- **Speed → Speed Brain, 0-RTT, Early Hints: on.** HTTP/3 and TLS 1.3 are on by
+  default. Early Hints is inert today (the pages emit no `Link` header) and
+  harmless.
+- **Rocket Loader: off, and stays off.** It rewrites inline scripts, which
+  would defer the no-flash `data-theme`/`data-ink` stamp and the gtag stub.
+  Cloudflare Fonts is off too: `next/font` already self-hosts, so there are no
+  third-party font requests for it to rewrite. Web Analytics (RUM beacon) is
+  off: GA4 + `WebVitals` already carry the same numbers, and the beacon is a
+  second 6 kB script.
+- **AI Crawl Control → Managed robots.txt: OFF, and it must stay off.** Zone
+  onboarding turns it ON, and it does not add to `robots.txt` — it _replaces_
+  the served file (2314 bytes where `app/robots.ts` builds 478), prepending
+  `Content-Signal: ai-train=no` and `Disallow: /` for ClaudeBot, GPTBot, CCBot,
+  Google-Extended, Applebot-Extended, Amazonbot, Bytespider and
+  meta-externalagent — the exact crawlers `app/robots.ts` allows by name. It
+  fails silently: nothing 500s, the build is untouched, and only a byte count
+  or a `grep Disallow` on the live file catches it. The "Block AI bots" rule is
+  separate and is not deployed (verified by UA: those crawlers get 200); its
+  Sept-15 preference is set to **allow** mixed-purpose crawlers, for the same
+  reason.
+- **The domain sends and receives no mail, and says so in DNS.** Null `MX 0 .`,
+  SPF `v=spf1 -all`, and `_dmarc` `v=DMARC1; p=reject; sp=reject; aspf=s;
+adkim=s`. The contact address on the site is Gmail (`BIO`/`identity` in
+  `lib/resume.ts`), so nothing legitimate sends as `@meetguns.com` and anything
+  that claims to is a forgery. **Adding a newsletter or a work address means
+  loosening all three first** — a sender added under `-all` / `p=reject` is
+  rejected outright, not spam-foldered. The DMARC record carries no `rua=`
+  on purpose: reports to an address at a domain you do not control need an
+  authorisation record on _that_ domain, which cannot be added to gmail.com.
+- **Browser Cache TTL is 4 hours in the dashboard and is inert.** Every
+  response the Worker serves carries its own `Cache-Control` from `_headers`,
+  which wins; the content-hashed chunks were checked and arrive `immutable`.
+  Left alone rather than set to "Respect Existing Headers", which would change
+  nothing.
+
 ## Icons
 
 One mark (`lib/mark.ts`), five renderings. Everything raster goes through
