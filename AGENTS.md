@@ -690,14 +690,45 @@ without a commit; it is the only path that also pings IndexNow, which Workers
 Builds does not run.
 
 **There is no `workers_dev: false`, and that is deliberate.** Turning it off
-kills the preview URLs, which is the point of building non-production branches
-— microcharts makes the same trade. The cost is a second host serving the same
-pages; the canonical tags and the sitemap all name `meetguns.com`.
+kills the preview URLs, which is the point of building non-production branches.
+
+The Worker URL toggles are the other half, and they are **settings on the
+Worker, not config** — Settings → Domains → Worker URL. Deleting
+`workers_dev: false` from `wrangler.jsonc` does not re-enable what an earlier
+deploy switched off, and `wrangler versions upload` cannot change it either
+(the build log says so: _"Changes to triggers must be applied with `wrangler
+triggers deploy`"_). A branch build with the preview host off still succeeds —
+it just posts a comment with no link, which reads like the integration is
+half-broken when it is only unswitched.
+
+**Preview is on and production is off**, which is where this diverges from
+microcharts. Preview gives every branch build
+`https://<version>-meetguns.vsg-inbox.workers.dev` plus a stable
+`https://<branch>-meetguns.vsg-inbox.workers.dev`. The production
+`workers.dev` host stays off because the custom domains already serve
+production and a second copy of the live site is only a duplicate for
+crawlers. ⚠️ Since `wrangler.jsonc` no longer declares `workers_dev` at all, a
+future `wrangler deploy` may treat the default as on and switch it back —
+check the toggle if `meetguns.vsg-inbox.workers.dev` ever starts answering.
 
 `.github/workflows/ci.yml` is the other half: `pnpm check` and `pnpm build` on
 every pull request. Workers Builds runs neither oxfmt, oxlint nor `tsc`, and
 the repo's pre-commit hook only binds the machine it is installed on. Nothing
 in Actions deploys — there is no Cloudflare API token in this repo.
+
+Two things about the connection itself, both learned by hitting them:
+
+- **The token is `meetguns build token`, minted for this project alone.** The
+  connect dialog offers `microcharts build token`, which works and is the wrong
+  answer: one token shared by two projects means rotating it for either breaks
+  the other.
+- **The Cloudflare Workers and Pages GitHub App has to be granted this repo,
+  separately from connecting it.** The app was installed for `microcharts`, so
+  the repository picker listed `portfolio-v2` and connected to it happily,
+  then the Builds panel read _"This project is disconnected from your Git
+  account"_ and no build could ever fire. The fix is on GitHub, not Cloudflare:
+  Settings → Applications → Cloudflare Workers and Pages → Configure →
+  Repository access. Worth checking there first if builds simply never start.
 
 ## Icons
 
