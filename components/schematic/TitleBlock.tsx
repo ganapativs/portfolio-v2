@@ -1,10 +1,11 @@
 "use client";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { KeysHint } from "./KeysHint";
 import { Socials } from "./Socials";
 import { useFX } from "@/components/providers/FXProvider";
+import { useShortcut } from "@/components/shortcuts/useShortcut";
 import { identity } from "@/lib/resume";
 
 /** Which sheet of the set this is. The title block of a drawing always says. */
@@ -54,12 +55,17 @@ function tenure(now: Date): string {
 export function TitleBlock() {
   const pathname = usePathname();
   const fx = useFX();
+  const router = useRouter();
+  // The résumé lives here and nowhere else, so the key lives here too.
+  const resumeRef = useShortcut<HTMLAnchorElement>({
+    id: "nav.resume",
+    keys: ["r"],
+    label: "Résumé",
+    group: "Navigate",
+    run: () => router.push("/resume"),
+  });
   const [clock, setClock] = useState("");
   const [since, setSince] = useState("");
-
-  // No shortcut on this chip: the header carries the résumé link too now
-  // (owner's final call, 2026-09-01) and `r` lives up there, with the control
-  // its Shift-hold hint floats over. The registry refuses duplicate keys.
 
   useEffect(() => {
     // Minutes, not seconds. A ticking second hand in the corner of every page
@@ -132,12 +138,15 @@ export function TitleBlock() {
           </span>
           <span className="tb-contact-r">
             <KeysHint />
-            {/* The other sheet of the set. The header carries the short way
-                to it too; this stays because a title block is where a drawing
-                points at its related sheets, and a reader at the foot is
-                exactly the reader looking for the next document. */}
+            {/* The other sheet of the set, and the only place on the site
+                that points at it (owner, 2026-09-04 — it was in the strip and
+                the phone bar as well): a title block is where a drawing points
+                at its related sheets, and a reader at the foot is exactly the
+                reader looking for the next document. `r` is registered here
+                now, with the control its Shift-hold hint floats over. */}
             <Link
               href="/resume"
+              ref={resumeRef}
               className="tb-cv"
               aria-current={pathname === "/resume" ? "page" : undefined}
               data-analytics="nav:title-block.resume"
