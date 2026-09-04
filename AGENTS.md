@@ -661,6 +661,40 @@ adkim=s`. The contact address on the site is Gmail (`BIO`/`identity` in
   Left alone rather than set to "Respect Existing Headers", which would change
   nothing.
 
+### CI
+
+Two workflows in `.github/workflows`, and the split between them is the point.
+
+- **`ci.yml`** runs `pnpm check` and `pnpm build` on every pull request. The
+  repo has a pre-commit hook that runs oxfmt and oxlint, but a hook binds one
+  machine; this is what makes the result true of the branch. The build is in
+  there because `output: "export"` fails on things `tsc` cannot see — a blog
+  slug with no loader in `app/(press)/blog/[slug]/page.tsx` is the standing
+  example.
+- **`deploy.yml`** runs on a push to `main`: check, build, `wrangler deploy`,
+  then `pnpm index:submit` as a separate step so a failed IndexNow ping cannot
+  read as a failed deploy — by then the site is already serving. It re-runs the
+  checks rather than assuming every commit on `main` arrived through a reviewed
+  PR. `concurrency` is `cancel-in-progress: false`: a queued deploy is better
+  than one cancelled halfway through an asset upload.
+
+**`wrangler deploy` reconciles the triggers, not just the assets.** A change to
+the `routes` block ships from CI the same way it ships from a laptop, which is
+why the custom domains live in `wrangler.jsonc` and not in the dashboard.
+
+Two repository secrets are required, both under Settings → Secrets → Actions:
+`CLOUDFLARE_API_TOKEN` (Workers Scripts:Edit on this account) and
+`CLOUDFLARE_ACCOUNT_ID`. `GITHUB_TOKEN` is the one Actions injects on its own —
+`lib/stars.ts` reads it if present, because the 60/hour GitHub limit is per IP
+and a runner shares its IP with every other job on the box. Without it the
+build takes a 403, falls back to the hand-checked constants in `lib/github.ts`,
+and ships numbers that are quietly a month old rather than failing.
+
+**There are no preview deployments, deliberately.** A Cloudflare preview URL
+lives on `*.workers.dev`, which is the crawlable duplicate of the whole site
+that `workers_dev: false` exists to prevent. `pnpm cf:preview` already serves
+`./out` through workerd locally, which is the same binary the edge runs.
+
 ## Icons
 
 One mark (`lib/mark.ts`), five renderings. Everything raster goes through

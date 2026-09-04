@@ -1,0 +1,62 @@
+# Production deploy. Everything the site serves is in ./out after `pnpm build`,
+# so this is the same two commands as `pnpm cf:deploy`, split so that the
+# search-engine ping cannot run unless the upload actually succeeded.
+#
+# `wrangler deploy` also reconciles the triggers in wrangler.jsonc, which means
+# a change to the `routes` block ships from here as well as the assets.
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Never let two deploys overlap, and never cancel one that has started: a
+# half-applied asset upload is worse than a queued job.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://meetguns.com
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # A push straight to main skips the PR checks, so re-run them here rather
+      # than trusting that every commit arrived through a reviewed branch.
+      - name: Format, lint, types
+        run: pnpm check
+
+      - name: Build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: pnpm build
+
+      - name: Deploy to Cloudflare
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: pnpm exec wrangler deploy
+
+      # IndexNow, and it reads the live sitemap -- so it has to follow the
+      # upload, not accompany it. A failed ping is not a failed deploy: the
+      # site is already serving by this point.
+      - name: Ping search engines
+        continue-on-error: true
+        run: pnpm index:submit

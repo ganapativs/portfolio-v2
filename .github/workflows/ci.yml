@@ -1,0 +1,44 @@
+# Checks on every pull request. The repo's pre-commit hook already runs oxfmt
+# and oxlint locally, but a hook only binds the machine it is installed on --
+# `pnpm check` here is what makes the result true for the branch rather than
+# for one laptop. The build runs too: `output: "export"` fails at build time on
+# things type-checking cannot see, a missing loader in the blog's slug map
+# among them.
+name: CI
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Format, lint, types
+        run: pnpm check
+
+      - name: Build
+        # The static export reaches api.github.com for the star counts. The
+        # token only lifts the shared-runner rate limit; a miss falls back to
+        # the checked constants rather than failing.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: pnpm build
