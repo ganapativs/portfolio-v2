@@ -34,8 +34,6 @@
 .intro-lede {
   color: var(--ink-2);
 }
-/* The ask. One line, at the end of the introduction, saying what response the
-   page wants. Everything above it is evidence; this is the request. */
 /* 19px rather than the 21px this ran at. The introduction is set against a
    portrait that is 360px tall and it was 600, so the fold read as one tall
    column with a picture parked beside it. Nothing was cut to close the gap:
@@ -64,8 +62,15 @@
   color: var(--ink-3);
   margin: 2px 0 0;
   padding-top: 12px;
+  /* No measure of its own. At 12.5px mono a 34em cap was 425px, so the rule
+     above it stopped ~180px short of the paragraphs it closes and read as a
+     stray line rather than the introduction's bottom edge. The sentence is one
+     line at every width the column can be, so nothing needs holding back. And
+     it has to be `none` rather than absent: `.intro p`'s 32em measure is 608px
+     at 19px prose and 400px at this size, so inheriting it is worse than the
+     cap it replaced. */
+  max-width: none;
   border-top: 1px solid var(--rule-3);
-  max-width: 34em;
 }
 .intro-actions {
   display: flex;
