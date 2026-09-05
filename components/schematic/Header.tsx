@@ -523,19 +523,25 @@ export function SchematicHeader() {
         {phone && trayEl
           ? createPortal(
               <>
+                {/* Home is a plain link here: `h` lives on the brand. It sits
+                    outside the nav, the way the strip's brand link sits
+                    outside `.hd-nav` — and the five things in the pill have to
+                    share one spacing context for their gaps to come out equal.
+                    Nested inside the nav, the slack the flex row hands the nav
+                    fell between the mark and the word as well as around them,
+                    and no arrangement of it made the six gaps match. */}
+                <Link
+                  href="/"
+                  prefetch={false}
+                  className="pt-home"
+                  aria-current={pathname === "/" ? "page" : undefined}
+                  aria-label="Home"
+                  data-analytics="nav:bar.home"
+                  onClick={() => fx?.nav()}
+                >
+                  <Mark className="pt-mark" />
+                </Link>
                 <nav className="pt-nav" aria-label="Site">
-                  {/* Home is a plain link here: `h` lives on the brand. */}
-                  <Link
-                    href="/"
-                    prefetch={false}
-                    className="pt-home"
-                    aria-current={pathname === "/" ? "page" : undefined}
-                    aria-label="Home"
-                    data-analytics="nav:bar.home"
-                    onClick={() => fx?.nav()}
-                  >
-                    <Mark className="pt-mark" />
-                  </Link>
                   {links}
                 </nav>
                 <span className="pt-ctls" role="group" aria-label="Preferences">

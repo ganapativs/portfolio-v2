@@ -375,9 +375,20 @@ none` with `.hd > *` set back to `auto`, so the dead area under the condensed
   out of thumb's reach on a tall phone and the reader moves between the pages
   often. The résumé is not in the bar: on a phone it lives in the title block
   only, and `links` drops it when `phone` is true. Same JSX, one place at a
-  time, so every shortcut registers once. The bar's left half is `.pt-nav`
-  at `flex: 1; justify-content: space-evenly`, so the pill's slack spreads
-  between the mark and the word instead of pooling before the rule. The strip keeps the mark and the names,
+  time, so every shortcut registers once. **There is no rule between the links
+  and the preferences, and the pill's five things sit on one rhythm: 23px
+  between every pair of painted edges and 23px at each end** (owner,
+  2026-09-05; it ran 20.4, 22.3, 24.4, a rule, 24, 26 and 16). One number
+  produces all of it, because every item carries 8px of hit padding around
+  what it paints: the mark, the word, the two 30px buttons, and the ink slot,
+  which is a 32px spacer so its 16px swatch is inset the same 8. So the pill
+  is `gap: 7px` with `padding-inline: 15px`, and `.ptray .hd-ctls` is `gap:
+7px` too. Two things follow. **The mark is the pill's own child, not the
+  nav's** — the five have to share one spacing context, and nested in the nav
+  the row's slack fell between the mark and the word as well as around them.
+  And `.pt-nav` holds the word alone at `flex: 1; justify-content: center`, so
+  the 1.05px the row cannot divide lands equally on both sides of the only
+  item whose width the font decides. The strip keeps the mark and the names,
   and the Kannada name comes back there because it fits. The server still
   renders links and controls in the strip and the phone stylesheet hides them
   there, so nothing relocates on screen; the bar fills after hydration. It
@@ -390,7 +401,12 @@ transform` for a compositing layer of its own. **The pill never changes
   fan, and 248px is the narrowest that keeps their 24px hit targets from
   overlapping. It was 300 while the résumé link was in the bar. Change what
   the bar carries and re-derive it — the arithmetic is in the comment on
-  `.ptray` in chrome.css.** The six swatches live on a layer spanning the pill
+  `.ptray` in chrome.css.** The fan's left inset is `13px` in the `right:
+calc(…)` on `.ptray .inks[data-open="true"] .ink-sw`, and it is a floor
+  rather than a taste: the layer is 155px wide (the pill less the 91px to the
+  slot), so the six centres land `(155 - 6 - 13 - 16) / 5` = exactly 24.0px
+  apart. Inset them further and the targets overlap; the number moves with the
+  pill's padding and the controls' gap, so re-derive it with them. The six swatches live on a layer spanning the pill
   from its left edge to the ink slot, in the pill's own material. Closed, the layer is
   clipped to the slot and shows the active ink. Pressed, the clip opens
   leftward over the links and the six fan from the slot to even positions,
