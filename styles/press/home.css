@@ -1221,7 +1221,7 @@
 .tl-cap {
   max-width: 60em;
 }
-/* The same career, stood on end, for anything under 800px. The horizontal axis
+/* The same career, stood on end, for anything under 900px. The horizontal axis
    is 720px of drawing and scrolled on a phone, which opened on 2022 and hid the
    first nine years; the vertical list shows every era and its note at once
    with nothing to hover. */
@@ -1292,7 +1292,7 @@
   color: var(--ink-3);
   max-width: 44em;
 }
-@media (max-width: 800px) {
+@media (max-width: 900px) {
   .tl-scroll,
   .tl-cap {
     display: none;
@@ -1521,16 +1521,29 @@
   .plist {
     border-top: 1px solid var(--rule);
   }
+  /* The hover bar stays at the row's edge and the phone reset takes the
+     12px of column padding away, so the number sat against its 2px rule.
+     The bar steps out past the content instead, the way a ruled highlight
+     runs into the margin. */
+  .pbar {
+    left: -8px;
+    right: -8px;
+  }
   .prow {
     grid-template-columns: 34px minmax(0, 1fr) auto;
     grid-template-areas:
       "no nm yr"
       "no sp sp";
-    row-gap: 2px;
+    row-gap: 6px;
     padding: 10px 0;
     border-bottom: 1px solid var(--rule-3);
   }
-  .prow > * {
+  /* `.prow > :nth-child(n + 2)` draws the column rules and out-ranks a
+     bare `.prow > *` (0,2,0 against 0,1,0), so the rules survived the reset
+     and, with the padding gone, sat flush against the name and the spec.
+     Same selector, later in the cascade, so it wins. */
+  .prow > *,
+  .prow > :nth-child(n + 2) {
     padding: 0;
     border-left: 0;
   }
@@ -1544,6 +1557,13 @@
   }
   .prow .nm a {
     overflow-wrap: anywhere;
+    /* The 24px hit area is padding pulled back with a negative margin, and
+       the underline is drawn on the padding box, so 4px of bottom padding
+       put it 4px under the name and 1px over the spec. Two below, and the
+       row gap above, and it reads as the name's rule again. Still 25px to
+       the finger on a 19.5px line. */
+    padding-block: 4px 2px;
+    margin-block: -4px -2px;
   }
   .prow .sp {
     grid-area: sp;

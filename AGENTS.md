@@ -80,6 +80,15 @@ Stale agent rules lie. The pairs that actually break:
   hand-typed copies and they were wrong: 55 repos (it is 38 original, 194
   including forks) and 15 npm packages (16). The comment in `resume.ts` carries
   the two API calls that verify them.
+- **The résumé's Leadership block is `leadership` in `lib/resume.ts`.** Four
+  plain lines: hiring, planning, unblocking, mentoring. The owner wrote the
+  substance himself on 2026-09-05 and said no to ticket counts and other
+  throughput numbers there. Team size, hires and promotions under him have no
+  source, so they are not on the page; do not add a people number without
+  one. The résumé has to **print on two pages**, which is why the VP role is
+  down to four bullets (the performance program and the two PDF rewrites share
+  one). Check the page count after any copy change: headless Chromium
+  `--print-to-pdf`, then `pdfinfo`.
 - **The one-line bio is `BIO` in `lib/resume.ts`**, printed by
   `app/layout.tsx`'s description, `app/manifest.ts`, `personSchema` in
   `lib/jsonld.tsx` and `app/llms.txt/route.ts`. As four hand-typed copies, three
@@ -338,9 +347,10 @@ none` with `.hd > *` set back to `auto`, so the dead area under the condensed
   stamps `data-fit` on `.hd` with tokens from `FIT`, one more at a time, until
   `scrollWidth <= clientWidth`: `kn` (the Kannada name) → `compact` (tighter
   gaps, 18px name, 22px mark, no year on the rule) → `tray` (the ink tray
-  collapses to the active swatch) → `name`. There was a `resume` token between
-  the last two, and it is gone with the link it dropped: the strip carries no
-  résumé link any more (owner, 2026-09-04).
+  collapses to the active swatch) → `resume` (the strip's résumé link goes;
+  the title block still has it) → `name`. The résumé link came back to the
+  strip on 2026-09-05 (owner: on a wide sheet, yes; in the phone bar, no). It
+  is a plain link with no key.
   Every rule is `.hd[data-fit~="<token>"]` in chrome.css. It re-runs from a
   `ResizeObserver` on the row and on `document.fonts.ready`. Breakpoints were
   tried and wrapped at 660px, because a breakpoint has to guess how wide the
@@ -363,9 +373,11 @@ none` with `.hd > *` set back to `auto`, so the dead area under the condensed
   mark, then ink, theme and sound render through a portal into `.ptray`, a
   fixed bar at the foot above the safe-area inset, because the sticky strip is
   out of thumb's reach on a tall phone and the reader moves between the pages
-  often. The résumé is not in the bar either: it lives in the title block and
-  nowhere else. Same JSX, one place at a time,
-  so every shortcut registers once. The strip keeps the mark and the names,
+  often. The résumé is not in the bar: on a phone it lives in the title block
+  only, and `links` drops it when `phone` is true. Same JSX, one place at a
+  time, so every shortcut registers once. The bar's left half is `.pt-nav`
+  at `flex: 1; justify-content: space-evenly`, so the pill's slack spreads
+  between the mark and the word instead of pooling before the rule. The strip keeps the mark and the names,
   and the Kannada name comes back there because it fits. The server still
   renders links and controls in the strip and the phone stylesheet hides them
   there, so nothing relocates on screen; the bar fills after hydration. It
@@ -584,11 +596,11 @@ real control.
 
 There is no `0` and no `w`/`a`. `r` is registered on the title block's résumé
 chip, because the key lives with the control it floats its Shift-hold hint
-over. **The résumé link lives in the title block and nowhere else — not the
-strip, not the phone bar, not the 404 (owner, 2026-09-04)**, which reverses the
-header-AND-title-block call of 2026-09-01. The sheet-reference balloon is the
-one way to it, and a reader at the foot is the reader looking for the next
-document. Do not re-add it to the header, to `.ptray` or to `app/not-found.tsx`.
+over. **The résumé link lives in the title block on every width, and in the
+strip on a wide sheet (owner, 2026-09-05)**, which reverses the footer-only
+call of 2026-09-04, which reversed the both-places call of 2026-09-01. The
+strip's copy is a plain link (`.hd-resume`) and drops out of the phone bar and
+under the `resume` fit token. Do not put it in `.ptray` or `app/not-found.tsx`.
 
 The registry refuses duplicate keys within a scope and warns in development.
 `silent: true` on a shortcut means it plays its own cue instead of the
@@ -617,8 +629,9 @@ worker `meetguns`, points `assets.directory` at `./out`, and attaches
 `meetguns.com` + `www.meetguns.com` as **Custom Domains** (`routes` with
 `custom_domain: true`) — wrangler writes the DNS records and mints the cert on
 deploy, so the zone's DNS table is meant to be empty of A/AAAA/CNAME for those
-two hosts. `workers_dev` is `false`: one origin for crawlers, no duplicate under
-`*.workers.dev`. `pnpm cf:deploy` builds, ships, and pings IndexNow.
+two hosts. `workers_dev` and `preview_urls` are both `true`, on purpose: see
+"CI and deploy" below for why the duplicate `*.workers.dev` host is the price
+of the PR previews. `pnpm cf:deploy` builds, ships, and pings IndexNow.
 
 Seven things live in the zone dashboard rather than in the repo, and were set
 on 2026-09-04. **None of them fail loudly.** A drift here costs speed, serves
@@ -692,24 +705,33 @@ from a laptop. `pnpm cf:deploy` still works and is still the way to ship
 without a commit; it is the only path that also pings IndexNow, which Workers
 Builds does not run.
 
-**`wrangler.jsonc` declares neither `workers_dev` nor `preview_urls`, exactly
-as microcharts does, and that is what makes preview URLs work.** Both hosts are
-switched on the Worker instead (Settings → Domains → Worker URL): production
-`meetguns.vsg-inbox.workers.dev` and preview `*-meetguns.vsg-inbox.workers.dev`.
-Every branch build then publishes `https://<version>-meetguns.vsg-inbox.workers.dev`
-and a stable `https://<branch>-meetguns.vsg-inbox.workers.dev`.
+**`wrangler.jsonc` declares `workers_dev: true` and `preview_urls: true`, and
+it has to.** The two Worker URL hosts (Domains tab → Worker URL: production
+`meetguns.vsg-inbox.workers.dev`, preview `*-meetguns.vsg-inbox.workers.dev`)
+are Worker state that **every `wrangler deploy` rewrites** from the config. In
+`subdomainDeploy` wrangler resolves `workers_dev` as `config ?? (routes.length
+=== 0)`, so with the two custom domains in this file and no key it posts
+`enabled: false` on every push to main, and the API takes the preview host
+down with the production one (wrangler's own warning: _"Because your
+'workers.dev' route is disabled and your 'preview_urls' setting is not in your
+Wrangler file, Preview URLs will be disabled for this deployment by
+default"_). A branch build after that still goes green: `wrangler versions
+upload` never touches the hosts, so it uploads a version nobody can reach and
+the PR comment has no link. That was the "sometimes it comes, sometimes it
+does not" of 2026-09-05: the previews lived exactly until the next merge.
 
-⚠️ **Do not add `workers_dev: false` back.** It looks tidy — one host, no
-duplicate of the live site for crawlers — and it silently disables the preview
-URLs along with it, so branch builds still go green while posting a comment with
-no link. `preview_urls: true` does **not** rescue it: that key is not in
-wrangler 4.127's config schema, so it is read as nothing at all. This was tried
-twice and reverted twice; the duplicate host is the accepted cost of previews.
+This file used to say the opposite, that leaving both keys out "exactly as
+microcharts does" is what makes previews work, and that `preview_urls` is not
+in the 4.127 schema. Both were wrong: microcharts has no `routes`, so its
+default is `true`, and the key is in `node_modules/wrangler/config-schema.json`
+(default `false`). The duplicate production host is the price of previews;
+the canonical tags already point at meetguns.com. With both keys set, every
+branch build publishes `https://<version>-meetguns.vsg-inbox.workers.dev` and
+a stable `https://<branch>-meetguns.vsg-inbox.workers.dev`.
 
-The toggles are Worker state as well, and state and config can disagree.
-Deleting a key does not re-enable a host an earlier deploy switched off, and
-`wrangler versions upload` cannot change it either — the build log says as
-much: _"Changes to triggers must be applied with `wrangler triggers deploy`"_.
+A host an earlier deploy switched off stays off until something rewrites it:
+the next `wrangler deploy` from main with this config, `pnpm exec wrangler
+triggers deploy` from a laptop, or the two toggles on the Domains tab.
 
 `.github/workflows/ci.yml` is the other half: `pnpm check` and `pnpm build` on
 every pull request. Workers Builds runs neither oxfmt, oxlint nor `tsc`, and
@@ -1426,12 +1448,19 @@ hidden` — the same reserve-don't-animate move as the `.xp-note` slots, and for
   The word rectangles are measured against the stage box, so padding there
   moves the lens down with the sentence and no second number is needed in
   `Loupe.tsx`.
-- **Fig. 5 has two drawings and one is always `display: none`.** Above 800px
+- **Fig. 5 has two drawings and one is always `display: none`.** Above 900px
   the dimensioned axis (`.tl-scroll`, 720px wide, roles above and below);
-  at 800 and under, `.tl-v`, a vertical list of the same `ERAS` with every
+  at 900 and under, `.tl-v`, a vertical list of the same `ERAS` with every
   note visible and nothing to hover. The axis scrolled on a phone and opened on
   2022, hiding nine years; at 768 it clipped '15 and "engineer" at the left
-  edge. Both are rendered by `Career.tsx`; home.css swaps them.
+  edge. The switch was at 800 and that was measured wrong: the panel gives the
+  axis 720px only from 884px up (viewport minus 164px of sheet and panel
+  padding), so an 820px iPad still got a scrolling axis. 900 is also where
+  `.mechs` collapses. Both are rendered by `Career.tsx`; home.css swaps them.
+- **The open-source table's column rules are drawn by `.prow > :nth-child(n +
+2)`**, and the phone reset has to name that selector. A bare `.prow > *`
+  is out-ranked by it, so the rules survived the reset with their padding gone
+  and sat flush against every name and spec under 640px.
 - **The open-source table is two-line entries under 640px** (number, name and
   year on the first line, the spec under the name, `grid-template-areas` in
   home.css) and the column heads go with the columns. Four columns in 300px

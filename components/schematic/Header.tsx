@@ -38,9 +38,10 @@ function drawingTitle(pathname: string): string {
  *   kn       the Kannada name
  *   compact  tighter gaps, 18px name, 22px mark, no year on the rule
  *   tray     the ink tray collapses to the active swatch (a disclosure)
+ *   resume   the résumé link goes; the title block still carries it
  *   name     the Latin name; the mark alone is the home link
  */
-const FIT = ["kn", "compact", "tray", "name"] as const;
+const FIT = ["kn", "compact", "tray", "resume", "name"] as const;
 
 /** Tokens for the first count of FIT at which the row fits. Writes as it goes:
  *  at most five layouts, and only on a resize or a font swap. */
@@ -173,9 +174,9 @@ export function SchematicHeader() {
     group: "Navigate",
     run: () => router.push("/blog"),
   });
-  // There is no résumé link here any more (owner, 2026-09-04: the title block
-  // is the one place it lives). `r` moved with it, onto the chip in
-  // TitleBlock.tsx — the key stays with the control its hint floats over.
+  // No shortcut for the résumé here. `r` lives on the chip in TitleBlock.tsx,
+  // where the key stays with the control its hint floats over; the strip's
+  // résumé link (see `links`) is a plain link.
   // The iris opens from the control. A key has no pointer, so the circle
   // starts at the viewport centre rather than pretending a press landed.
   const themeRef = useShortcut<HTMLButtonElement>({
@@ -320,19 +321,36 @@ export function SchematicHeader() {
   }, []);
 
   /**
-   * The nav link, one JSX value, in the strip or in the phone bar. `b` is
-   * registered on it wherever it renders.
+   * The nav links, one JSX value, in the strip or in the phone bar. `b` is
+   * registered on the writing link wherever it renders. The résumé link is
+   * strip-only (owner, 2026-09-05: back in the header on a wide sheet, not in
+   * the phone bar), so it drops out when the links move to the tray. It
+   * carries no key: `r` stays on the title block's chip, and the registry
+   * would refuse a second one anyway.
    */
   const links = (
-    <Link
-      href="/blog"
-      ref={writingRef}
-      aria-current={on("/blog") ? "page" : undefined}
-      data-analytics="nav:header.writing"
-      onClick={() => fx?.nav()}
-    >
-      writing
-    </Link>
+    <>
+      <Link
+        href="/blog"
+        ref={writingRef}
+        aria-current={on("/blog") ? "page" : undefined}
+        data-analytics="nav:header.writing"
+        onClick={() => fx?.nav()}
+      >
+        writing
+      </Link>
+      {!phone && (
+        <Link
+          href="/resume"
+          className="hd-resume"
+          aria-current={on("/resume") ? "page" : undefined}
+          data-analytics="nav:header.resume"
+          onClick={() => fx?.nav()}
+        >
+          résumé
+        </Link>
+      )}
+    </>
   );
   /**
    * The three preferences: ink, theme, sound. One JSX value, rendered in one
