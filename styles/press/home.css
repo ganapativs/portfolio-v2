@@ -1521,12 +1521,20 @@
   .plist {
     border-top: 1px solid var(--rule);
   }
+  /* The hover bar stays at the row's edge and the phone reset takes the
+     12px of column padding away, so the number sat against its 2px rule.
+     The bar steps out past the content instead, the way a ruled highlight
+     runs into the margin. */
+  .pbar {
+    left: -8px;
+    right: -8px;
+  }
   .prow {
     grid-template-columns: 34px minmax(0, 1fr) auto;
     grid-template-areas:
       "no nm yr"
       "no sp sp";
-    row-gap: 2px;
+    row-gap: 6px;
     padding: 10px 0;
     border-bottom: 1px solid var(--rule-3);
   }
@@ -1549,6 +1557,13 @@
   }
   .prow .nm a {
     overflow-wrap: anywhere;
+    /* The 24px hit area is padding pulled back with a negative margin, and
+       the underline is drawn on the padding box, so 4px of bottom padding
+       put it 4px under the name and 1px over the spec. Two below, and the
+       row gap above, and it reads as the name's rule again. Still 25px to
+       the finger on a 19.5px line. */
+    padding-block: 4px 2px;
+    margin-block: -4px -2px;
   }
   .prow .sp {
     grid-area: sp;

@@ -347,9 +347,10 @@ none` with `.hd > *` set back to `auto`, so the dead area under the condensed
   stamps `data-fit` on `.hd` with tokens from `FIT`, one more at a time, until
   `scrollWidth <= clientWidth`: `kn` (the Kannada name) → `compact` (tighter
   gaps, 18px name, 22px mark, no year on the rule) → `tray` (the ink tray
-  collapses to the active swatch) → `name`. There was a `resume` token between
-  the last two, and it is gone with the link it dropped: the strip carries no
-  résumé link any more (owner, 2026-09-04).
+  collapses to the active swatch) → `resume` (the strip's résumé link goes;
+  the title block still has it) → `name`. The résumé link came back to the
+  strip on 2026-09-05 (owner: on a wide sheet, yes; in the phone bar, no). It
+  is a plain link with no key.
   Every rule is `.hd[data-fit~="<token>"]` in chrome.css. It re-runs from a
   `ResizeObserver` on the row and on `document.fonts.ready`. Breakpoints were
   tried and wrapped at 660px, because a breakpoint has to guess how wide the
@@ -372,9 +373,11 @@ none` with `.hd > *` set back to `auto`, so the dead area under the condensed
   mark, then ink, theme and sound render through a portal into `.ptray`, a
   fixed bar at the foot above the safe-area inset, because the sticky strip is
   out of thumb's reach on a tall phone and the reader moves between the pages
-  often. The résumé is not in the bar either: it lives in the title block and
-  nowhere else. Same JSX, one place at a time,
-  so every shortcut registers once. The strip keeps the mark and the names,
+  often. The résumé is not in the bar: on a phone it lives in the title block
+  only, and `links` drops it when `phone` is true. Same JSX, one place at a
+  time, so every shortcut registers once. The bar's left half is `.pt-nav`
+  at `flex: 1; justify-content: space-evenly`, so the pill's slack spreads
+  between the mark and the word instead of pooling before the rule. The strip keeps the mark and the names,
   and the Kannada name comes back there because it fits. The server still
   renders links and controls in the strip and the phone stylesheet hides them
   there, so nothing relocates on screen; the bar fills after hydration. It
@@ -593,11 +596,11 @@ real control.
 
 There is no `0` and no `w`/`a`. `r` is registered on the title block's résumé
 chip, because the key lives with the control it floats its Shift-hold hint
-over. **The résumé link lives in the title block and nowhere else — not the
-strip, not the phone bar, not the 404 (owner, 2026-09-04)**, which reverses the
-header-AND-title-block call of 2026-09-01. The sheet-reference balloon is the
-one way to it, and a reader at the foot is the reader looking for the next
-document. Do not re-add it to the header, to `.ptray` or to `app/not-found.tsx`.
+over. **The résumé link lives in the title block on every width, and in the
+strip on a wide sheet (owner, 2026-09-05)**, which reverses the footer-only
+call of 2026-09-04, which reversed the both-places call of 2026-09-01. The
+strip's copy is a plain link (`.hd-resume`) and drops out of the phone bar and
+under the `resume` fit token. Do not put it in `.ptray` or `app/not-found.tsx`.
 
 The registry refuses duplicate keys within a scope and warns in development.
 `silent: true` on a shortcut means it plays its own cue instead of the

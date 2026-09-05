@@ -420,6 +420,7 @@
 .hd[data-fit~="kn"] .hd-kn,
 .hd[data-fit~="name"] .hd-name,
 .hd[data-fit~="compact"] .hd-title-full,
+.hd[data-fit~="resume"] .hd-resume,
 .hd[data-tray="open"] .hd-name {
   display: none;
 }
@@ -1323,8 +1324,10 @@ h2.sec-label {
      across it at (248 - 2 - 88 - 6 - 15 - 16) / 5 = 24.2px between centres.
      That is the narrowest pill that keeps the 24px hit targets from
      overlapping (WCAG 2.5.8) — at 246 they were 23.8px apart. The 13px of
-     slack it buys goes between the links and the controls, not off the right
-     edge. */
+     slack it buys goes into .pt-nav, which spreads the mark and the writing
+     link evenly across the sheet left of the rule (measured: 21, 22 and 24px
+     between edge, mark, word and rule). It used to sit as a hole between
+     the word and the rule, 33px against 20 on the word's other side. */
   width: 248px;
   height: 46px;
   /* Its own compositing layer. Without one the route swap's repaint took
@@ -1332,7 +1335,7 @@ h2.sec-label {
   will-change: transform;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
+  gap: 10px;
   padding: 5px 8px 5px 6px;
   background: var(--raise);
   border: 1px solid var(--rule);
@@ -1358,7 +1361,8 @@ h2.sec-label {
 .pt-nav {
   display: flex;
   align-items: center;
-  gap: 4px;
+  flex: 1;
+  justify-content: space-evenly;
 }
 .pt-nav > a {
   font-family: var(--f-mono);
