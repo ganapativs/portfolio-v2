@@ -84,6 +84,27 @@ export const PUBLIC_WORK = {
 export const STARS_ROUNDED = `${(Math.floor(PUBLIC_WORK.stars / 100) * 100).toLocaleString("en-US")}+`;
 
 /**
+ * What the job is, as a VP. The résumé prints these above the roles, because
+ * a role list written as shipped work reads as an engineer's résumé, and the
+ * roles below are still written that way on purpose.
+ *
+ * The source is the owner, in his own words on 2026-09-05: hiring and
+ * interviews, job roles and team structure, one-on-ones and mentoring,
+ * planning what is right for the business and getting it built at scale or
+ * personally, defining and discussing and unblocking, and asking people to
+ * try new things and hold a higher bar. He declined throughput numbers
+ * (tickets reviewed, escalations) for this block: generic words, on purpose.
+ * Team size, hires and promotions under him are still unsourced, so they are
+ * still not claimed.
+ */
+export const leadership: string[] = [
+  "Hire for the engineering teams. Write the job roles, run the interviews and decide how the teams are structured.",
+  "Plan what gets built next, pick what is right for the business, and see it through. Usually the teams ship it at scale. Sometimes it is quicker to build it myself.",
+  "Define things, discuss them with other teams and unblock people so work keeps moving. Most days go to this.",
+  "Run one-on-ones and mentoring. Push people to try new tools and to care more about design, performance and how the finished thing feels. The team's Cursor and Claude Code rule packs came out of that.",
+];
+
+/**
  * The one-line biography.
  *
  * The site's meta description, the web manifest, the Person schema and
@@ -127,9 +148,7 @@ export const roles: Role[] = [
       "Architect of the company's customer-facing AI assistant and a knowledge base of specs, docs, search and more: intent-based routing across multiple model providers, a tool and skills layer, document export, versioned prompts behind an evaluation harness, and audit-grade logging. Shipped and hardened since, while running the broader engineering queue.",
       "Architected the MCP server surface and shipped its first version: read-only connectors behind OAuth, so AI coding clients reach the API without a pasted key; now co-owned with the team.",
       "Authored @microcharts/react outside the day job. 106 word-sized React chart types, zero dependencies, ~1-7 kB gzip each, accessible and server-component safe; design, code, docs and release, solo.",
-      "Cross-stack performance program: native browser image loading with DPR-aware URLs, compression on portal assets, render profiling, and a framework-level scroll / re-render / CSS pass.",
-      "PDF viewer rewrite in the internal component library: animation system, vertical-scroll mode, micro-interactions; consumed by every product surface that displays a document.",
-      "Hardened the server-side PDF report pipeline and authored Cursor / Claude Code rule packs formalising AI-assisted contribution for the team.",
+      "Cross-stack performance program (native browser image loading with DPR-aware URLs, compression on portal assets, render profiling, a framework-level scroll / re-render / CSS pass) and both PDF surfaces: the viewer rewrite in the internal component library, consumed by every product surface that displays a document, and the hardened server-side report pipeline.",
     ],
   },
   {
@@ -371,7 +390,10 @@ export const skills: SkillGroup[] = [
     ],
   },
   {
-    label: "Build & DX",
+    // Performance was its own group. It shares a row with the build tools
+    // now because the label line was one of the lines that put the printed
+    // CV on a third sheet.
+    label: "Build, DX & performance",
     items: [
       "Webpack",
       "esbuild",
@@ -381,11 +403,12 @@ export const skills: SkillGroup[] = [
       "AST codemods",
       "Cursor",
       "Claude Code",
+      "virtualised rendering",
+      "Brotli",
+      "DPR-aware images",
+      "react-scan",
+      "FPS profiling",
     ],
-  },
-  {
-    label: "Performance",
-    items: ["virtualised rendering", "Brotli", "DPR-aware images", "react-scan", "FPS profiling"],
   },
 ];
 
@@ -420,4 +443,4 @@ export const speaking: Talk[] = [
  * on every deploy teaches crawlers to ignore it; the same argument applies to
  * a line a reader can see. Edit this when the content changes.
  */
-export const lastUpdatedISO = "2026-08-31";
+export const lastUpdatedISO = "2026-09-05";

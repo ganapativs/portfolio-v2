@@ -3,6 +3,7 @@ import { PrintCV } from "@/components/schematic/PrintCV";
 import {
   CAREER_YEARS,
   identity,
+  leadership,
   PUBLIC_WORK,
   roles,
   flagships,
@@ -32,6 +33,7 @@ const EARLIER = roles.filter((r) => r.org !== "Tracxn");
 const PICKED = ["@microcharts/react", "bttn.css", "react-spectrum", "priority-browser-extension"];
 const OSS = PICKED.map((n) => flagships.find((f) => f.name === n)).filter((f) => f !== undefined);
 const DEGREE = education.find((e) => e.kind === "degree");
+const LINKEDIN = identity.social.find((s) => s.kind === "linkedin");
 
 export default async function ResumePage() {
   const stars = await getStars();
@@ -75,6 +77,13 @@ export default async function ResumePage() {
                 github.com/ganapativs
               </a>
             </div>
+            {LINKEDIN && (
+              <div>
+                <a href={LINKEDIN.href} data-analytics="cta:resume.linkedin">
+                  {LINKEDIN.label}
+                </a>
+              </div>
+            )}
           </div>
         </header>
 
@@ -82,6 +91,15 @@ export default async function ResumePage() {
 
         <div className="cv-cols">
           <div className="cv-main">
+            <h2 className="cv-h2">Leadership</h2>
+            <div className="cv-block cv-job">
+              <ul>
+                {leadership.map((b) => (
+                  <li key={b}>{b}</li>
+                ))}
+              </ul>
+            </div>
+
             <h2 className="cv-h2">Experience</h2>
             <div className="cv-block">
               <div className="cv-org">{identity.worksFor.name}</div>
@@ -183,6 +201,10 @@ export default async function ResumePage() {
                     {DEGREE.org} · {DEGREE.range}
                     {DEGREE.detail ? ` · ${DEGREE.detail}` : ""}
                   </div>
+                  {/* One line here rather than a heading of its own: the
+                      heading and its rule were the two lines that put the
+                      print on a third sheet. */}
+                  <div className="cv-item-note">Speaks English, Hindi and Kannada.</div>
                 </div>
               </>
             )}
@@ -193,9 +215,6 @@ export default async function ResumePage() {
                 {t.event}, {t.place} · {t.year} · {t.detail}
               </div>
             ))}
-
-            <h2 className="cv-h2">Spoken languages</h2>
-            <div className="cv-block cv-item-note">English, Hindi, Kannada.</div>
           </div>
         </div>
 

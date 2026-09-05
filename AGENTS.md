@@ -80,6 +80,15 @@ Stale agent rules lie. The pairs that actually break:
   hand-typed copies and they were wrong: 55 repos (it is 38 original, 194
   including forks) and 15 npm packages (16). The comment in `resume.ts` carries
   the two API calls that verify them.
+- **The résumé's Leadership block is `leadership` in `lib/resume.ts`.** Four
+  plain lines: hiring, planning, unblocking, mentoring. The owner wrote the
+  substance himself on 2026-09-05 and said no to ticket counts and other
+  throughput numbers there. Team size, hires and promotions under him have no
+  source, so they are not on the page; do not add a people number without
+  one. The résumé has to **print on two pages**, which is why the VP role is
+  down to four bullets (the performance program and the two PDF rewrites share
+  one). Check the page count after any copy change: headless Chromium
+  `--print-to-pdf`, then `pdfinfo`.
 - **The one-line bio is `BIO` in `lib/resume.ts`**, printed by
   `app/layout.tsx`'s description, `app/manifest.ts`, `personSchema` in
   `lib/jsonld.tsx` and `app/llms.txt/route.ts`. As four hand-typed copies, three
@@ -1426,12 +1435,19 @@ hidden` — the same reserve-don't-animate move as the `.xp-note` slots, and for
   The word rectangles are measured against the stage box, so padding there
   moves the lens down with the sentence and no second number is needed in
   `Loupe.tsx`.
-- **Fig. 5 has two drawings and one is always `display: none`.** Above 800px
+- **Fig. 5 has two drawings and one is always `display: none`.** Above 900px
   the dimensioned axis (`.tl-scroll`, 720px wide, roles above and below);
-  at 800 and under, `.tl-v`, a vertical list of the same `ERAS` with every
+  at 900 and under, `.tl-v`, a vertical list of the same `ERAS` with every
   note visible and nothing to hover. The axis scrolled on a phone and opened on
   2022, hiding nine years; at 768 it clipped '15 and "engineer" at the left
-  edge. Both are rendered by `Career.tsx`; home.css swaps them.
+  edge. The switch was at 800 and that was measured wrong: the panel gives the
+  axis 720px only from 884px up (viewport minus 164px of sheet and panel
+  padding), so an 820px iPad still got a scrolling axis. 900 is also where
+  `.mechs` collapses. Both are rendered by `Career.tsx`; home.css swaps them.
+- **The open-source table's column rules are drawn by `.prow > :nth-child(n +
+2)`**, and the phone reset has to name that selector. A bare `.prow > *`
+  is out-ranked by it, so the rules survived the reset with their padding gone
+  and sat flush against every name and spec under 640px.
 - **The open-source table is two-line entries under 640px** (number, name and
   year on the first line, the spec under the name, `grid-template-areas` in
   home.css) and the column heads go with the columns. Four columns in 300px

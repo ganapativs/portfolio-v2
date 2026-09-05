@@ -108,7 +108,7 @@ export function Career() {
         {cur.body}
       </Caption>
 
-      {/* The same eras, stood on end, for viewports under 800px (home.css swaps
+      {/* The same eras, stood on end, for viewports under 900px (home.css swaps
           the two). The axis above is 720px of drawing and had to scroll on a
           phone; this shows every era with its note and nothing to hover. Both
           are in the DOM; the hidden one is display: none and so out of the
