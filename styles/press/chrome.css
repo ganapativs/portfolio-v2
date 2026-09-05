@@ -1323,20 +1323,26 @@ h2.sec-label {
      width less the two borders and the 88px the controls hold, and the six sit
      across it at (248 - 2 - 88 - 6 - 15 - 16) / 5 = 24.2px between centres.
      That is the narrowest pill that keeps the 24px hit targets from
-     overlapping (WCAG 2.5.8) — at 246 they were 23.8px apart. The 13px of
-     slack it buys goes into .pt-nav, which spreads the mark and the writing
-     link evenly across the sheet left of the rule (measured: 21, 22 and 24px
-     between edge, mark, word and rule). It used to sit as a hole between
-     the word and the rule, 33px against 20 on the word's other side. */
+     overlapping (WCAG 2.5.8) — at 246 they were 23.8px apart. */
   width: 248px;
   height: 46px;
   /* Its own compositing layer. Without one the route swap's repaint took
      the pill for a frame in Chromium, which read as the bar remounting. */
   will-change: transform;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 5px 8px 5px 6px;
+  /* One spacing context for all five things in the pill, and every one of them
+     carries 8px of hit padding around what it paints — the mark, the word, the
+     two 30px control buttons, and the ink slot, which is 32px so its 16px
+     swatch is inset the same 8. So a 7px flex gap reads as 23px of air between
+     painted edges, and 15px of pill padding reads as the same 23 at each end.
+
+     Six gaps, one number: mark, word, ink, theme, sound and the two ends all
+     sit at 23px, bar the two either side of the word, which take the row's
+     1.05px of slack (the word is the only item whose width the font decides,
+     and .pt-nav centres it so the slack falls equally on both sides). It used
+     to run 20.4, 22.3, 24.4, a rule, 24, 26 and 16. */
+  gap: 7px;
+  padding: 5px 15px;
   background: var(--raise);
   border: 1px solid var(--rule);
   border-radius: var(--r-chip);
@@ -1358,13 +1364,19 @@ h2.sec-label {
     transform: translateY(8px);
   }
 }
+/* Holds the writing link alone; the mark is the pill's own child. flex: 1 so
+   the row's slack lands here and centring puts it equally on both sides of the
+   word, which is what keeps the mark-to-word and word-to-ink gaps matched at
+   whatever width the mono face renders "writing". */
 .pt-nav {
   display: flex;
   align-items: center;
   flex: 1;
-  justify-content: space-evenly;
+  justify-content: center;
 }
-.pt-nav > a {
+/* Both links, the mark's and the word's. Keyed on the element rather than on
+   `.pt-nav >` since the mark moved out of the nav. */
+.ptray a {
   font-family: var(--f-mono);
   font-size: 12px;
   color: var(--ink-3);
@@ -1376,11 +1388,11 @@ h2.sec-label {
   position: relative;
   transition: color var(--dur-fast) var(--ease-out);
 }
-.pt-nav > a[aria-current="page"] {
+.ptray a[aria-current="page"] {
   color: var(--ink);
 }
 /* The current page's rule, the same mark the strip's links use. */
-.pt-nav > a::after {
+.ptray a::after {
   content: "";
   position: absolute;
   left: 8px;
@@ -1392,7 +1404,7 @@ h2.sec-label {
   transform-origin: left;
   transition: transform var(--dur-base) var(--ease-out);
 }
-.pt-nav > a[aria-current="page"]::after {
+.ptray a[aria-current="page"]::after {
   transform: scaleX(1);
 }
 /* Home's current-page mark is the bar under the G, not a second rule under
@@ -1419,15 +1431,17 @@ h2.sec-label {
 .pt-home[aria-current="page"] .pt-mark .mark-bar {
   fill: var(--accent);
 }
+/* No padding and no rule of its own: it is the preferences' accessible group
+   and nothing else. The rule that used to divide it from the links was a
+   seventh vertical thing in a 248px pill, and it took 13px the spacing wanted
+   (owner, 2026-09-05). */
 .pt-ctls {
   display: flex;
   align-items: center;
-  padding-left: 12px;
-  border-left: 1px solid var(--rule-3);
 }
 .ptray .hd-ctls {
   display: flex;
-  gap: 10px;
+  gap: 7px;
 }
 /* The ink picker is a sheet inside the pill.
 
@@ -1439,12 +1453,15 @@ h2.sec-label {
    the far ink arriving last. A pick folds it all back into the slot. The
    theme and sound controls to the right never move and are never covered.
 
-   Geometry: the slot's right edge is 88px from the pill's right edge (sound
-   30, gap 10, theme 30, gap 10, padding 8); the row keeps the slot itself as
-   a pseudo-element, because the layer is out of the flow. */
+   Geometry: the slot's right edge is 89px from the pill's right edge (sound
+   30, gap 7, theme 30, gap 7, padding 15); the row keeps the slot itself as
+   a pseudo-element, because the layer is out of the flow. It is 32px rather
+   than the swatch's 16 so the swatch carries the same 8px of air the icons in
+   the buttons beside it do, which is what makes one flex gap produce equal
+   painted gaps across the whole pill. */
 .ptray .hd-ctls::before {
   content: "";
-  width: 16px;
+  width: 32px;
   height: 16px;
   flex: none;
 }
@@ -1452,8 +1469,10 @@ h2.sec-label {
   position: absolute;
   top: 0;
   bottom: 0;
+  /* 91: the swatch sits 6px in from this edge (below), and it has to land
+     centred in the 32px slot, whose right edge is 89px from the pill's. */
   left: 0;
-  right: 88px;
+  right: 91px;
   margin: 0;
   background: var(--raise);
   clip-path: inset(0 0 0 calc(100% - 16px - 6px));
@@ -1488,9 +1507,12 @@ h2.sec-label {
 .ptray .inks[data-open="true"] .ink-sw {
   opacity: 1;
   visibility: visible;
-  /* From the slot (6px in from the sheet's right edge) to 15px in from the
-     left edge, which is the same 15px the last ink has to the theme button. */
-  right: calc(6px + (6 - var(--n)) * ((100% - 6px - 15px - 16px) / 5));
+  /* From the slot (6px in from the sheet's right edge) to 13px in from the
+     left edge. 13 is a floor, not a taste: the sheet is 155px wide, so the six
+     centres land (155 - 6 - 13 - 16) / 5 = 24.0px apart, which is exactly the
+     24px WCAG 2.5.8 wants between the hit targets. Any more inset here and
+     they overlap. */
+  right: calc(6px + (6 - var(--n)) * ((100% - 6px - 13px - 16px) / 5));
   transition:
     right var(--dur-base) var(--ease-out) calc((6 - var(--n)) * 25ms),
     opacity var(--dur-fast) var(--ease-out) calc((6 - var(--n)) * 25ms),
