@@ -629,8 +629,9 @@ worker `meetguns`, points `assets.directory` at `./out`, and attaches
 `meetguns.com` + `www.meetguns.com` as **Custom Domains** (`routes` with
 `custom_domain: true`) — wrangler writes the DNS records and mints the cert on
 deploy, so the zone's DNS table is meant to be empty of A/AAAA/CNAME for those
-two hosts. `workers_dev` is `false`: one origin for crawlers, no duplicate under
-`*.workers.dev`. `pnpm cf:deploy` builds, ships, and pings IndexNow.
+two hosts. `workers_dev` and `preview_urls` are both `true`, on purpose: see
+"CI and deploy" below for why the duplicate `*.workers.dev` host is the price
+of the PR previews. `pnpm cf:deploy` builds, ships, and pings IndexNow.
 
 Seven things live in the zone dashboard rather than in the repo, and were set
 on 2026-09-04. **None of them fail loudly.** A drift here costs speed, serves
@@ -704,24 +705,33 @@ from a laptop. `pnpm cf:deploy` still works and is still the way to ship
 without a commit; it is the only path that also pings IndexNow, which Workers
 Builds does not run.
 
-**`wrangler.jsonc` declares neither `workers_dev` nor `preview_urls`, exactly
-as microcharts does, and that is what makes preview URLs work.** Both hosts are
-switched on the Worker instead (Settings → Domains → Worker URL): production
-`meetguns.vsg-inbox.workers.dev` and preview `*-meetguns.vsg-inbox.workers.dev`.
-Every branch build then publishes `https://<version>-meetguns.vsg-inbox.workers.dev`
-and a stable `https://<branch>-meetguns.vsg-inbox.workers.dev`.
+**`wrangler.jsonc` declares `workers_dev: true` and `preview_urls: true`, and
+it has to.** The two Worker URL hosts (Domains tab → Worker URL: production
+`meetguns.vsg-inbox.workers.dev`, preview `*-meetguns.vsg-inbox.workers.dev`)
+are Worker state that **every `wrangler deploy` rewrites** from the config. In
+`subdomainDeploy` wrangler resolves `workers_dev` as `config ?? (routes.length
+=== 0)`, so with the two custom domains in this file and no key it posts
+`enabled: false` on every push to main, and the API takes the preview host
+down with the production one (wrangler's own warning: _"Because your
+'workers.dev' route is disabled and your 'preview_urls' setting is not in your
+Wrangler file, Preview URLs will be disabled for this deployment by
+default"_). A branch build after that still goes green: `wrangler versions
+upload` never touches the hosts, so it uploads a version nobody can reach and
+the PR comment has no link. That was the "sometimes it comes, sometimes it
+does not" of 2026-09-05: the previews lived exactly until the next merge.
 
-⚠️ **Do not add `workers_dev: false` back.** It looks tidy — one host, no
-duplicate of the live site for crawlers — and it silently disables the preview
-URLs along with it, so branch builds still go green while posting a comment with
-no link. `preview_urls: true` does **not** rescue it: that key is not in
-wrangler 4.127's config schema, so it is read as nothing at all. This was tried
-twice and reverted twice; the duplicate host is the accepted cost of previews.
+This file used to say the opposite, that leaving both keys out "exactly as
+microcharts does" is what makes previews work, and that `preview_urls` is not
+in the 4.127 schema. Both were wrong: microcharts has no `routes`, so its
+default is `true`, and the key is in `node_modules/wrangler/config-schema.json`
+(default `false`). The duplicate production host is the price of previews;
+the canonical tags already point at meetguns.com. With both keys set, every
+branch build publishes `https://<version>-meetguns.vsg-inbox.workers.dev` and
+a stable `https://<branch>-meetguns.vsg-inbox.workers.dev`.
 
-The toggles are Worker state as well, and state and config can disagree.
-Deleting a key does not re-enable a host an earlier deploy switched off, and
-`wrangler versions upload` cannot change it either — the build log says as
-much: _"Changes to triggers must be applied with `wrangler triggers deploy`"_.
+A host an earlier deploy switched off stays off until something rewrites it:
+the next `wrangler deploy` from main with this config, `pnpm exec wrangler
+triggers deploy` from a laptop, or the two toggles on the Domains tab.
 
 `.github/workflows/ci.yml` is the other half: `pnpm check` and `pnpm build` on
 every pull request. Workers Builds runs neither oxfmt, oxlint nor `tsc`, and

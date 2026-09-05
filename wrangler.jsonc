@@ -22,6 +22,16 @@
     { "pattern": "www.meetguns.com", "custom_domain": true },
   ],
 
+  // Both workers.dev hosts, said out loud. With routes in this file wrangler
+  // defaults `workers_dev` to false and posts that on every `wrangler deploy`
+  // from main, and the API takes Preview URLs down with the production host.
+  // So a branch build after a main deploy uploaded a version nobody could
+  // reach, and the PR comment had no link. `preview_urls` is in the 4.127
+  // schema (default false). The duplicate production host is the price of the
+  // previews; the canonical tags already point at meetguns.com.
+  "workers_dev": true,
+  "preview_urls": true,
+
   "assets": {
     "directory": "./out",
     // The export writes per-route files as blog/<slug>.html (trailingSlash is
