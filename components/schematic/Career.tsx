@@ -10,7 +10,7 @@ const YSPAN = 14;
 const pct = (y: number) => 1.5 + ((y - Y0) / YSPAN) * 97;
 
 /**
- * Fig. 5 — the career, dimensioned.
+ * Fig. 6 — the career, dimensioned.
  *
  * A timeline drawn the way a part is dimensioned rather than the way a résumé
  * is listed: an axis with year ticks, station points where the role changed,

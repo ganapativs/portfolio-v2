@@ -18,7 +18,7 @@ const stars = (name: string) => flagships.find((f) => f.name === name)?.stars ??
 // cannot disagree about how many stars bttn.css has.
 const BTTN_STARS = stars("bttn.css");
 
-/* ---- fig. 5 · the career, dimensioned ----------------------------------- */
+/* ---- fig. 6 · the career, dimensioned ----------------------------------- */
 
 export type Era = {
   /** Fractional years, because the axis is a measurement and 2023.0 is a date. */
@@ -179,7 +179,7 @@ export const PARTS: readonly Part[] = [
   },
 ] as const;
 
-/* ---- fig. 6 · the pipeline ----------------------------------------------- */
+/* ---- fig. 7 · the pipeline ----------------------------------------------- */
 
 export const STAGES = ["sketch", "vectors", "tokens", "markup", "shipped"] as const;
 
@@ -242,6 +242,17 @@ export const MICROCHARTS = {
 } as const;
 
 /**
+ * The whole-width plate, and the one figure on the sheet that is a drawing of a
+ * drawing: the site's own construction, at plate size, from the site's own data.
+ * Numbers here are the ones its README states and lib/scale-of-time.ts plots.
+ */
+export const SCALE = {
+  href: "https://scale-of-time.vercel.app",
+  meta: "2026 · own time · 1,040 sourced milestones",
+  body: "A single page of the whole of time, drawn as dots. 13,800 of them cover 13.8 billion years, one to the million; four finer scales follow, down to about a month. It carries 1,040 sourced milestones, and 1,037 of them have a picture.",
+} as const;
+
+/**
  * Two private repos behind one public URL, kept running for five years. It gets
  * a card rather than a parts-list row because it is the only thing here that is
  * a product rather than a library.
@@ -253,7 +264,7 @@ export const SGB = {
 } as const;
 
 /**
- * react-spectrum gets the fourth figure rather than bttn.css. bttn.css is ten
+ * react-spectrum gets the fifth figure rather than bttn.css. bttn.css is ten
  * years old and already carries the parts list; this one is small, still
  * accurate, and — because the real package is on the page — can simply run.
  */

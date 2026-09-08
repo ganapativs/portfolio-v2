@@ -5,7 +5,7 @@ import { useFX } from "@/components/providers/FXProvider";
 import { useCoarsePointer } from "./useCoarsePointer";
 
 /**
- * Fig. 3 — sgb, in general arrangement.
+ * Fig. 4 — sgb, in general arrangement.
  *
  * A drawing of the real interface rather than a screenshot of it, and rather
  * than a chart of invented numbers. The site is a grid of every live Sovereign
@@ -153,7 +153,7 @@ export function SgbFigure({ fig, body }: { fig: string; body: string }) {
         </g>
       </svg>
 
-      {/* One note slot that never resizes, the same arrangement as fig. 1 and
+      {/* One note slot that never resizes, the same arrangement as figs. 1 and 3 and
           for the same reason. This plate used to carry its copy in a paragraph
           above the drawing and a Caption below it, and the Caption measured and
           animated its height on every part: hovering the grid grew the block,

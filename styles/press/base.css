@@ -277,7 +277,7 @@ kbd {
 /* No group animation either. React pairs the Nth routed child of the old page
    with the Nth of the new, and the browser's default group animation morphed
    each new section from where its old namesake sat on screen: after a scroll,
-   the writing index slid up out of fig. 3's plate and the h1 landed over the
+   the writing index slid up out of fig. 4's plate and the h1 landed over the
    list. The new sections take their own geometry from the first frame.
    Zero duration, not `animation: none`: WebKit hands the group its size and
    position through that animation, and with none the routed content was a

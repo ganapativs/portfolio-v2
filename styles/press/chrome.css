@@ -860,11 +860,11 @@
   margin: 0 0 10px;
   display: block;
 }
-/* Two of the plate numbers are rendered by their figure component, which sits
+/* Three of the plate numbers are rendered by their figure component, which sits
    below the heading in source order, but they read first. The panels are flex
    columns, so `order` puts them back at the top without splitting the
    component in two just to place a label. (They were replay buttons while
-   figs. 1 and 3 drew themselves in; the draw-in is gone and so is the
+   figs. 1 and 4 drew themselves in; the draw-in is gone and so is the
    control.) */
 .p-fig-lead {
   order: -1;

@@ -6,10 +6,11 @@ leader in Bengaluru.
 [meetguns.com](https://meetguns.com) · [Writing](https://meetguns.com/blog) · [microcharts](https://microcharts.dev)
 
 The design is **The Schematic**: one sheet of a living engineering drawing.
-Registration ticks, a measuring edge down the left, a halftone portrait, six
+Registration ticks, a measuring edge down the left, a halftone portrait, seven
 figures, and a title block for a footer. Every figure is the real thing rather
 than a picture of one, so the chart tray is the shipped `@microcharts/react`
-components and the react-spectrum panel is the actual package, running.
+components, the react-spectrum panel is the actual package running, and the
+spiral plots all 1,040 milestones from scale of time at their real dates.
 
 ## Stack
 
@@ -65,7 +66,7 @@ Don't bypass with `--no-verify`.
 app/                 Routes, OG/Twitter images, sitemap, robots, RSS, llms.txt, icons
   (press)/           The site. Every page renders inside components/schematic/Sheet
 components/
-  schematic/         The design: Sheet, Header, Ruler, the six figures, title block
+  schematic/         The design: Sheet, Header, Ruler, the seven figures, title block
   providers/         Sweep, Theme, FX, Ink
   shortcuts/         Keyboard registry, hints, help sheet
   mdx/               Post components

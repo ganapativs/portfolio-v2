@@ -17,12 +17,13 @@ ticks at the corners, a measuring edge down the left, a Bayer-dither light under
 the cursor, dust blue as the default ink, and a title block for a footer.
 Six inks, two grounds, and nothing else adjustable.
 
-The home page is six figures, an open-source list and a writing list (the
+The home page is seven figures, an open-source list and a writing list (the
 components keep the drawing's names, `PartsList` and `.rev`; the labels a reader
 sees say "Open source" and "Writing"). Every figure is
 the real thing rather than a picture of it — fig. 2 is the shipped
-`@microcharts/react` components, fig. 4 is the actual `react-spectrum` package
-running.
+`@microcharts/react` components, fig. 5 is the actual `react-spectrum` package
+running, and fig. 3 plots all 1,040 of scale of time's own milestones at their
+real dates.
 
 The previous design ("the press": oyster paper, a dock, press runs, Anek +
 Piazzolla) was **deleted, not archived**. It is in git history. Do not
@@ -70,6 +71,19 @@ Stale agent rules lie. The pairs that actually break:
   build: a wrong box is worse than none.
 - `lib/posts.ts` ⇆ the loader map in `app/(press)/blog/[slug]/page.tsx` (the
   build fails loudly if they drift).
+- **`lib/scale-of-time.ts`'s `AGO` array ⇆ `data/events.json` in the sibling
+  `scale-of-time` repo**, and the counts in `SCALE` in `app/(press)/content.ts`
+  ⇆ that repo's README. Fig. 3 plots the real milestones, so a milestone added
+  there is simply missing here until the array is regenerated (the one-line
+  command is in the file's header). Nothing fails: the drawing just prints last
+  month's history. **The seven named marks each carry two ids and they are not
+  the same string**: `id` is the short key this repo uses for `data-mk` and
+  `data-n`, and `eid` is the milestone's id in that repo's data, which is what
+  `?e=` on the live site resolves with `events.find((x) => x.id === e)`. The
+  links shipped with `id` in them at first and every one of them opened the site
+  on nothing at all — a valid page, no card, no error. Check an `eid` with
+  `curl -o /dev/null -w "%{http_code}" 'https://scale-of-time.vercel.app/extra?id=<eid>'`,
+  which answers 404 for an id that does not exist.
 - `lib/resume.ts` `skills` ⇆ the `MATERIALS` list in `app/(press)/content.ts`
   (throws at module load if a name is renamed).
 - **Every number about the public work comes from `PUBLIC_WORK` in
@@ -176,14 +190,14 @@ app/
                      Imports styles/press.css — the only global stylesheet the live site loads.
   (press)/           THE SITE. Route group, so it can own the sheet without owning a URL segment.
     layout.tsx       <Sheet> + <main> + <ViewTransition name="route">. Nothing else.
-    page.tsx         Home — six figures. content.ts beside it holds the copy and the data.
+    page.tsx         Home — seven figures. content.ts beside it holds the copy and the data.
     blog/, resume/   See route map.
   error.tsx          Renders <Sheet> itself: it lives outside the (press) group.
   not-found.tsx      Same.
 components/
   schematic/         The design. Sheet, Header, Ruler, DitherField, TitleBlock, PageFX, Mark,
                      Caption,
-                     Portrait, Exploded, Loupe, Specimens, SpectrumDemo, SgbFigure, Career,
+                     Portrait, Exploded, Loupe, Specimens, ScaleFigure, SpectrumDemo, SgbFigure, Career,
                      PartsList, Pipeline, CopyEmail, Socials, EssayShell, PrintCV, and two
                      hooks: useCoarsePointer, useReducedMotion
                      (which also exports `approach`, the frame-rate-independent lerp every
@@ -209,6 +223,8 @@ lib/
   posts.ts           Post metadata — outside the route tree so the pages and the feeds share it
   fonts.ts           The three faces
   mark.ts            The G, as raw path data — the one copy every renderer shares
+  scale-of-time.ts   Fig. 3's geometry and its 1,040 real "years ago" values. Server-only:
+                     it emits path data, and no client chunk ever sees the numbers
   icon-png.tsx       markPng(size, {maskable}) — every PNG icon the site serves
   stars.ts           The raw GitHub star fetch — shared by the build and the browser
   github.ts          Build-time star counts + the hand-checked fallback
@@ -428,7 +444,7 @@ calc(…)` on `.ptray .inks[data-open="true"] .ink-sw`, and it is a floor
   Résumé, Essay or Not found. It said "General arrangement", "Specification
   sheet" and "Revision index" for a while, which meant nothing to the reader
   the page is for. The same pass (2026-09-03) renamed the panels ("Open
-  source", "Writing"), the fig. 5 label ("timeline"), the ruler's `data-sec`
+  source", "Writing"), the fig. 6 label ("timeline"), the ruler's `data-sec`
   labels (about · projects · career · process · contact) and the title
   block's "Page" cell. Do not put drawing-office jargon back in front of a
   reader; it belongs in this file.
@@ -1058,7 +1074,7 @@ a route swap — with **three sanctioned one-shot exceptions**:
 
 (Everything else that once moved on load was deleted on the owner's call —
 line appearance on load read as motion nobody caused. That covers the figure
-draw-ins on figs. 1 and 3 with their `useDrawOnFirstView` hook, `.willdraw`
+draw-ins on figs. 1 and 4 with their `useDrawOnFirstView` hook, `.willdraw`
 rules, setting-out ghosts and plate-number replay buttons; the sheet frame's
 400 ms four-mask wipe; and the portrait's dimension-line draw. All of it
 renders finished from the first byte. The machinery is in git history; do not
@@ -1260,15 +1276,15 @@ colours is the whole event. A paper flip is not a band.
   its height.** `interpolate-size: allow-keywords` is set on `:root` in
   `tokens.css`; `.tl-cap` transitions `height`, and the inner `.cap-in` element
   carries a React `key` so it remounts and replays its fade. Without both halves
-  the swap reads as a flicker, the height snaps and the text cuts. **Only fig. 5
+  the swap reads as a flicker, the height snaps and the text cuts. **Only fig. 6
   still works this way**, because its entries are dates and ranges that cannot
-  be evened out. Figs. 1 and 3 take the other road entirely, below. `.xp-cap` is
+  be evened out. Figs. 1, 3 and 4 take the other road entirely, below. `.xp-cap` is
   gone with them.
 - **The figures carry no draw-in.** See the note under "The motion law": the
   self-inking pass (dash offsets, fill-opacity ramps, setting-out ghosts) was
   deliberately deleted, and its hard-won lessons live in git history with it.
 - **`CHART` in `app/(press)/content.ts` is a hand-plotted path, not data.**
-  `{ x: 10, y: 50 }` is a pixel position in fig. 6's own 272x64 SVG space, so
+  `{ x: 10, y: 50 }` is a pixel position in fig. 7's own 272x64 SVG space, so
   `52 - c.y` is a height above a baseline running 2 to 44 and is not a quantity
   of anything. `Pipeline.tsx` uses it correctly, as coordinates. `Loupe.tsx` and
   `Specimens.tsx` feed it to real chart components, and that is fine as a shape
@@ -1281,7 +1297,7 @@ colours is the whole event. A paper flip is not a band.
   inside the sentence was competing with it for the same drag.
   **Every chart drawn from `CHART` must be a static entry point** unless it is
   given a real series first. A plausible number that means nothing is the one
-  dishonest thing this page can do, and it is why fig. 3 carries no numbers at
+  dishonest thing this page can do, and it is why fig. 4 carries no numbers at
   all.
 - **A microcharts chart is coloured through its `color` prop, never by
   selecting its internals.** `.lp-sentence .spark polyline` set the inline
@@ -1345,7 +1361,7 @@ colours is the whole event. A paper flip is not a band.
   `.lift polygon`, never bare `polygon` — at `[data-on] polygon` specificity
   the accent stroke out-ranks `.hit`'s `stroke: none` and inks the invisible
   hexagon.
-- **Fig. 6 is a figure like the rest and carries `fig. 6 · process` plus an
+- **Fig. 7 is a figure like the rest and carries `fig. 7 · process` plus an
   `<h2>`.** It had the plate label alone, so the largest drawing on the sheet was
   the only one absent from the document outline. It sits outside `.panel`, so
   `.pipe-head h2` restates `.panel h2` rather than inheriting it.
@@ -1413,10 +1429,10 @@ hidden` — the same reserve-don't-animate move as the `.xp-note` slots, and for
 - **Text that changes under the pointer goes through
   `components/schematic/Caption.tsx`.** It measures both heights and animates
   between them, because `interpolate-size: allow-keywords` is Chrome 129 and
-  Safari 26 and this site's floor is Safari 16.4. Fig. 3 and fig. 5 use it; the
+  Safari 26 and this site's floor is Safari 16.4. Fig. 4 and fig. 6 use it; the
   pipeline's stage note and its computed readout take the `cap-in` fade alone,
   being single lines in a fixed box.
-- **Figs. 1 and 3 do not. They reserve instead of animating (`.xp-note`).** The
+- **Figs. 1, 3 and 4 do not. They reserve instead of animating (`.xp-note`).** The
   slot carries the plate's own copy at rest and a part's note under the pointer,
   and **every string it can hold is rendered into one grid cell, all but the
   live one `visibility: hidden`**. A grid row is as tall as its tallest item, so
@@ -1426,7 +1442,7 @@ hidden` — the same reserve-don't-animate move as the `.xp-note` slots, and for
   ghosts out of the accessibility tree and out of the selection while still
   occupying their space.
   This replaced a Caption sitting above a second paragraph of copy: two blocks
-  of prose, the top one growing and shrinking on every part. On fig. 3 that was
+  of prose, the top one growing and shrinking on every part. On fig. 4 that was
   worse than it looked, because both plates in `.mechs2` are grid items of one
   track, so the react-spectrum plate beside it rose and fell along with it.
   **Writing the strings to the same length was tried first and is not enough.**
@@ -1464,7 +1480,51 @@ hidden` — the same reserve-don't-animate move as the `.xp-note` slots, and for
   The word rectangles are measured against the stage box, so padding there
   moves the lens down with the sentence and no second number is needed in
   `Loupe.tsx`.
-- **Fig. 5 has two drawings and one is always `display: none`.** Above 900px
+- **Fig. 3 is a square drawing, capped at 480, and the only figure on the sheet
+  with no client JavaScript at all.** `ScaleFigure.tsx` is
+  a server component, the geometry and the 1,040 real "years ago" values live in
+  `lib/scale-of-time.ts`, and the whole interaction is
+  `.sotfig:has([data-mk="…"]:is(:hover, :focus-visible)) ~ .sot-note`: seven
+  rules in home.css, one per named mark, because CSS cannot correlate an
+  arbitrary pair of siblings any other way. The marks are ordinary links to
+  `?e=<id>` on the live site, which is what makes them focusable and audible
+  without a line of script — `PageFX` already ticks any `a`. Four things follow.
+  **Nothing is written on the drawing except the ruling.** The first version led
+  seven labels out to a right-hand margin, which is a beautiful callout column
+  and cost the figure a third of its width: the plate had to take the whole
+  sheet to hold it, and at half a row the groove was set at half size with the
+  labels stacked on each other. A ring is a detail mark and the note slot names
+  it, the same arrangement as fig. 4's three parts. **The 1,040 marks are one
+  `<path>`**, not 1,040 `<circle>`s: with `stroke-linecap: round` a zero-length
+  subpath (`M12.3 45.6z`) paints as a dot, at 12 bytes a mark and one styled
+  node instead of a thousand, and the stroke width is the dot's diameter.
+  **The ruling names carry a paper-coloured stroke under their own glyphs**
+  (`paint-order: stroke`), because the marks crowd the axis in the last three
+  turns and "1 YEAR" read through forty of them. **And every claim in the notes
+  is checkable against the plot** — a turn is a power of ten, so "a fifth of the
+  way in" and "half a turn from the Big Bang" are geometry, not adjectives.
+  Change the constants and re-check the notes. The seven rings are also spread
+  so no two targets touch: the closest pair on the groove is 28.9 units apart in
+  a 300-unit box, and `HIT` is 12, which is 38px on the 480 cap and 29px at the
+  narrowest the plate gets. Move a mark and re-check both.
+- **Five figures, two rows: `.mechs2` carries three plates, and the spiral spans
+  both of its rows.** Five cannot be paired, and every other answer is worse. A
+  fifth plate on a row of its own leaves a hole beside it; a full-width plate
+  has to be the last of the run or the figure above it loses its partner, and
+  both were built and rejected (2026-09-08, owner: the full-width spiral read as
+  gigantic). Here the odd figure is the tall one, fig. 4 and fig. 5 stack beside
+  it, and the row starts and finishes on the same two lines on both sides.
+  **The height matching is the grid's, not a measurement**: `grid-row: span 2`
+  on the first plate ties it to the two rows the others make, so whichever side
+  is taller sets the other, and each plate's figure is on `margin-block: auto`
+  and takes the difference rather than leaving it at the foot. The columns are
+  1.2fr / 1fr, and that is measured rather than chosen: the left plate's spare
+  height is smallest between 1.1 and 1.2 at an 900px viewport, and grows in both
+  directions (past 1.2 the right column narrows and its copy wraps faster than
+  the spiral grows). **The `span` has to be unset where the columns collapse**
+  at 640, or a plate still spanning two rows of a one-column grid takes the row
+  its neighbour wanted and the figure order comes apart.
+- **Fig. 6 has two drawings and one is always `display: none`.** Above 900px
   the dimensioned axis (`.tl-scroll`, 720px wide, roles above and below);
   at 900 and under, `.tl-v`, a vertical list of the same `ERAS` with every
   note visible and nothing to hover. The axis scrolled on a phone and opened on
@@ -1494,10 +1554,14 @@ hidden` — the same reserve-don't-animate move as the `.xp-note` slots, and for
   at 880, and by 780 fig. 1's leader labels run past the plate edge and fig. 2's
   specimen tray truncates its captions ("change po…", "quantile …"). The two
   plates in `.mechs` carry more than the two in `.mechs2` and need the width.
+  `.mechs2` holds three plates now and still collapses at 640: at a 900px
+  viewport the spiral is 372 wide and its ring targets are 29px, and one column
+  below that puts it at its 480 cap, so the targets never fall under the 24px
+  floor.
 - **`--cap-dir` sets which way a swapped caption enters.** The shared `cap-in`
   keyframe reads it as `calc(var(--cap-dir, 1) * 4px)`, so `1` enters from below
   and `-1` from above. Fig. 1 sets it to the direction the pointer moved along
-  the stack, so the note arrives the way the eye did. Fig. 3 does the same along
+  the stack, so the note arrives the way the eye did. Fig. 4 does the same along
   its three parts. Every other slot leaves it unset and gets the old rise.
 - **The portrait renders a real `<img>` on the server and hides it only once the
   halftone canvas has actually drawn.** Keep it that way — a bare canvas has no
@@ -1567,8 +1631,10 @@ whole chunk group onto `/resume` and every essay a second after load. It is
 imperceptible — so the route-size numbers below are real on the network too.
 
 Measured first-load JS, gzip, excluding the `noModule` polyfill nothing at the
-browserslist floor fetches: **`/` 220 kB · `/resume` 164 kB · `/blog` 163 kB ·
-a blog post 227 kB · 404 163 kB.** Measure it by summing the gzip of every
+browserslist floor fetches: **`/` 191 kB · `/resume` 168 kB · `/blog` 165 kB ·
+a blog post 228 kB · 404 165 kB.** (Measured 2026-09-08, on the build that
+added fig. 3. `/` is 30 kB lighter than this table used to say because
+Specimens became a server component; fig. 3 itself adds no JavaScript at all.) Measure it by summing the gzip of every
 `<script src>` in the prerendered HTML under `.next/server/app/`; Next no longer
 prints the table.
 

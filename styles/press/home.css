@@ -174,6 +174,7 @@
 .fig svg,
 .xp svg,
 .sgbfig,
+.sotfig,
 .specimens svg {
   user-select: none;
   -webkit-user-select: none;
@@ -205,15 +206,32 @@
 }
 /* `margin-block` is set on each figure's own rule below, after its
    `margin-top`, so the auto is not overwritten by it. */
+/* Three plates, two rows, and the spiral spans both of them.
+   
+   Five figures cannot be paired into rows of two, and the arrangements that
+   answer that are all worse than this one: a fifth plate on a row of its own
+   leaves a hole beside it, and a full-width plate has to be the last of the run
+   or the figure above it loses its partner. Here the odd figure is the tall one
+   and the two short ones stack beside it, so the row starts and finishes on the
+   same two lines on both sides and nothing is left over.
+   
+   The height matching is the grid's, not a measurement: `grid-row: span 2` on
+   the first plate ties it to the two rows the other two make, so whichever side
+   is taller sets the other. Each plate keeps its figure on `margin-block: auto`,
+   which hands whatever slack it is given to the margins either side of the
+   drawing rather than leaving it at the foot. */
 .mechs2 {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
   gap: 20px;
   padding: 0 0 44px;
 }
 .mechs2 > .panel {
   min-width: 0;
   padding: 18px 22px;
+}
+.mechs2 > .panel:first-child {
+  grid-row: span 2;
 }
 .mechs2 h2,
 .mechs2 h3 {
@@ -936,7 +954,128 @@
   letter-spacing: 0.04em;
 }
 
-/* ---- fig. 3 · sgb, in general arrangement -------------------------------- */
+/* ---- fig. 3 · scale of time, wound ---------------------------------------- */
+
+/* A square drawing, capped like `.sgbfig` and for the same reason: below 640
+   the row collapses, the plate roughly doubles in width, and more room is not a
+   reason to redraw a figure bigger. The cap is 480 rather than sgb's 400
+   because this plate spans both rows of its row and the drawing is what fills
+   it; at 1280 the column gives it 475 and the cap is barely binding.
+
+   It was a 530x300 drawing with its callouts led out to a right-hand margin,
+   and it took the whole sheet to hold them. That is what the labels cost: at
+   half a row the groove was set at half size and the labels stacked. Nothing is
+   written on the drawing now, the note slot names the mark under the pointer,
+   and the figure fits the row every other plate sits in. */
+.sotfig {
+  display: block;
+  width: 100%;
+  max-width: 480px;
+  aspect-ratio: 1 / 1;
+  /* Padding rather than margin: `margin-block: auto` overwrites `margin-top`,
+     and an auto margin resolves to zero when the plate is not being stretched
+     by a taller neighbour. The same floor as `.xp` and `.spectrum`. */
+  padding-top: 14px;
+  margin-block: auto;
+}
+/* The groove is a rule, and the marks on it are the ink. */
+.sot-groove {
+  fill: none;
+  stroke: var(--rule);
+  stroke-width: 0.5;
+}
+.sot-axis {
+  stroke: var(--rule-2);
+  stroke-width: 0.5;
+}
+.sot-tk {
+  fill: var(--rule-2);
+}
+.sot-lb {
+  font-family: var(--f-mono);
+  font-size: 6px;
+  fill: var(--ink-3);
+  letter-spacing: 0.1em;
+  /* The last three turns crowd the axis, so every ruling name is set with a
+     paper-coloured stroke behind its own glyphs. Without it "1 YEAR" reads
+     through forty milestones. */
+  paint-order: stroke;
+  stroke: var(--paper);
+  stroke-width: 3;
+}
+.sot-lb-now,
+.sot-now {
+  fill: var(--accent);
+}
+/* One path, 1,040 zero-length subpaths, round cap: the stroke width is the
+   dot's diameter. See lib/scale-of-time.ts. */
+.sot-dots {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  opacity: 0.8;
+}
+.sot-mk {
+  cursor: pointer;
+}
+/* A detail mark: the ring a drawing puts round the thing it is about to name. */
+.sot-mdot {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1;
+  transition:
+    r var(--dur-fast) var(--ease-out),
+    stroke-width var(--dur-fast) var(--ease-out);
+}
+/* The target, and it is 24px to the pointer: 12 units of a 300-unit box is 32px
+   on a 400px plate, over a ring that paints at 7. */
+.sot-hit {
+  fill: transparent;
+  pointer-events: fill;
+}
+.sot-mk:hover .sot-mdot,
+.sot-mk:focus-visible .sot-mdot {
+  r: 5;
+  stroke-width: 1.5;
+}
+.sot-mk:focus-visible {
+  outline: none;
+}
+.sot-mk:focus-visible .sot-hit {
+  outline: 1px solid var(--accent);
+  outline-offset: -8px;
+}
+
+/* The note slot, and the whole of this figure's state.
+   
+   Every string is rendered into one grid cell with all but the live one
+   `visibility: hidden` — the same reserve-don't-animate arrangement as
+   `.xp-note`, which this shares. What is different is that nothing here is
+   React state: `:has()` reads the hover or the keyboard focus off the drawing
+   and picks the note out of its sibling slot, so the plate is a server
+   component with no client JavaScript at all. Seven rules, one per mark,
+   because CSS cannot correlate an arbitrary pair of siblings any other way. */
+.sot-note > * {
+  visibility: hidden;
+}
+.sot-note > [data-n="rest"] {
+  visibility: visible;
+}
+.sotfig:has(.sot-mk:is(:hover, :focus-visible)) ~ .sot-note > [data-n="rest"] {
+  visibility: hidden;
+}
+.sotfig:has([data-mk="bang"]:is(:hover, :focus-visible)) ~ .sot-note > [data-n="bang"],
+.sotfig:has([data-mk="earth"]:is(:hover, :focus-visible)) ~ .sot-note > [data-n="earth"],
+.sotfig:has([data-mk="snowball"]:is(:hover, :focus-visible)) ~ .sot-note > [data-n="snowball"],
+.sotfig:has([data-mk="chicxulub"]:is(:hover, :focus-visible)) ~ .sot-note > [data-n="chicxulub"],
+.sotfig:has([data-mk="africa"]:is(:hover, :focus-visible)) ~ .sot-note > [data-n="africa"],
+.sotfig:has([data-mk="wheel"]:is(:hover, :focus-visible)) ~ .sot-note > [data-n="wheel"],
+.sotfig:has([data-mk="web"]:is(:hover, :focus-visible)) ~ .sot-note > [data-n="web"] {
+  visibility: visible;
+}
+
+/* ---- fig. 4 · sgb, in general arrangement -------------------------------- */
 
 .sgbfig {
   display: block;
@@ -1038,7 +1177,7 @@
    leaders, frame and rules render at their final weights from the first
    paint. */
 
-/* ---- fig. 4 · react-spectrum, running ------------------------------------ */
+/* ---- fig. 5 · react-spectrum, running ------------------------------------ */
 
 /* `margin-block: auto` centres the demo in whatever slack the plate has, the
    same as every other figure here. The `margin-top` that used to sit above it
@@ -1089,7 +1228,7 @@
   min-width: 0;
 }
 
-/* ---- fig. 5 · the career, dimensioned ------------------------------------ */
+/* ---- fig. 6 · the career, dimensioned ------------------------------------ */
 
 .tl-scroll {
   overflow-x: auto;
@@ -1498,8 +1637,14 @@
   }
 }
 @media (max-width: 640px) {
+  /* One column, three plates in figure order. The span has to go with the
+     columns: a plate still spanning two rows of a one-column grid takes the
+     row its neighbour wanted and the order comes apart. */
   .mechs2 {
     grid-template-columns: minmax(0, 1fr);
+  }
+  .mechs2 > .panel:first-child {
+    grid-row: auto;
   }
   .subject {
     padding: var(--page-top) 0 32px;
