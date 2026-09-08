@@ -2,6 +2,7 @@ import { published } from "@/lib/posts";
 import {
   BIO,
   CAREER_YEARS,
+  explorations,
   flagships,
   identity,
   PUBLIC_WORK,
@@ -39,6 +40,12 @@ export async function GET() {
     .join("\n");
 
   const talks = speaking.map((t) => `- ${t.event}, ${t.place}, ${t.year}: ${t.detail}`).join("\n");
+  // Straight from lib/resume, the same list the résumé's Explorations block
+  // renders: a private weekend repo is not open source and does not belong in
+  // that section above.
+  const explorationLines = explorations
+    .map((e) => `- [${e.name}](${e.href}): ${e.year}. ${e.blurb}`)
+    .join("\n");
 
   const body = `# meetguns: ${identity.name}
 
@@ -83,6 +90,12 @@ ${talks}
 - [react-spectrum](https://github.com/ganapativs/react-spectrum): colourful text placeholders laid out from a palette and a few shape rules, 1.9 kB gzipped
 - [sgb](https://sgb.vercel.app): a tracker for India's Sovereign Gold Bonds, live since 2021
 - [Full catalogue](https://github.com/ganapativs): ${PUBLIC_WORK.repos} original public repositories, ${PUBLIC_WORK.npm} npm packages
+
+## Explorations
+
+Built for the pleasure of it, outside both the day job and the open-source catalogue.
+
+${explorationLines}
 
 ## Contact
 
