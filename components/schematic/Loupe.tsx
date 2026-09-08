@@ -78,24 +78,24 @@ const TAN_Y = Math.round(Math.sqrt(R * R - TAN_X * TAN_X));
 
 type Rect = { x: number; y: number; l: number; r: number; t: number; b: number };
 
-/* The shipped-work curve fig. 6 draws, at word size.
+/* The shipped-work curve fig. 7 draws, at word size.
  *
  * Read what this is before adding anything that states a value from it. CHART
- * is a hand-plotted path in fig. 6's own 272x64 SVG space, so `c.y` is a pixel
+ * is a hand-plotted path in fig. 7's own 272x64 SVG space, so `c.y` is a pixel
  * position and `52 - c.y` is a height above the baseline, running 2 to 44. The
  * shape is real, it is fourteen years of shipped work in order with a story on
  * every point, but the numbers are coordinates and they are not a quantity of
  * anything.
  *
  * Both charts below therefore run with `readout={false}`, which keeps the
- * crosshair and drops the chip that was printing "44" at a reader. Fig. 3
+ * crosshair and drops the chip that was printing "44" at a reader. Fig. 4
  * carries no numbers at all for the same reason: a plausible-looking figure
  * that means nothing is the one dishonest thing this page could do. If this is
  * ever given a real series, the readouts can come back with it. */
 const SPARK = CHART.map((c) => 52 - c.y);
 /* Read what that is before making either chart below state a value from it.
  *
- * CHART is a hand-plotted path in fig. 6's own 272x64 SVG space, so `c.y` is a
+ * CHART is a hand-plotted path in fig. 7's own 272x64 SVG space, so `c.y` is a
  * pixel position and `52 - c.y` is a height above a baseline, running 2 to 44.
  * The shape is real, fourteen years of shipped work in order, but the numbers
  * are coordinates and are not a quantity of anything.
@@ -104,7 +104,7 @@ const SPARK = CHART.map((c) => 52 - c.y);
  * ships a picker, and the picker printed "44" in a hover chip and announced
  * "Point 1 of 14: 2" to a screen reader. It was buying nothing either way: the
  * loupe is this figure's interaction, and a second focusable control inside the
- * sentence competes with it. Fig. 3 carries no numbers at all for the same
+ * sentence competes with it. Fig. 4 carries no numbers at all for the same
  * reason. If this is ever given a real series, the picker can come with it. */
 
 export function Loupe() {

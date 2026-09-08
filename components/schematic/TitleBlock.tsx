@@ -44,7 +44,7 @@ function tenure(now: Date): string {
  *
  * Four short cells and one contact row, and that is deliberate. Everything that
  * was here and is said better elsewhere has gone: the materials list belongs to
- * fig. 5, and a "scale 1:1" cell is a joke that only lands if you already know
+ * fig. 6, and a "scale 1:1" cell is a joke that only lands if you already know
  * it. A title block earns its place by being short, and this one has to stay
  * two rows tall at every width.
  *

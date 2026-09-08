@@ -13,7 +13,7 @@ import { useEffect, useRef, useState } from "react";
 import { useFX } from "@/components/providers/FXProvider";
 
 /**
- * Fig. 4 — react-spectrum, running.
+ * Fig. 5 — react-spectrum, running.
  *
  * The actual npm package, not a redraw of it: react-spectrum takes a palette and
  * a few shape rules and lays out a paragraph of coloured word blocks. Its whole

@@ -11,9 +11,9 @@ import { useLayoutEffect, useRef } from "react";
  * twitching, not as a caption changing.
  *
  * Where the copy is yours to write, the better answer is to write the strings
- * to the same length and let the slot be a fixed box: figs. 1 and 3 do that,
+ * to the same length and let the slot be a fixed box: figs. 1, 3 and 4 do that,
  * see `.xp-note`. This is for the slot whose entries are dates and ranges that
- * cannot be evened out, which is fig. 5.
+ * cannot be evened out, which is fig. 6.
  *
  * So the slot animates its own height, and the text inside crossfades.
  *

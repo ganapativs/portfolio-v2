@@ -62,7 +62,7 @@ function shorthand(top: string, right: string, bottom: string, left: string): st
 }
 
 /**
- * Fig. 6 — the pipeline.
+ * Fig. 7 — the pipeline.
  *
  * One interface dragged through its own making: sketch → vectors → tokens →
  * markup → shipped. It is the closing argument of the page, and the argument is
@@ -774,7 +774,7 @@ export function Pipeline() {
           a flex row above the stage it grew from one line to two between
           stages and moved everything under it. */}
       <div className="pipe-head">
-        <span className="pipe-figlbl">fig. 6 · process</span>
+        <span className="pipe-figlbl">fig. 7 · process</span>
         <h2>Sketch to shipped</h2>
       </div>
       {/* Keyed on the stage so it replays `cap-in`: the note is a different

@@ -34,6 +34,7 @@ const SpectrumDemo = dynamic(() =>
 );
 const Loupe = dynamic(() => import("@/components/schematic/Loupe").then((m) => m.Loupe));
 const Pipeline = dynamic(() => import("@/components/schematic/Pipeline").then((m) => m.Pipeline));
+import { ScaleFigure } from "@/components/schematic/ScaleFigure";
 import { Specimens } from "@/components/schematic/Specimens";
 import { published } from "@/lib/posts";
 import { CAREER_YEARS, PUBLIC_WORK, speaking } from "@/lib/resume";
@@ -46,7 +47,7 @@ import {
   projectsSchema,
   SITE_URL,
 } from "@/lib/jsonld";
-import { ASSISTANT, MICROCHARTS, SGB, SPECTRUM } from "./content";
+import { ASSISTANT, MICROCHARTS, SCALE, SGB, SPECTRUM } from "./content";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
@@ -166,7 +167,28 @@ export default async function HomePage() {
         </article>
       </section>
 
+      {/* Five figures, two rows. The spiral spans both rows of this one and the
+          two short plates stack beside it, so the row is three plates and the
+          grid does the height matching: whichever side is taller sets the other,
+          and both sides start and finish on the same two lines. Reading order is
+          still 3, 4, 5 — down the left, then down the right. */}
       <section className="mechs2">
+        <article className="panel">
+          <h2>scale of time</h2>
+          <p className="meta">
+            {SCALE.meta} ·{" "}
+            <a
+              href={SCALE.href}
+              target="_blank"
+              rel="noopener"
+              data-analytics="cta:project.scale-of-time"
+            >
+              scale-of-time.vercel.app
+            </a>
+          </p>
+          <ScaleFigure fig="fig. 3 · logarithmic spiral" body={SCALE.body} />
+        </article>
+
         <article className="panel">
           <h2>sgb</h2>
           <p className="meta">
@@ -175,11 +197,11 @@ export default async function HomePage() {
               sgb.vercel.app
             </a>
           </p>
-          <SgbFigure fig="fig. 3 · general arrangement" body={SGB.body} />
+          <SgbFigure fig="fig. 4 · general arrangement" body={SGB.body} />
         </article>
 
         <article className="panel">
-          <span className="p-fig">fig. 4 · live specimen</span>
+          <span className="p-fig">fig. 5 · live specimen</span>
           <h2>react-spectrum</h2>
           <p className="meta">
             {SPECTRUM.meta} ·{" "}
@@ -209,7 +231,7 @@ export default async function HomePage() {
       {/* ---- fold 3 · the records ---------------------------------------- */}
       <section className="records" id="work" data-sec="career">
         <div className="panel">
-          <span className="p-fig">fig. 5 · timeline</span>
+          <span className="p-fig">fig. 6 · timeline</span>
           <h2>The career</h2>
           <p className="meta">2013 to now · at Tracxn since 2015</p>
           <Career />

@@ -88,7 +88,7 @@ function Tick({ x, y, dx, dy }: { x: number; y: number; dx: number; dy: number }
  */
 /**
  * The figure the card carries: a hand-plotted series with its dimension drawn
- * under it, the same convention as fig. 5 on the sheet. A shape, not data —
+ * under it, the same convention as fig. 6 on the sheet. A shape, not data —
  * like `CHART` on the home page it states no values, which is why the only
  * label it takes is `dim`, a measurement the route can actually back up.
  */
@@ -241,7 +241,7 @@ export async function renderOG({
                 color: INK_3,
               }}
             >
-              fig. 5 · timeline
+              fig. 6 · timeline
             </div>
           </div>
         </div>

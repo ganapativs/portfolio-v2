@@ -58,7 +58,7 @@ import { SpecimensTray } from "./SpecimensTray";
  * invents a statistic that looks specific.
  */
 
-/** The cumulative shipped-work curve fig. 6 is built from. */
+/** The cumulative shipped-work curve fig. 7 is built from. */
 const SHIPPED = CHART.map((c) => 52 - c.y);
 
 /** One right-skewed specimen sample, shared by the four distribution types. */
