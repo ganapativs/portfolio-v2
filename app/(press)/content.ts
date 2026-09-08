@@ -123,23 +123,29 @@ export type Part = {
 
 export const PARTS: readonly Part[] = [
   {
-    name: "bttn.css",
-    spec: "CSS buttons · {stars} stars",
-    stars: BTTN_STARS,
-    year: "2016",
-    href: "https://github.com/ganapativs/bttn.css",
-  },
-  {
     name: "microcharts",
     spec: "106 chart types · 1-7 kB gzip",
     year: "2026",
     href: "https://github.com/ganapativs/microcharts",
   },
   {
+    name: "scale of time",
+    spec: "13.8 bn years in 13,800 dots",
+    year: "2026",
+    href: "https://scale-of-time.vercel.app",
+  },
+  {
     name: "sgb",
     spec: "gold bond tracker · still live",
     year: "2021",
     href: "https://sgb.vercel.app",
+  },
+  {
+    name: "bttn.css",
+    spec: "CSS buttons · {stars} stars",
+    stars: BTTN_STARS,
+    year: "2016",
+    href: "https://github.com/ganapativs/bttn.css",
   },
   {
     name: "priority",
@@ -210,7 +216,7 @@ export const CHART: readonly { x: number; y: number; story: string; promotion?: 
   { x: 204, y: 20, story: "promoted to VP", promotion: true },
   { x: 223, y: 17, story: "priority" },
   { x: 243, y: 11, story: "the assistant · puppeteer-warc" },
-  { x: 262, y: 8, story: "microcharts" },
+  { x: 262, y: 8, story: "microcharts · scale of time" },
 ] as const;
 
 /* ---- panel copy ---------------------------------------------------------- */

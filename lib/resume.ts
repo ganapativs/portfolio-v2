@@ -311,6 +311,23 @@ export const flagships: Flagship[] = [
   },
 ];
 
+/**
+ * Things built for the pleasure of building them, kept off the role bullets.
+ *
+ * The roles are the job and `flagships` is the public catalogue with stars and
+ * a licence; neither is the right shelf for a weekend piece whose repo is
+ * private. The numbers below are read off the live page, not estimated.
+ */
+export const explorations: { name: string; href: string; year: string; blurb: string }[] = [
+  {
+    name: "scale of time",
+    href: "https://scale-of-time.vercel.app",
+    year: "2026",
+    blurb:
+      "13.8 billion years as 13,800 dots, zooming down through six scales to one lifetime. 1,040 milestones, each with a source.",
+  },
+];
+
 export const education: Education[] = [
   {
     kind: "degree",
@@ -443,4 +460,4 @@ export const speaking: Talk[] = [
  * on every deploy teaches crawlers to ignore it; the same argument applies to
  * a line a reader can see. Edit this when the content changes.
  */
-export const lastUpdatedISO = "2026-09-05";
+export const lastUpdatedISO = "2026-09-08";

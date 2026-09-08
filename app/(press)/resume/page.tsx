@@ -8,6 +8,7 @@ import {
   roles,
   flagships,
   education,
+  explorations,
   skills,
   speaking,
   lastUpdatedISO,
@@ -215,6 +216,22 @@ export default async function ResumePage() {
                 {t.event}, {t.place} · {t.year} · {t.detail}
               </div>
             ))}
+
+            <h2 className="cv-h2">Explorations</h2>
+            <div className="cv-block cv-list">
+              {explorations.map((e) => (
+                <div key={e.name} className="cv-item">
+                  <div className="cv-item-name">
+                    <a href={e.href} data-analytics={`cta:resume.exploration.${e.name}`}>
+                      {e.name}
+                    </a>
+                  </div>
+                  <div className="cv-item-note">
+                    {e.year} · {e.blurb}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
